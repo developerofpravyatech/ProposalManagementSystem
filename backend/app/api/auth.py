@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.database import get_db
-from app.models.proposal import Admin
+from app.models.admin import Admin
 from app.schemas.auth import AdminCreate, AdminRead, AdminLogin, Token
 from app.utils.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 

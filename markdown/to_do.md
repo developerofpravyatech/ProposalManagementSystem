@@ -24,21 +24,14 @@
 
 ---
 
-## 2. Backend & API Layer (✅ Completed)
+## 2. FastAPI Backend & API Layer (✅ Completed)
 - [x] Python/FastAPI environment setup (`backend/requirements.txt`, `backend/.env`)
-- [x] PostgreSQL + SQLAlchemy 2.0 database engine configuration (`backend/app/database.py`)
-- [x] Database models for `proposals`, `proposal_views`, `admins` (`backend/app/models/`)
-- [x] Pydantic v2 schemas (`backend/app/schemas/`)
-- [x] Admin authentication API endpoints (`/api/auth/login`, `/api/auth/me`, `/api/auth/refresh`)
-- [x] Proposal CRUD & analytics endpoints (`/api/proposals`)
-- [x] Public token-based proposal endpoints (`/api/public/proposals/{token}`)
-- [x] Server-side PDF generation service (`backend/app/services/pdf_service.py`)
-- [x] FastAPI app entrypoint with CORS + routers (`backend/app/main.py`)
-
----
-
-## 3. Next Steps
-- [ ] Database migrations with Alembic
-- [ ] Automated testing (`pytest`)
-- [ ] Security review & hardening
-- [ ] Production deployment config
+- [x] Database engine configuration & connection pooling (`backend/app/database.py`)
+- [x] SQLAlchemy 2.0 async database models for `proposals`, `proposal_views`, and `admins` (`backend/app/models/`)
+- [x] Pydantic v2 schemas for authentication, proposal CRUD, and analytics (`backend/app/schemas/`)
+- [x] Admin authentication API endpoints with JWT tokens (`/api/auth/register`, `/api/auth/login`, `/api/auth/me`)
+- [x] Proposal management CRUD, renewal duplicator & dashboard analytics endpoints (`/api/proposals`)
+- [x] Public token-based proposal endpoints & silent telemetry (`/api/public/proposals/{token}`)
+- [x] Cross-platform pure-Python PDF generation service (`ReportLab` in `backend/app/services/pdf_service.py`)
+- [x] Interactive OpenAPI Swagger UI (`/docs`) & ReDoc (`/redoc`)
+- [x] Complete end-to-end integration test suite passed

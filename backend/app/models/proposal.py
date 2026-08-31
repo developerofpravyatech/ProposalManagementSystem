@@ -1,4 +1,4 @@
-from sqlalchemy import String, DateTime, Integer, Numeric, Text, Enum, ForeignKey, func
+from sqlalchemy import String, DateTime, Integer, Float, Text, Enum, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from enum import Enum as PyEnum
@@ -29,7 +29,7 @@ class Proposal(Base):
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     project_title: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    amount: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+    amount: Mapped[float | None] = mapped_column(Float, nullable=True)
     currency: Mapped[str | None] = mapped_column(String(10), nullable=True)
     pdf_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     unique_token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)

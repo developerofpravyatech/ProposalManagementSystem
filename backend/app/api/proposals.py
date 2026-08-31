@@ -15,9 +15,51 @@ from app.services.proposal_service import (
     record_view,
     get_analytics,
 )
+from app.services.pdf_service import generate_pdf
 from app.api.auth import get_current_admin
 
 router = APIRouter(prefix="/proposals", tags=["proposals"])
+
+
+@router.get("/dashboard-stats")
+async def get_dashboard_summary(
+    db: AsyncSession = Depends(get_db),
+    current_admin=Depends(get_current_admin),
+):
+    all_props = await get_proposals(db, limit=500)
+    total_proposals = len(all_props)
+    profile_count = len([p for p in all_props if p.proposal_type.value in ["company_profile", "profile"]])
+    quotation_count = len([p for p in all_props if p.proposal_type.value in ["project_quotation", "quotation"]])
+    total_views = sum(p.view_count for p in all_props)
+    viewed_props = len([p for p in all_props if p.view_count > 0])
+    open_rate = round((viewed_props / total_proposals * 100)) if total_proposals > 0 else 0
+    accepted = [p for p in all_props if p.status == ProposalStatus.accepted]
+    total_accepted_val = sum((p.amount or 0) for p in accepted)
+
+    return {
+        "totalProposals": total_proposals,
+        "profileCount": profile_count,
+        "quotationCount": quotation_count,
+        "totalViews": total_views,
+        "openRate": open_rate,
+        "acceptedCount": len(accepted),
+        "totalAcceptedValue": total_accepted_val,
+        "renewalsDueCount": len([p for p in all_props if p.status == ProposalStatus.renewal_due]),
+        "recentActivity": []
+    }
+
+
+@router.post("/{proposal_id}/pdf")
+async def create_proposal_pdf(
+    proposal_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_admin=Depends(get_current_admin),
+):
+    proposal = await get_proposal_by_id(db, proposal_id)
+    if not proposal:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+    filepath = await generate_pdf(db, proposal)
+    return {"detail": "PDF generated successfully", "pdf_path": filepath}
 
 
 @router.get("", response_model=List[ProposalRead])
