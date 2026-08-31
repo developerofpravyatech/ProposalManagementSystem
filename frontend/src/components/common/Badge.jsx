@@ -3,7 +3,7 @@ import { Send, Eye, CheckCircle, Clock, RotateCw, FileText, Sparkles } from 'luc
 
 export function Badge({ status, type, count, className = '' }) {
   if (type) {
-    if (type === 'profile') {
+    if (type === 'profile_only') {
       return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white border border-slate-800 shadow-sm ${className}`}>
           <FileText className="w-3 h-3 text-brand-400" />
@@ -11,7 +11,7 @@ export function Badge({ status, type, count, className = '' }) {
         </span>
       );
     }
-    if (type === 'quotation') {
+    if (type === 'quotation_proposal') {
       return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200 shadow-sm ${className}`}>
           <Sparkles className="w-3 h-3 text-brand-600" />

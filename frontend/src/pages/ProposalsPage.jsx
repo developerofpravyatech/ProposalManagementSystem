@@ -37,7 +37,7 @@ export function ProposalsPage() {
   const handleRenew = async (proposal) => {
     try {
       const cloned = await proposalApi.duplicateForRenewal(proposal.id);
-      addToast(`Renewed proposal created: ${cloned.proposal_number}`, 'success');
+      addToast(`Renewed proposal created: ${cloned.proposal_no}`, 'success');
       fetchProposals();
     } catch (err) {
       addToast(err.message || 'Failed to duplicate renewal', 'error');

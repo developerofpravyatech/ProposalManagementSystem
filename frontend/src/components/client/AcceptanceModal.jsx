@@ -96,7 +96,7 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
 
     setIsSubmitting(true);
     try {
-      await publicApi.acceptQuotation(proposal.token, {
+      await publicApi.acceptQuotation(proposal.unique_token, {
         accepted_by: `${signerName} (${signerTitle || 'Authorized Signatory'})`,
         signature_data: signatureData,
         terms_agreed: true
@@ -118,7 +118,7 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
       isOpen={isOpen}
       onClose={onClose}
       title="Accept & Sign Proposal"
-      subtitle={`Formal acceptance for Proposal #${proposal.proposal_number}`}
+      subtitle={`Formal acceptance for Proposal #${proposal.proposal_no}`}
     >
       <form onSubmit={handleAccept} className="space-y-4">
         <div className="p-4 rounded-2xl bg-brand-50 border border-brand-200 flex items-center justify-between text-xs">

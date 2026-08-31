@@ -22,7 +22,7 @@ import { Button } from '../common/Button';
 
 export function DocumentViewer({ proposal, onOpenAcceptModal }) {
   const [activeSection, setActiveSection] = useState('cover');
-  const isQuotation = proposal.proposal_type === 'quotation';
+  const isQuotation = proposal.type === 'quotation_proposal';
   const isAccepted = proposal.status === 'accepted';
 
   const sections = isQuotation
@@ -78,9 +78,9 @@ export function DocumentViewer({ proposal, onOpenAcceptModal }) {
       <section id="cover" className="relative rounded-3xl overflow-hidden bg-white p-8 sm:p-14 border border-slate-200 shadow-md mesh-bg">
         <div className="max-w-3xl space-y-6">
           <div className="flex items-center gap-3">
-            <Badge type={proposal.proposal_type} />
+            <Badge type={proposal.type} />
             <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-              Ref: {proposal.proposal_number}
+              Ref: {proposal.proposal_no}
             </span>
           </div>
 

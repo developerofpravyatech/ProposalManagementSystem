@@ -10,17 +10,16 @@ export const proposalApi = {
       const views = getMockViews();
 
       const totalProposals = proposals.length;
-      const profileCount = proposals.filter(p => p.proposal_type === 'profile').length;
-      const quotationCount = proposals.filter(p => p.proposal_type === 'quotation').length;
-      
-      const totalViews = views.length;
+      const profileCount = proposals.filter(p => p.type === 'profile_only').length;
+      const quotationCount = proposals.filter(p => p.type === 'quotation_proposal').length;
+
+      const totalViews = proposals.reduce((sum, p) => sum + (p.view_count || 0), 0);
       const viewedProposals = proposals.filter(p => (p.view_count || 0) > 0).length;
       const openRate = totalProposals > 0 ? Math.round((viewedProposals / totalProposals) * 100) : 0;
 
       const acceptedProposals = proposals.filter(p => p.status === 'accepted');
       const totalAcceptedValue = acceptedProposals.reduce((sum, p) => sum + (p.amount || 0), 0);
 
-      // Renewals due in <= 30 days
       const now = new Date();
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(now.getDate() + 30);
@@ -44,9 +43,9 @@ export const proposalApi = {
           const prop = proposals.find(p => p.id === v.proposal_id);
           return {
             id: v.id,
-            proposal_number: prop?.proposal_number || 'Proposal',
+            proposal_number: prop?.proposal_no || 'Proposal',
             company_name: prop?.company_name || 'Client',
-            action: v.action,
+            action: v.action || 'Page Opened',
             viewed_at: v.viewed_at,
             device_type: v.device_type,
             city: v.city
@@ -59,7 +58,8 @@ export const proposalApi = {
   async getProposals(filters = {}) {
     try {
       const params = new URLSearchParams(filters);
-      return await apiRequest(`/proposals?${params.toString()}`);
+      const list = await apiRequest(`/proposals?${params.toString()}`);
+      return list;
     } catch {
       let list = getMockProposals();
 
@@ -67,16 +67,16 @@ export const proposalApi = {
         list = list.filter(p => p.status === filters.status);
       }
       if (filters.type && filters.type !== 'all') {
-        list = list.filter(p => p.proposal_type === filters.type);
+        list = list.filter(p => p.type === filters.type);
       }
       if (filters.search) {
         const q = filters.search.toLowerCase();
-        list = list.filter(p => 
-          p.proposal_number.toLowerCase().includes(q) ||
+        list = list.filter(p =>
+          (p.proposal_no || '').toLowerCase().includes(q) ||
           p.client_name.toLowerCase().includes(q) ||
-          p.company_name.toLowerCase().includes(q) ||
-          p.project_title.toLowerCase().includes(q) ||
-          p.token.toLowerCase().includes(q)
+          (p.company_name || '').toLowerCase().includes(q) ||
+          (p.project_title || '').toLowerCase().includes(q) ||
+          (p.unique_token || '').toLowerCase().includes(q)
         );
       }
       return list;
@@ -108,8 +108,8 @@ export const proposalApi = {
 
       const newProposal = {
         id: nextId,
-        proposal_number,
-        token,
+        proposal_no: proposal_number,
+        unique_token: token,
         status: 'sent',
         view_count: 0,
         first_opened_at: null,
@@ -166,10 +166,8 @@ export const proposalApi = {
       const original = list.find(p => p.id === Number(id));
       if (!original) throw new Error('Original proposal not found');
 
-      // Mark original as renewed
       original.status = 'renewed';
 
-      // Create new cloned proposal
       const nextId = Math.max(...list.map(p => p.id)) + 1;
       const proposal_number = `PT-2026-${String(100 + nextId).padStart(3, '0')}`;
       const token = generateToken(`renewal-${original.project_title}`, original.company_name);
@@ -177,8 +175,8 @@ export const proposalApi = {
       const cloned = {
         ...original,
         id: nextId,
-        proposal_number,
-        token,
+        proposal_no: proposal_number,
+        unique_token: token,
         status: 'sent',
         view_count: 0,
         first_opened_at: null,
@@ -190,7 +188,6 @@ export const proposalApi = {
         created_at: new Date().toISOString(),
         sent_at: new Date().toISOString(),
         renewal_date: renewalPayload.renewal_date || original.renewal_date,
-        contract_duration: renewalPayload.contract_duration || original.contract_duration,
         project_title: renewalPayload.project_title || `${original.project_title} (Renewal)`,
       };
 

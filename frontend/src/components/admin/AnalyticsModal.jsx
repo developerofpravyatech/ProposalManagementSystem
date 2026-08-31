@@ -48,7 +48,7 @@ export function AnalyticsModal({ isOpen, onClose, proposal }) {
       onClose={onClose}
       maxWidth="max-w-3xl"
       title={`Engagement Analytics & Forensic Audit Trail`}
-      subtitle={`${proposal.proposal_number} — ${proposal.company_name}`}
+      subtitle={`${proposal.proposal_no} — ${proposal.company_name}`}
     >
       <div className="space-y-6">
         {/* KPI Row */}

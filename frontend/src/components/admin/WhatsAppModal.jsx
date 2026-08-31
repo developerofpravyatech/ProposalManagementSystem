@@ -17,13 +17,13 @@ export function WhatsAppModal({ isOpen, onClose, proposal }) {
       setPhone(cleanPhone);
 
       const origin = window.location.origin;
-      const clientUrl = `${origin}/p/${proposal.token}`;
+      const clientUrl = `${origin}/p/${proposal.unique_token}`;
 
       let msg = '';
-      if (proposal.proposal_type === 'profile') {
+      if (proposal.type === 'profile_only') {
         msg = `Hello ${proposal.client_name},\n\nThank you for connecting with *PRAVYA TECH*. Here is our official Company Profile & Capability Deck for your review:\n\n🔗 ${clientUrl}\n\nPlease feel free to explore our case studies and reach out if you have any questions.\n\nBest regards,\nPRAVYA TECH Team`;
       } else {
-        msg = `Hello ${proposal.client_name},\n\nWe have prepared the customized proposal & quotation for *${proposal.project_title}*:\n\n📄 *Proposal #:* ${proposal.proposal_number}\n💰 *Investment:* ${proposal.currency_symbol || '$'}${proposal.amount ? proposal.amount.toLocaleString() : '0'} ${proposal.currency || ''}\n🔗 *Secure Proposal Link:* ${clientUrl}\n\nYou can review the line items, download the full PDF, or sign off directly through the link above.\n\nLooking forward to collaborating!\n\nBest regards,\nPRAVYA TECH Team`;
+        msg = `Hello ${proposal.client_name},\n\nWe have prepared the customized proposal & quotation for *${proposal.project_title}*:\n\n📄 *Proposal #:* ${proposal.proposal_no}\n💰 *Investment:* ${proposal.currency_symbol || '$'}${proposal.amount ? proposal.amount.toLocaleString() : '0'} ${proposal.currency || ''}\n🔗 *Secure Proposal Link:* ${clientUrl}\n\nYou can review the line items, download the full PDF, or sign off directly through the link above.\n\nLooking forward to collaborating!\n\nBest regards,\nPRAVYA TECH Team`;
       }
       setMessage(msg);
     }

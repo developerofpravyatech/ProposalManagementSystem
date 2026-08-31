@@ -72,7 +72,7 @@ export function LiveActivityFeed({ activities = [] }) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-slate-900">{act.company_name}</span>
                       <span className="text-slate-500 font-mono text-[11px] bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                        {act.proposal_number}
+                        {act.proposal_no}
                       </span>
                     </div>
                     <p className="text-slate-600 mt-0.5 font-medium">{details.label}</p>

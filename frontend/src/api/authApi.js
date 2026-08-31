@@ -2,39 +2,25 @@ import { apiRequest } from './client';
 
 export const authApi = {
   async login(email, password) {
-    try {
-      const data = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
-      if (data.token) {
-        localStorage.setItem('pravya_admin_token', data.token);
-        localStorage.setItem('pravya_admin_user', JSON.stringify(data.user));
-      }
-      return data;
-    } catch {
-      // Mock login for offline/instant testing
-      if (email === 'admin@pravyatech.com' || email.includes('@')) {
-        const mockUser = {
-          id: 1,
-          name: 'Pravya Admin',
-          email: email || 'admin@pravyatech.com',
-          role: 'superadmin'
-        };
-        const mockToken = 'mock-jwt-token-pravya-2026';
-        localStorage.setItem('pravya_admin_token', mockToken);
-        localStorage.setItem('pravya_admin_user', JSON.stringify(mockUser));
-        return { token: mockToken, user: mockUser };
-      }
-      throw new Error('Invalid credentials');
+    const data = await apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    const accessToken = data.access_token || data.token;
+    if (accessToken) {
+      localStorage.setItem('pravya_admin_token', accessToken);
     }
+    const user = await apiRequest('/auth/me').catch(() => null);
+    if (user) {
+      localStorage.setItem('pravya_admin_user', JSON.stringify(user));
+    }
+    return { ...data, token: accessToken, user };
   },
 
-  getCurrentUser() {
-    const userStr = localStorage.getItem('pravya_admin_user');
-    if (!userStr) return null;
+  async getCurrentUser() {
     try {
-      return JSON.parse(userStr);
+      const data = await apiRequest('/auth/me');
+      return data;
     } catch {
       return null;
     }

@@ -23,7 +23,7 @@ export function CreateProposalPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Proposal Form State
-  const [proposalType, setProposalType] = useState('quotation'); // 'profile' or 'quotation'
+  const [proposalType, setProposalType] = useState('quotation_proposal'); // 'profile_only' or 'quotation_proposal'
   const [clientName, setClientName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
@@ -73,7 +73,7 @@ export function CreateProposalPage() {
   };
 
   const calculateTotal = () => {
-    if (proposalType === 'profile') return 0;
+    if (proposalType === 'profile_only') return 0;
     const rawSubtotal = lineItems.reduce((acc, item) => acc + (item.subtotal || 0), 0);
     const discount = (rawSubtotal * (Number(discountRate) || 0)) / 100;
     const taxable = rawSubtotal - discount;
@@ -95,24 +95,24 @@ export function CreateProposalPage() {
     setIsSubmitting(true);
     try {
       const payload = {
-        proposal_type: proposalType,
+        type: proposalType,
         client_name: clientName,
         company_name: companyName,
         phone,
         email,
         project_title: projectTitle,
-        project_subtitle: projectSubtitle || (proposalType === 'profile' ? 'PRAVYA TECH Company Profile & Credentials' : ''),
+        project_subtitle: projectSubtitle || (proposalType === 'profile_only' ? 'PRAVYA TECH Company Profile & Credentials' : ''),
         amount: calculateTotal(),
         currency,
         currency_symbol: currencySymbols[currency] || '$',
-        contract_duration: proposalType === 'quotation' ? contractDuration : 'N/A',
-        renewal_date: proposalType === 'quotation' ? renewalDate : null,
-        line_items: proposalType === 'quotation' ? lineItems : [],
-        terms: proposalType === 'quotation' ? terms : null,
+        contract_duration: proposalType === 'quotation_proposal' ? contractDuration : 'N/A',
+        renewal_date: proposalType === 'quotation_proposal' ? renewalDate : null,
+        line_items: proposalType === 'quotation_proposal' ? lineItems : [],
+        terms: proposalType === 'quotation_proposal' ? terms : null,
       };
 
       const created = await proposalApi.createProposal(payload);
-      addToast(`Proposal #${created.proposal_number} generated successfully!`, 'success');
+      addToast(`Proposal #${created.proposal_no} generated successfully!`, 'success');
       navigate('/admin/proposals');
     } catch (err) {
       addToast(err.message || 'Failed to create proposal', 'error');
@@ -172,11 +172,11 @@ export function CreateProposalPage() {
             <Card
               hover
               onClick={() => {
-                setProposalType('profile');
+                setProposalType('profile_only');
                 if (!projectTitle) setProjectTitle('PRAVYA TECH — Corporate Profile & Digital Capabilities');
               }}
               className={`space-y-4 border-2 transition-all bg-white shadow-sm ${
-                proposalType === 'profile'
+                proposalType === 'profile_only'
                   ? 'border-slate-900 bg-slate-50/50 shadow-md'
                   : 'border-slate-200 hover:border-slate-300'
               }`}
@@ -200,11 +200,11 @@ export function CreateProposalPage() {
             <Card
               hover
               onClick={() => {
-                setProposalType('quotation');
+                setProposalType('quotation_proposal');
                 if (projectTitle === 'PRAVYA TECH — Corporate Profile & Digital Capabilities') setProjectTitle('');
               }}
               className={`space-y-4 border-2 transition-all bg-white shadow-sm ${
-                proposalType === 'quotation'
+                proposalType === 'quotation_proposal'
                   ? 'border-brand-600 bg-brand-50/30 shadow-md shadow-brand-600/10'
                   : 'border-slate-200 hover:border-slate-300'
               }`}
@@ -310,14 +310,14 @@ export function CreateProposalPage() {
                   addToast('Please fill out all required fields', 'error');
                   return;
                 }
-                if (proposalType === 'profile') {
+                if (proposalType === 'profile_only') {
                   handleSubmit();
                 } else {
                   setStep(3);
                 }
               }}
             >
-              {proposalType === 'profile' ? 'Generate Company Profile' : 'Configure Commercials'}
+              {proposalType === 'profile_only' ? 'Generate Company Profile' : 'Configure Commercials'}
             </Button>
           </div>
         </Card>

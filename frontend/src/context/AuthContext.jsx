@@ -11,24 +11,15 @@ export function AuthProvider({ children }) {
     const storedUser = authApi.getCurrentUser();
     if (storedUser) {
       setUser(storedUser);
-    } else {
-      // Auto-initialize default admin for seamless immediate demo access
-      const defaultAdmin = {
-        id: 1,
-        name: 'PRAVYA Admin',
-        email: 'admin@pravyatech.com',
-        role: 'superadmin'
-      };
-      localStorage.setItem('pravya_admin_token', 'mock-jwt-token-pravya-2026');
-      localStorage.setItem('pravya_admin_user', JSON.stringify(defaultAdmin));
-      setUser(defaultAdmin);
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     const res = await authApi.login(email, password);
-    setUser(res.user);
+    if (res.user) {
+      setUser(res.user);
+    }
     return res;
   };
 

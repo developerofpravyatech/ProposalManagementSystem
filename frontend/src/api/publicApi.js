@@ -7,7 +7,7 @@ export const publicApi = {
       return await apiRequest(`/public/proposals/${token}`);
     } catch {
       const proposals = getMockProposals();
-      const found = proposals.find(p => p.token === token);
+      const found = proposals.find(p => p.unique_token === token);
       if (!found) throw new Error('Proposal not found or link has expired');
       return found;
     }
@@ -21,7 +21,7 @@ export const publicApi = {
       });
     } catch {
       const proposals = getMockProposals();
-      const proposal = proposals.find(p => p.token === token);
+      const proposal = proposals.find(p => p.unique_token === token);
       if (!proposal) return null;
 
       const now = new Date().toISOString();
@@ -30,14 +30,13 @@ export const publicApi = {
       }
       proposal.last_opened_at = now;
       proposal.view_count = (proposal.view_count || 0) + 1;
-      
+
       if (proposal.status === 'sent') {
         proposal.status = 'viewed';
       }
 
       saveMockProposals(proposals);
 
-      // Add view log
       const views = getMockViews();
       const newView = {
         id: views.length + 1,
@@ -60,18 +59,17 @@ export const publicApi = {
   async recordDownload(token) {
     try {
       return await apiRequest(`/public/proposals/${token}/download`, {
-        method: 'POST',
+        method: 'GET',
       });
     } catch {
       const proposals = getMockProposals();
-      const proposal = proposals.find(p => p.token === token);
+      const proposal = proposals.find(p => p.unique_token === token);
       if (!proposal) return null;
 
       const now = new Date().toISOString();
       proposal.pdf_downloaded_at = now;
       saveMockProposals(proposals);
 
-      // Add download event log
       const views = getMockViews();
       views.push({
         id: views.length + 1,
@@ -98,7 +96,7 @@ export const publicApi = {
       });
     } catch {
       const proposals = getMockProposals();
-      const proposal = proposals.find(p => p.token === token);
+      const proposal = proposals.find(p => p.unique_token === token);
       if (!proposal) throw new Error('Proposal not found');
 
       const now = new Date().toISOString();
@@ -108,7 +106,6 @@ export const publicApi = {
       proposal.signature_data = signPayload.signature_data;
       saveMockProposals(proposals);
 
-      // Add view audit log for acceptance
       const views = getMockViews();
       views.push({
         id: views.length + 1,

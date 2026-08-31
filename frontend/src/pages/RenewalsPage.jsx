@@ -31,7 +31,7 @@ export function RenewalsPage() {
   const fetchRenewals = async () => {
     setLoading(true);
     try {
-      const data = await proposalApi.getProposals({ type: 'quotation' });
+      const data = await proposalApi.getProposals({ type: 'quotation_proposal' });
       setProposals(data);
     } catch (err) {
       console.error(err);
@@ -66,7 +66,7 @@ export function RenewalsPage() {
         project_title: `${activeRenewalProposal.project_title} (Renewal)`
       });
 
-      addToast(`Renewal proposal #${cloned.proposal_number} generated!`, 'success');
+      addToast(`Renewal proposal #${cloned.proposal_no} generated!`, 'success');
       setActiveRenewalProposal(null);
       fetchRenewals();
     } catch (err) {
@@ -89,7 +89,7 @@ export function RenewalsPage() {
       if (!search) return true;
       const q = search.toLowerCase();
       return (
-        p.proposal_number.toLowerCase().includes(q) ||
+        (p.proposal_no || '').toLowerCase().includes(q) ||
         p.company_name.toLowerCase().includes(q) ||
         p.client_name.toLowerCase().includes(q) ||
         p.project_title.toLowerCase().includes(q)
@@ -218,7 +218,7 @@ export function RenewalsPage() {
                       <td className="px-6 py-4">
                         <div className="font-bold text-slate-900">{p.company_name}</div>
                         <p className="text-xs text-slate-500 font-medium">{p.project_title}</p>
-                        <span className="font-mono text-[11px] text-brand-600 font-bold mt-0.5 block">{p.proposal_number}</span>
+                        <span className="font-mono text-[11px] text-brand-600 font-bold mt-0.5 block">{p.proposal_no}</span>
                       </td>
 
                       <td className="px-6 py-4 font-mono font-black text-slate-900 whitespace-nowrap">

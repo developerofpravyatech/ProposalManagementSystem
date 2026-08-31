@@ -37,13 +37,13 @@ export function ProposalTable({
 
   const filteredProposals = proposals.filter((p) => {
     const matchesSearch =
-      p.proposal_number.toLowerCase().includes(search.toLowerCase()) ||
+      (p.proposal_no || '').toLowerCase().includes(search.toLowerCase()) ||
       p.client_name.toLowerCase().includes(search.toLowerCase()) ||
       p.company_name.toLowerCase().includes(search.toLowerCase()) ||
       p.project_title.toLowerCase().includes(search.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-    const matchesType = typeFilter === 'all' || p.proposal_type === typeFilter;
+    const matchesType = typeFilter === 'all' || p.type === typeFilter;
 
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -99,8 +99,8 @@ export function ProposalTable({
             className="bg-white border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-brand-600 shadow-sm"
           >
             <option value="all">All Types</option>
-            <option value="profile">Company Profile</option>
-            <option value="quotation">Project Quotation</option>
+            <option value="profile_only">Company Profile</option>
+            <option value="quotation_proposal">Project Quotation</option>
           </select>
         </div>
       </div>
@@ -138,9 +138,9 @@ export function ProposalTable({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-slate-900 text-xs bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">
-                            {p.proposal_number}
+                            {p.proposal_no}
                           </span>
-                          <Badge type={p.proposal_type} />
+                          <Badge type={p.type} />
                         </div>
                         <p className="text-xs text-slate-500 font-medium mt-1 max-w-[220px] truncate" title={p.project_title}>
                           {p.project_title}
@@ -158,7 +158,7 @@ export function ProposalTable({
 
                       {/* Amount */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {p.proposal_type === 'quotation' ? (
+                        {p.type === 'quotation_proposal' ? (
                           <div>
                             <span className="font-mono font-black text-slate-900 text-sm">
                               {p.currency_symbol || '$'}
@@ -210,7 +210,7 @@ export function ProposalTable({
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Copy Private Link */}
                           <button
-                            onClick={() => handleCopyLink(p.token, p.id)}
+                            onClick={() => handleCopyLink(p.unique_token, p.id)}
                             title="Copy Private Client Link (/p/{token})"
                             className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-all shadow-sm"
                           >
@@ -241,7 +241,7 @@ export function ProposalTable({
 
                           {/* Open Viewer In New Tab */}
                           <a
-                            href={`/p/${p.token}`}
+                             href={`/p/${p.unique_token}`}
                             target="_blank"
                             rel="noreferrer"
                             title="Open Client Viewer in New Tab"
@@ -251,7 +251,7 @@ export function ProposalTable({
                           </a>
 
                           {/* Renew Clone */}
-                          {p.proposal_type === 'quotation' && (
+                          {p.type === 'quotation_proposal' && (
                             <button
                               onClick={() => onRenew(p)}
                               title="Duplicate as Renewal Proposal"

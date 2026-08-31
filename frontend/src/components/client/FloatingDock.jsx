@@ -10,7 +10,7 @@ export function FloatingDock({
   isDownloading
 }) {
   const isAccepted = proposal.status === 'accepted';
-  const isQuotation = proposal.proposal_type === 'quotation';
+  const isQuotation = proposal.type === 'quotation_proposal';
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-40 p-3 md:hidden bg-white/95 backdrop-blur-2xl border-t border-slate-200 shadow-2xl">

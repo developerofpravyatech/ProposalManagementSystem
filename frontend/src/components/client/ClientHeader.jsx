@@ -10,7 +10,7 @@ export function ClientHeader({
   isDownloading = false
 }) {
   const isAccepted = proposal.status === 'accepted';
-  const isQuotation = proposal.proposal_type === 'quotation';
+  const isQuotation = proposal.type === 'quotation_proposal';
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b border-slate-200 px-4 sm:px-8 py-3.5 transition-all shadow-sm">
@@ -32,7 +32,7 @@ export function ClientHeader({
               </span>
             </div>
             <p className="text-[11px] text-slate-500 font-mono font-medium">
-              {proposal.proposal_number} • Prepared for {proposal.company_name}
+              {proposal.proposal_no} • Prepared for {proposal.company_name}
             </p>
           </div>
         </div>

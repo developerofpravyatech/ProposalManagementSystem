@@ -3,9 +3,9 @@
 const INITIAL_PROPOSALS = [
   {
     id: 1,
-    proposal_type: "quotation", // 'profile' (Mode A) or 'quotation' (Mode B)
-    proposal_number: "PT-2026-101",
-    token: "acme-corp-q1-2026",
+    type: "quotation_proposal",
+    proposal_no: "PT-2026-101",
+    unique_token: "acme-corp-q1-2026",
     client_name: "Sarah Jenkins",
     company_name: "Acme Global Solutions",
     phone: "+919876543210",
@@ -15,7 +15,7 @@ const INITIAL_PROPOSALS = [
     amount: 18500,
     currency: "USD",
     currency_symbol: "$",
-    status: "viewed", // sent, viewed, accepted, renewal_due, renewed
+    status: "viewed",
     contract_duration: "12 Months",
     renewal_date: "2027-08-31",
     created_at: "2026-08-25T10:30:00Z",
@@ -55,9 +55,9 @@ const INITIAL_PROPOSALS = [
   },
   {
     id: 2,
-    proposal_type: "profile",
-    proposal_number: "PT-2026-102",
-    token: "nova-ventures-profile",
+    type: "profile_only",
+    proposal_no: "PT-2026-102",
+    unique_token: "nova-ventures-profile",
     client_name: "Marcus Vance",
     company_name: "Nova Ventures Capital",
     phone: "+971501234567",
@@ -81,9 +81,9 @@ const INITIAL_PROPOSALS = [
   },
   {
     id: 3,
-    proposal_type: "quotation",
-    proposal_number: "PT-2026-103",
-    token: "zenith-health-portal",
+    type: "quotation_proposal",
+    proposal_no: "PT-2026-103",
+    unique_token: "zenith-health-portal",
     client_name: "Dr. Arvind Menon",
     company_name: "Zenith Healthcare Labs",
     phone: "+919845012345",
@@ -128,9 +128,9 @@ const INITIAL_PROPOSALS = [
   },
   {
     id: 4,
-    proposal_type: "quotation",
-    proposal_number: "PT-2026-104",
-    token: "cyberscale-ai-infra",
+    type: "quotation_proposal",
+    proposal_no: "PT-2026-104",
+    unique_token: "cyberscale-ai-infra",
     client_name: "Elena Rostova",
     company_name: "CyberScale Analytics",
     phone: "+447700900123",
@@ -142,7 +142,7 @@ const INITIAL_PROPOSALS = [
     currency_symbol: "$",
     status: "renewal_due",
     contract_duration: "1 Year",
-    renewal_date: "2026-09-12", // Expiring in 12 days!
+    renewal_date: "2026-09-12",
     created_at: "2025-09-12T08:00:00Z",
     sent_at: "2025-09-12T08:30:00Z",
     first_opened_at: "2025-09-12T09:00:00Z",

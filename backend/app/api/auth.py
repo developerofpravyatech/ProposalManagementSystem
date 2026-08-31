@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -8,6 +9,11 @@ from app.database import get_db
 from app.models.admin import Admin
 from app.schemas.auth import AdminCreate, AdminRead, AdminLogin, Token
 from app.utils.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=1)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -44,10 +50,10 @@ async def register(admin_in: AdminCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Admin).where(Admin.email == form_data.username))
+async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Admin).where(Admin.email == login_data.email))
     admin = result.scalar_one_or_none()
-    if not admin or not verify_password(form_data.password, admin.hashed_password):
+    if not admin or not verify_password(login_data.password, admin.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     access_token = create_access_token({"sub": str(admin.id)})
     refresh_token = create_refresh_token({"sub": str(admin.id)})

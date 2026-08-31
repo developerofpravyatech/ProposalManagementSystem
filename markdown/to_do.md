@@ -1,55 +1,106 @@
 # Development To-Do & Progress Tracker — PRAVYA TECH PMS
 
-## 1. Frontend & UI Layer (✅ Completed)
-
-- [x] Project configuration (`package.json`, `vite.config.js`, `tailwind.config.js`, `postcss.config.js`)
-- [x] Design system (`index.css`, glassmorphism, Google Fonts, theme palette)
-- [x] Reusable common UI component library (`Button`, `Badge`, `Card`, `Modal`, `Input`, `Select`)
-- [x] Context & state management (`AuthContext`, `ToastContext`)
-- [x] Mock & Live API client layer (`client.js`, `mockData.js`, `proposalApi.js`, `publicApi.js`)
-- [x] Admin Command Center:
-  - [x] Dashboard with KPI cards & live forensic activity feed (`DashboardPage.jsx`)
-  - [x] Proposal management table with status & type filters (`ProposalsPage.jsx`)
-  - [x] 1-Click WhatsApp sharing modal (`WhatsAppModal.jsx`)
-  - [x] Forensic engagement analytics drawer (`AnalyticsModal.jsx`)
-  - [x] Proposal creation wizard for Mode A & Mode B with line-item builder (`CreateProposalPage.jsx`)
-  - [x] Contract renewal pipeline & 1-click renewal clone (`RenewalsPage.jsx`)
-- [x] Public Client Proposal Portal (`/p/{token}`):
-  - [x] Verified brand header & quick actions (`ClientHeader.jsx`)
-  - [x] 9-Page Company Profile & 12-Page Custom Quotation viewer (`DocumentViewer.jsx`)
-  - [x] Structured commercial pricing table (`PricingTable.jsx`)
-  - [x] Digital sign-off pad with signature drawing & confetti celebration (`AcceptanceModal.jsx`)
-  - [x] Mobile sticky floating action dock (`FloatingDock.jsx`)
-  - [x] Asynchronous silent view beacon tracking (`publicApi.recordView`)
-- [x] Production build validation (`npm run build` passed with 0 errors)
+## Phase 0 — Foundation (Completed)
+- [x] Project structure + development environment
+- [x] FastAPI backend foundation
+- [x] PostgreSQL + SQLAlchemy setup
+- [x] Database models + migrations
+- [x] Admin authentication API
+- [x] Proposal CRUD APIs
+- [x] Public token-based client endpoints
+- [x] PDF generation service
+- [x] React + TypeScript frontend
+- [x] Admin Dashboard UI
+- [x] Client Proposal Portal UI (`/p/{token}`)
+- [x] CORS + frontend-backend integration
+- [x] Admin login end-to-end
 
 ---
 
-## 2. Backend & API Layer (✅ Completed)
+## Phase 1 — Mode A: Company Profile (Current Focus)
+**Goal:** Validate the fixed company profile flow end-to-end.
 
-- [x] Python/FastAPI environment setup (`backend/requirements.txt`, `backend/.env`)
-- [x] PostgreSQL + SQLAlchemy 2.0 database engine configuration (`backend/app/database.py`)
-- [x] Database models for `proposals`, `proposal_views`, `admins` (`backend/app/models/`)
-- [x] Pydantic v2 schemas (`backend/app/schemas/`)
-- [x] Admin authentication API endpoints (`/api/auth/login`, `/api/auth/me`, `/api/auth/refresh`)
-- [x] Proposal CRUD & analytics endpoints (`/api/proposals`)
-- [x] Public token-based proposal endpoints (`/api/public/proposals/{token}`)
-- [x] Server-side PDF generation service (`backend/app/services/pdf_service.py`)
-- [x] FastAPI app entrypoint with CORS + routers (`backend/app/main.py`)
-- [x] Database tables created in pgAdmin (`proposal_management_system`)
+- [ ] Create Company Profile from admin panel
+- [ ] Verify proposal is saved in `proposals` table with `type = profile_only`
+- [ ] Copy private link (`/p/{token}`)
+- [ ] Open private link in browser and verify profile renders
+- [ ] Verify view is recorded in `proposal_views`
+- [ ] Verify PDF download works
+- [ ] Verify status transitions: `sent` → `viewed`
 
 ---
 
-## 3. Next Steps
+## Phase 2 — Mode B: Project Proposal + Quotation
+**Goal:** Validate the dynamic quotation workflow with structured pricing.
 
-- [ ] Connect frontend API client to backend (`/api/auth`, `/api/proposals`, `/api/public/proposals/{token}`)
-- [ ] Replace mock data with real API calls in admin pages
-- [ ] Test admin login flow end-to-end
-- [ ] Test proposal creation, listing, and renewal flows
-- [ ] Test public client viewer (`/p/{token}`) with real backend data
-- [ ] Verify PDF generation from backend
-- [ ] Verify view/download tracking in `proposal_views` table
-- [ ] Test WhatsApp sharing with real links
-- [ ] Automated testing (`pytest` for backend)
-- [ ] Security review & hardening
-- [ ] Production deployment config
+- [ ] Create Project Proposal with line items
+- [ ] Verify currency, contract duration, renewal date
+- [ ] Verify proposal saved with `type = quotation_proposal`
+- [ ] Open private link and verify quotation viewer
+- [ ] Verify pricing table renders correctly
+- [ ] Test acceptance/sign-off flow
+- [ ] Verify status transitions: `sent` → `viewed` → `accepted`
+
+---
+
+## Phase 3 — Tracking & Engagement
+**Goal:** Ensure all client interactions are tracked.
+
+- [ ] Verify every page open records a `proposal_views` entry
+- [ ] Verify `first_opened_at` and `last_opened_at` update correctly
+- [ ] Verify `view_count` increments on each open
+- [ ] Verify PDF download tracking works
+- [ ] Verify WhatsApp sharing generates correct private link
+- [ ] Test analytics modal shows correct events
+
+---
+
+## Phase 4 — Renewal Management
+**Goal:** Validate renewal workflow creates new proposals without breaking history.
+
+- [ ] Create renewal from an existing quotation
+- [ ] Verify new proposal is created with new `unique_token`
+- [ ] Verify original proposal status changes to `renewal_due`
+- [ ] Verify new proposal status is `sent`
+- [ ] Open new private link and verify it works
+- [ ] Verify historical proposal data is preserved
+
+---
+
+## Phase 5 — Hardening & Testing
+**Goal:** Make the system reliable and secure.
+
+- [ ] Backend automated tests (`pytest`)
+- [ ] Frontend integration tests
+- [ ] Security review: JWT secret strength, CORS restrictions, input validation
+- [ ] Add rate limiting on auth endpoints
+- [ ] Add request logging/audit trail
+- [ ] Error handling and user-friendly error messages
+- [ ] Loading states and skeleton screens
+
+---
+
+## Phase 6 — Production Readiness
+**Goal:** Prepare for deployment.
+
+- [ ] Add Alembic migrations
+- [ ] Add `.env.example` files
+- [ ] Docker + docker-compose setup
+- [ ] Production CORS config
+- [ ] Database backup strategy
+- [ ] Health check endpoints
+- [ ] Deployment documentation
+
+---
+
+## Hard Rules Reminder
+1. Every proposal must have a unique private token (`/p/{token}`)
+2. Client access is token-based only
+3. Every client opening must be tracked in `proposal_views`
+4. Every PDF download must be trackable
+5. Proposal status must follow: `sent` → `viewed` → `accepted` / `renewal_due` → `renewed`
+6. Renewals must create new proposal version/link
+7. PDF generation stays in backend
+8. Pricing must be structured line items
+9. Client pages must be responsive
+10. Never expose sensitive DB data to clients
