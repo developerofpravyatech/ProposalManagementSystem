@@ -1,4 +1,4 @@
-## PRAVYA TECH Proposal Management System
+# PRAVYA TECH Proposal Management System
 
 Read this first, every session. This is the map — details live in `markdown/`. Don't duplicate those docs here; link to them.
 
@@ -71,6 +71,7 @@ Full context: `markdown/README.md`
 | Proposal workflow               | `markdown/proposal-workflow.md` |
 | Renewal workflow                | `markdown/renewals.md`          |
 | Development/setup workflow      | `markdown/workflow.md`          |
+| UI / UX design specification    | `markdown/ui-design.md`         |
 | Known mistakes to avoid         | `markdown/Gotchas.md`           |
 
 ## Core system modes

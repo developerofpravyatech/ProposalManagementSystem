@@ -1,6 +1,6 @@
 # Folder Structure
 
-```
+```text
 proposalManagementSystem/
 ├── backend/
 │   ├── .env
@@ -38,7 +38,8 @@ proposalManagementSystem/
 │   ├── code_quality_checker.md
 │   ├── folder-structure.md
 │   ├── project_description.md
-│   └── to_do.md
+│   ├── to_do.md
+│   └── ui-design.md
 ├── .gitignore
 └── README.md
 ```

@@ -116,7 +116,7 @@ Only audit files changed or added since the last check (using version control di
 
 Log findings to a central location (e.g., `audit_findings.md`, `tasks.md`, or a project tracking tool) under a timestamped section. One block per issue:
 
-```
+```text
 ### 🔴 [SQL Injection Risk] — src/api/search.ts:127
 **Issue:** User-supplied filter value concatenated directly into WHERE clause
 **Impact:** Attacker can break out of query and access/modify arbitrary data
