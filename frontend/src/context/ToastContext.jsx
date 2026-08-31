@@ -26,32 +26,32 @@ export function ToastProvider({ children }) {
       {children}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none">
         {toasts.map(toast => {
-          let bg = 'bg-slate-900 border-slate-700 text-slate-100';
-          let icon = <Info className="w-5 h-5 text-cyan-400 shrink-0" />;
+          let bg = 'bg-white border-slate-200 text-slate-900 shadow-xl';
+          let icon = <Info className="w-5 h-5 text-brand-600 shrink-0" />;
 
           if (toast.type === 'success') {
-            bg = 'bg-slate-900 border-emerald-500/40 text-emerald-100 shadow-glow-emerald';
-            icon = <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
+            bg = 'bg-white border-emerald-300 text-slate-900 shadow-xl shadow-emerald-500/10';
+            icon = <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />;
           } else if (toast.type === 'error') {
-            bg = 'bg-slate-900 border-rose-500/40 text-rose-100';
-            icon = <XCircle className="w-5 h-5 text-rose-400 shrink-0" />;
+            bg = 'bg-white border-rose-300 text-slate-900 shadow-xl shadow-rose-500/10';
+            icon = <XCircle className="w-5 h-5 text-rose-600 shrink-0" />;
           } else if (toast.type === 'warning') {
-            bg = 'bg-slate-900 border-amber-500/40 text-amber-100';
-            icon = <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />;
+            bg = 'bg-white border-amber-300 text-slate-900 shadow-xl shadow-amber-500/10';
+            icon = <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />;
           }
 
           return (
             <div
               key={toast.id}
-              className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl border backdrop-blur-xl shadow-xl transition-all duration-300 animate-in slide-in-from-bottom-5 ${bg}`}
+              className={`pointer-events-auto flex items-center justify-between p-4 rounded-2xl border backdrop-blur-xl transition-all duration-300 animate-in slide-in-from-bottom-5 ${bg}`}
             >
               <div className="flex items-center gap-3">
                 {icon}
-                <p className="text-sm font-medium">{toast.message}</p>
+                <p className="text-sm font-semibold">{toast.message}</p>
               </div>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="text-slate-400 hover:text-white p-1 transition-colors rounded-lg"
+                className="text-slate-400 hover:text-slate-700 p-1 transition-colors rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>

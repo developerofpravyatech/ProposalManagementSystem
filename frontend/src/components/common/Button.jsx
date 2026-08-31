@@ -11,7 +11,7 @@ export function Button({
   className = '',
   ...props
 }) {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
 
   const sizes = {
     sm: 'px-3 py-1.5 text-xs gap-1.5',
@@ -20,12 +20,12 @@ export function Button({
   };
 
   const variants = {
-    primary: 'bg-brand-500 hover:bg-brand-600 text-white shadow-glow-brand hover:shadow-brand-500/50 focus:ring-brand-500 border border-brand-400/30',
-    secondary: 'bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 focus:ring-slate-500',
-    outline: 'bg-transparent hover:bg-white/5 text-slate-200 border border-white/15 focus:ring-brand-500',
-    danger: 'bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500 shadow-lg shadow-rose-900/30',
-    ghost: 'bg-transparent hover:bg-white/5 text-slate-300 hover:text-white',
-    whatsapp: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-glow-emerald border border-emerald-400/30 focus:ring-emerald-500',
+    primary: 'bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-600/25 hover:shadow-brand-600/40 focus:ring-brand-600 border border-brand-500/40',
+    secondary: 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900 focus:ring-slate-900 shadow-sm',
+    outline: 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 focus:ring-brand-600 shadow-sm',
+    danger: 'bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-600 shadow-md shadow-rose-600/20',
+    ghost: 'bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900',
+    whatsapp: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 border border-emerald-500/30 focus:ring-emerald-500',
   };
 
   return (

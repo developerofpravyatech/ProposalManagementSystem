@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Copy, Check, ExternalLink } from 'lucide-react';
+import { MessageSquare, Send, Copy, Check } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Input, Textarea } from '../common/Input';
@@ -68,9 +68,9 @@ export function WhatsAppModal({ isOpen, onClose, proposal }) {
           onChange={(e) => setMessage(e.target.value)}
         />
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-white/10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
           <Button
-            variant="secondary"
+            variant="outline"
             type="button"
             icon={copied ? Check : Copy}
             onClick={handleCopyMessage}
@@ -81,7 +81,7 @@ export function WhatsAppModal({ isOpen, onClose, proposal }) {
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
-              variant="outline"
+              variant="ghost"
               type="button"
               onClick={onClose}
               className="w-full sm:w-auto"

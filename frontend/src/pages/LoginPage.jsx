@@ -39,32 +39,32 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 mesh-bg relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden mesh-bg">
       {/* Glow Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-slate-900/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md space-y-6 relative z-10">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-brand-500 to-cyan-400 p-[1px] shadow-glow-brand mx-auto flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-slate-950 p-[1px] shadow-lg shadow-brand-600/10 mx-auto flex items-center justify-center border border-slate-900">
             <div className="w-full h-full bg-slate-950 rounded-2xl flex items-center justify-center font-display font-black text-white text-2xl tracking-wider">
-              P<span className="text-cyan-400">T</span>
+              P<span className="text-brand-500">T</span>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-white font-display tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 font-display tracking-tight">
             PRAVYA TECH
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 font-medium">
             Proposal & Quotation Management System (PMS)
           </p>
         </div>
 
         {/* Login Card */}
-        <Card className="space-y-6 border-white/10 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <h2 className="text-base font-bold text-white">Admin Command Center</h2>
-            <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-xl rounded-3xl p-8">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <h2 className="text-base font-extrabold text-slate-900 font-display">Admin Command Center</h2>
+            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
               <ShieldCheck className="w-3 h-3" /> Secure Auth
             </span>
           </div>
@@ -96,27 +96,27 @@ export function LoginPage() {
               size="lg"
               icon={ArrowRight}
               isLoading={isLoading}
-              className="w-full mt-2"
+              className="w-full mt-2 font-bold"
             >
               Sign In to Command Center
             </Button>
           </form>
 
           {/* Quick Demo Access Bar */}
-          <div className="pt-2 border-t border-white/10 text-center">
+          <div className="pt-2 border-t border-slate-100 text-center">
             <button
               type="button"
               onClick={handleQuickDemo}
-              className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center justify-center gap-2 group"
+              className="w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 hover:text-slate-900 transition-all flex items-center justify-center gap-2 group shadow-sm"
             >
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400 group-hover:rotate-12 transition-transform" />
+              <Sparkles className="w-3.5 h-3.5 text-brand-600 group-hover:rotate-12 transition-transform" />
               1-Click Superadmin Demo Login
             </button>
           </div>
         </Card>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-slate-400 font-mono">
+        <p className="text-center text-[11px] text-slate-400 font-mono font-medium">
           PRAVYA TECH Internal ERP • Authorized Access Only
         </p>
       </div>

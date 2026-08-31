@@ -3,13 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
   Sparkles, 
-  Building2, 
   ArrowLeft, 
   ArrowRight, 
   Check, 
-  ShieldCheck,
-  Send,
-  Calendar
+  ShieldCheck
 } from 'lucide-react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -131,14 +128,14 @@ export function CreateProposalPage() {
         <div>
           <button
             onClick={() => navigate('/admin/proposals')}
-            className="text-xs text-slate-400 hover:text-white flex items-center gap-1 mb-2 transition-colors"
+            className="text-xs text-slate-500 hover:text-slate-900 font-bold flex items-center gap-1 mb-2 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Proposals
           </button>
-          <h1 className="text-2xl font-bold text-white font-display tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 font-display tracking-tight">
             Proposal Creation Wizard
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-600 font-medium">
             Generate and tokenize a new proposal or company profile in seconds.
           </p>
         </div>
@@ -150,10 +147,10 @@ export function CreateProposalPage() {
               key={s}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                 step === s
-                  ? 'bg-brand-500 text-white shadow-glow-brand'
+                  ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
                   : step > s
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-slate-800 text-slate-500'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                  : 'bg-slate-100 text-slate-400 border border-slate-200'
               }`}
             >
               {step > s ? <Check className="w-4 h-4" /> : s}
@@ -166,8 +163,8 @@ export function CreateProposalPage() {
       {step === 1 && (
         <div className="space-y-6">
           <div className="text-center max-w-md mx-auto space-y-1">
-            <h2 className="text-lg font-bold text-white">Select Proposal Document Type</h2>
-            <p className="text-xs text-slate-400">Choose between introducing PRAVYA TECH or pitching a custom project quotation.</p>
+            <h2 className="text-lg font-black text-slate-900 font-display">Select Proposal Document Type</h2>
+            <p className="text-xs text-slate-600 font-medium">Choose between introducing PRAVYA TECH or pitching a custom project quotation.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -178,24 +175,24 @@ export function CreateProposalPage() {
                 setProposalType('profile');
                 if (!projectTitle) setProjectTitle('PRAVYA TECH — Corporate Profile & Digital Capabilities');
               }}
-              className={`space-y-4 border-2 transition-all ${
+              className={`space-y-4 border-2 transition-all bg-white shadow-sm ${
                 proposalType === 'profile'
-                  ? 'border-cyan-500 bg-cyan-950/20 shadow-glow-cyan'
-                  : 'border-white/5 hover:border-white/20'
+                  ? 'border-slate-900 bg-slate-50/50 shadow-md'
+                  : 'border-slate-200 hover:border-slate-300'
               }`}
             >
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
-                <FileText className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
+                <FileText className="w-6 h-6 text-brand-400" />
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Mode A</span>
-                <h3 className="text-lg font-bold text-white">Company Profile & Capabilities</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mode A</span>
+                <h3 className="text-lg font-bold text-slate-900">Company Profile & Capabilities</h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
                   Fixed 9-page PRAVYA TECH corporate deck with case studies, tech stack, and service offerings. Perfect for new leads and initial discovery.
                 </p>
               </div>
-              <div className="pt-2 text-[11px] text-slate-300 font-semibold flex items-center gap-1.5 text-cyan-300">
-                <ShieldCheck className="w-4 h-4 text-cyan-400" /> Standard 9-Page Showcase
+              <div className="pt-2 text-[11px] font-bold flex items-center gap-1.5 text-slate-800">
+                <ShieldCheck className="w-4 h-4 text-brand-600" /> Standard 9-Page Showcase
               </div>
             </Card>
 
@@ -206,24 +203,24 @@ export function CreateProposalPage() {
                 setProposalType('quotation');
                 if (projectTitle === 'PRAVYA TECH — Corporate Profile & Digital Capabilities') setProjectTitle('');
               }}
-              className={`space-y-4 border-2 transition-all ${
+              className={`space-y-4 border-2 transition-all bg-white shadow-sm ${
                 proposalType === 'quotation'
-                  ? 'border-brand-500 bg-brand-950/20 shadow-glow-brand'
-                  : 'border-white/5 hover:border-white/20'
+                  ? 'border-brand-600 bg-brand-50/30 shadow-md shadow-brand-600/10'
+                  : 'border-slate-200 hover:border-slate-300'
               }`}
             >
-              <div className="w-12 h-12 rounded-2xl bg-brand-500/15 text-brand-400 border border-brand-500/30 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-md shadow-brand-600/20">
                 <Sparkles className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400">Mode B</span>
-                <h3 className="text-lg font-bold text-white">Custom Project Proposal & Quotation</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-600">Mode B</span>
+                <h3 className="text-lg font-bold text-slate-900">Custom Project Proposal & Quotation</h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
                   Dynamic 12-page quotation package with customizable deliverables, line items, pricing, contract renewal dates, and digital sign-off.
                 </p>
               </div>
-              <div className="pt-2 text-[11px] text-slate-300 font-semibold flex items-center gap-1.5 text-brand-300">
-                <ShieldCheck className="w-4 h-4 text-brand-400" /> Dynamic 12-Page Quotation with Sign-off
+              <div className="pt-2 text-[11px] font-bold flex items-center gap-1.5 text-brand-700">
+                <ShieldCheck className="w-4 h-4 text-brand-600" /> Dynamic 12-Page Quotation with Sign-off
               </div>
             </Card>
           </div>
@@ -243,10 +240,10 @@ export function CreateProposalPage() {
 
       {/* STEP 2: CLIENT & PROJECT INFORMATION */}
       {step === 2 && (
-        <Card className="space-y-6">
-          <div className="border-b border-white/10 pb-4">
-            <h2 className="text-lg font-bold text-white font-display">Client & Engagement Information</h2>
-            <p className="text-xs text-slate-400">Enter recipient details for personalized tokenized access.</p>
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display">Client & Engagement Information</h2>
+            <p className="text-xs text-slate-500 font-medium">Enter recipient details for personalized tokenized access.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -279,7 +276,7 @@ export function CreateProposalPage() {
             />
           </div>
 
-          <div className="space-y-4 pt-2 border-t border-white/10">
+          <div className="space-y-4 pt-2 border-t border-slate-200">
             <Input
               label="Project Title"
               placeholder="e.g. Enterprise Cloud Infrastructure & Microservices Migration"
@@ -295,7 +292,7 @@ export function CreateProposalPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-white/10">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200">
             <Button
               variant="outline"
               type="button"
@@ -328,10 +325,10 @@ export function CreateProposalPage() {
 
       {/* STEP 3: COMMERCIALS & LINE ITEMS (Mode B Only) */}
       {step === 3 && proposalType === 'quotation' && (
-        <Card className="space-y-6">
-          <div className="border-b border-white/10 pb-4">
-            <h2 className="text-lg font-bold text-white font-display">Commercials, Deliverables & Contract Terms</h2>
-            <p className="text-xs text-slate-400">Configure structured pricing items and automated renewal dates.</p>
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display">Commercials, Deliverables & Contract Terms</h2>
+            <p className="text-xs text-slate-500 font-medium">Configure structured pricing items and automated renewal dates.</p>
           </div>
 
           <LineItemForm
@@ -356,7 +353,7 @@ export function CreateProposalPage() {
             onChange={(e) => setTerms(e.target.value)}
           />
 
-          <div className="flex items-center justify-between pt-4 border-t border-white/10">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200">
             <Button
               variant="outline"
               type="button"

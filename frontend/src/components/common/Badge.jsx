@@ -5,16 +5,16 @@ export function Badge({ status, type, count, className = '' }) {
   if (type) {
     if (type === 'profile') {
       return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 ${className}`}>
-          <FileText className="w-3 h-3" />
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white border border-slate-800 shadow-sm ${className}`}>
+          <FileText className="w-3 h-3 text-brand-400" />
           Company Profile
         </span>
       );
     }
     if (type === 'quotation') {
       return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-500/15 text-brand-300 border border-brand-500/30 ${className}`}>
-          <Sparkles className="w-3 h-3" />
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200 shadow-sm ${className}`}>
+          <Sparkles className="w-3 h-3 text-brand-600" />
           Project Quotation
         </span>
       );
@@ -25,27 +25,27 @@ export function Badge({ status, type, count, className = '' }) {
     sent: {
       label: 'Sent',
       icon: Send,
-      classes: 'bg-slate-800/80 text-slate-300 border-slate-700/80',
+      classes: 'bg-slate-100 text-slate-700 border-slate-300',
     },
     viewed: {
       label: count ? `Viewed (${count}x)` : 'Viewed',
       icon: Eye,
-      classes: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
+      classes: 'bg-brand-50 text-brand-700 border-brand-200 font-semibold',
     },
     accepted: {
       label: 'Accepted',
       icon: CheckCircle,
-      classes: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-sm shadow-emerald-950',
+      classes: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold shadow-sm',
     },
     renewal_due: {
       label: 'Renewal Due',
       icon: Clock,
-      classes: 'bg-amber-500/15 text-amber-300 border-amber-500/30 animate-pulse-subtle',
+      classes: 'bg-amber-50 text-amber-800 border-amber-300 font-semibold animate-pulse-subtle',
     },
     renewed: {
       label: 'Renewed',
       icon: RotateCw,
-      classes: 'bg-blue-500/15 text-blue-300 border-blue-500/30',
+      classes: 'bg-blue-50 text-blue-700 border-blue-200 font-medium',
     },
   };
 
@@ -53,7 +53,7 @@ export function Badge({ status, type, count, className = '' }) {
   const Icon = current.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border backdrop-blur-md ${current.classes} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${current.classes} ${className}`}>
       <Icon className="w-3 h-3" />
       {current.label}
     </span>

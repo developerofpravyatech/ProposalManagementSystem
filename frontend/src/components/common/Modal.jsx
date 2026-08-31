@@ -32,23 +32,23 @@ export function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity animate-in fade-in"
+        className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity animate-in fade-in"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full ${maxWidth} glass-card border border-white/10 rounded-2xl shadow-2xl p-6 sm:p-8 z-10 animate-in zoom-in-95 duration-200 my-auto`}
+        className={`relative w-full ${maxWidth} bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-8 z-10 animate-in zoom-in-95 duration-200 my-auto`}
       >
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            {title && <h3 className="text-xl font-bold text-white tracking-tight">{title}</h3>}
-            {subtitle && <p className="text-sm text-slate-400 mt-1">{subtitle}</p>}
+            {title && <h3 className="text-xl font-bold text-slate-900 tracking-tight font-display">{title}</h3>}
+            {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
           </div>
           {showClose && (
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>

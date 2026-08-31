@@ -1,13 +1,13 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from app.database import engine, Base
 from app.api import api_router
 from app.utils.security import settings
 
-# Ensure generated PDFs output directory exists
 os.makedirs(settings.PDF_OUTPUT_DIR, exist_ok=True)
 
 
@@ -37,7 +37,6 @@ app.add_middleware(
 
 app.include_router(api_router)
 
-# Mount generated PDFs directory for static serving
 app.mount("/generated_pdfs", StaticFiles(directory=settings.PDF_OUTPUT_DIR), name="generated_pdfs")
 
 
@@ -55,3 +54,8 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+
+@app.options("/{path:path}")
+async def catch_all_options(request: Request, path: str):
+    return Response(status_code=200)

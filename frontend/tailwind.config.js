@@ -9,38 +9,29 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#EEF2FF',
-          100: '#E0E7FF',
-          200: '#C7D2FE',
-          300: '#A5B4FC',
-          400: '#818CF8',
-          500: '#6366F1', // Primary Electric Indigo
-          600: '#4F46E5',
-          700: '#4338CA',
-          800: '#3730A3',
-          900: '#312E81',
-          950: '#1E1B4B',
+          50: '#FEF2F2',
+          100: '#FEE2E2',
+          200: '#FECACA',
+          300: '#FCA5A5',
+          400: '#F87171',
+          500: '#EF4444', // Crimson Red
+          600: '#DC2626', // Primary Brand Red
+          700: '#B91C1C',
+          800: '#991B1B',
+          900: '#7F1D1D',
+          950: '#450A0A',
         },
-        cyan: {
-          glow: '#06B6D4',
-        },
-        slate: {
-          850: '#151F32',
-          900: '#0F172A',
-          950: '#0B0F19', // Obsidian Slate
-        },
-        carbon: {
+        dark: {
           800: '#1E293B',
-          900: '#111827', // Carbon Blue
+          850: '#18181B',
+          900: '#0F172A',
+          950: '#09090B', // Deep Obsidian Black
         },
-        emerald: {
-          500: '#10B981',
-        },
-        amber: {
-          500: '#F59E0B',
-        },
-        crimson: {
-          500: '#EF4444',
+        surface: {
+          50: '#FAFAFA',
+          100: '#F4F4F5',
+          200: '#E4E4E7',
+          300: '#D4D4D8',
         }
       },
       fontFamily: {
@@ -49,21 +40,10 @@ export default {
         mono: ['"JetBrains Mono"', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        'glow-brand': '0 0 25px -5px rgba(99, 102, 241, 0.35)',
-        'glow-cyan': '0 0 25px -5px rgba(6, 182, 212, 0.35)',
-        'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.35)',
-        'soft-xl': '0 20px 35px -10px rgba(0, 0, 0, 0.08), 0 10px 15px -5px rgba(0, 0, 0, 0.04)',
-        'card-dark': '0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.07)',
-      },
-      animation: {
-        'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'float': 'float 4s ease-in-out infinite',
-      },
-      keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-6px)' },
-        }
+        'glow-red': '0 0 25px -5px rgba(220, 38, 38, 0.35)',
+        'glow-black': '0 10px 25px -5px rgba(15, 23, 42, 0.15)',
+        'card-light': '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
+        'card-hover': '0 20px 30px -10px rgba(0, 0, 0, 0.08), 0 8px 12px -4px rgba(220, 38, 38, 0.06)',
       }
     },
   },

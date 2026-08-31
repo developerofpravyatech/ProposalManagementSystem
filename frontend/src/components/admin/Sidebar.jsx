@@ -33,23 +33,23 @@ export function Sidebar({ isOpen, onClose }) {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-slate-950/95 border-r border-white/10 flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-slate-950 border-r border-slate-900 flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand Header */}
         <div>
-          <div className="p-6 border-b border-white/10 flex items-center justify-between">
+          <div className="p-6 border-b border-slate-900 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-cyan-400 p-[1px] shadow-glow-brand flex items-center justify-center">
-                <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center font-display font-extrabold text-white text-lg tracking-wider">
-                  P<span className="text-cyan-400">T</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-rose-400 p-[1px] shadow-glow-red flex items-center justify-center">
+                <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center font-display font-black text-white text-lg tracking-wider">
+                  P<span className="text-brand-500">T</span>
                 </div>
               </div>
               <div>
@@ -65,7 +65,7 @@ export function Sidebar({ isOpen, onClose }) {
 
           {/* Navigation Links */}
           <nav className="p-4 space-y-1.5">
-            <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
               Management
             </div>
             {navItems.map((item) => {
@@ -76,12 +76,12 @@ export function Sidebar({ isOpen, onClose }) {
                   to={item.to}
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    `group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                       isActive
-                        ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30 shadow-glow-brand'
+                        ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
                         : item.highlight
-                        ? 'bg-white/5 hover:bg-brand-500/10 text-slate-200 hover:text-brand-300'
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
+                        ? 'bg-white/5 hover:bg-brand-600/20 text-slate-200 hover:text-brand-300'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`
                   }
                 >
@@ -90,7 +90,7 @@ export function Sidebar({ isOpen, onClose }) {
                     <span>{item.label}</span>
                   </div>
                   {item.highlight && (
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse-subtle" />
+                    <Sparkles className="w-3.5 h-3.5 text-brand-400 animate-pulse-subtle" />
                   )}
                 </NavLink>
               );
@@ -99,20 +99,20 @@ export function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* User Card & Logout */}
-        <div className="p-4 border-t border-white/10 space-y-3">
-          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5">
-            <div className="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs">
+        <div className="p-4 border-t border-slate-900 space-y-3">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+            <div className="w-8 h-8 rounded-lg bg-brand-600/20 text-brand-400 flex items-center justify-center font-bold text-xs">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-white truncate">{user?.name || 'Administrator'}</p>
+              <p className="text-xs font-bold text-white truncate">{user?.name || 'Administrator'}</p>
               <p className="text-[11px] text-slate-400 truncate">{user?.email || 'admin@pravyatech.com'}</p>
             </div>
           </div>
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors border border-transparent hover:border-rose-500/20"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors border border-transparent hover:border-rose-500/20"
           >
             <LogOut className="w-3.5 h-3.5" />
             Sign Out

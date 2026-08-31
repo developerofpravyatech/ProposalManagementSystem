@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, RefreshCw, FileSpreadsheet } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { ProposalTable } from '../components/admin/ProposalTable';
 import { WhatsAppModal } from '../components/admin/WhatsAppModal';
 import { AnalyticsModal } from '../components/admin/AnalyticsModal';
@@ -60,10 +60,10 @@ export function ProposalsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white font-display tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 font-display tracking-tight">
             Proposal Portfolio
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-600 font-medium">
             Manage company profiles and custom quotations with real-time tracking.
           </p>
         </div>
@@ -71,7 +71,7 @@ export function ProposalsPage() {
         <div className="flex items-center gap-3">
           <Button
             size="sm"
-            variant="secondary"
+            variant="outline"
             icon={RefreshCw}
             isLoading={loading}
             onClick={fetchProposals}

@@ -24,7 +24,13 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
   const triggerConfetti = () => {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+    const defaults = { 
+      startVelocity: 30, 
+      spread: 360, 
+      ticks: 60, 
+      zIndex: 9999,
+      colors: ['#DC2626', '#18181B', '#E11D48', '#F59E0B', '#10B981']
+    };
 
     const interval = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
@@ -45,7 +51,7 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
     const rect = canvas.getBoundingClientRect();
     ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#6366F1';
+    ctx.strokeStyle = '#DC2626'; // Crimson red ink
     ctx.beginPath();
     ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
     setIsDrawing(true);
@@ -115,15 +121,15 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
       subtitle={`Formal acceptance for Proposal #${proposal.proposal_number}`}
     >
       <form onSubmit={handleAccept} className="space-y-4">
-        <div className="p-3.5 rounded-xl bg-brand-950/40 border border-brand-500/20 flex items-center justify-between text-xs">
+        <div className="p-4 rounded-2xl bg-brand-50 border border-brand-200 flex items-center justify-between text-xs">
           <div>
-            <span className="text-slate-400">Total Approved Amount:</span>
-            <div className="text-base font-bold font-mono text-white mt-0.5">
+            <span className="text-slate-500 font-medium">Total Approved Amount:</span>
+            <div className="text-base font-black font-mono text-slate-900 mt-0.5">
               {proposal.currency_symbol || '$'}{proposal.amount ? proposal.amount.toLocaleString() : '0'} {proposal.currency || 'USD'}
             </div>
           </div>
-          <span className="text-emerald-400 font-semibold flex items-center gap-1">
-            <ShieldCheck className="w-4 h-4" /> Legally Binding Digital Acceptance
+          <span className="text-emerald-700 font-bold flex items-center gap-1">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" /> Legally Binding Acceptance
           </span>
         </div>
 
@@ -146,15 +152,15 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
         {/* Signature Pad */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
               Digital Signature
             </label>
-            <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
               <button
                 type="button"
                 onClick={() => setSignMode('type')}
-                className={`px-2 py-1 text-[11px] rounded-md font-medium transition-all ${
-                  signMode === 'type' ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-white'
+                className={`px-2 py-1 text-[11px] rounded-md font-bold transition-all ${
+                  signMode === 'type' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 <Type className="w-3 h-3 inline mr-1" /> Type Name
@@ -162,8 +168,8 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
               <button
                 type="button"
                 onClick={() => setSignMode('draw')}
-                className={`px-2 py-1 text-[11px] rounded-md font-medium transition-all ${
-                  signMode === 'draw' ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-white'
+                className={`px-2 py-1 text-[11px] rounded-md font-bold transition-all ${
+                  signMode === 'draw' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 <PenTool className="w-3 h-3 inline mr-1" /> Draw
@@ -172,13 +178,13 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
           </div>
 
           {signMode === 'type' ? (
-            <div className="h-24 rounded-xl bg-slate-900/90 border border-slate-800 p-4 flex items-center justify-center">
-              <span className="font-serif italic text-2xl text-brand-300 font-bold tracking-wide">
+            <div className="h-24 rounded-2xl bg-slate-50 border border-slate-300 p-4 flex items-center justify-center">
+              <span className="font-serif italic text-2xl text-brand-700 font-bold tracking-wide">
                 {signerName || 'Your Name Signature'}
               </span>
             </div>
           ) : (
-            <div className="relative rounded-xl bg-slate-900/90 border border-slate-800 overflow-hidden">
+            <div className="relative rounded-2xl bg-white border border-slate-300 overflow-hidden shadow-inner">
               <canvas
                 ref={canvasRef}
                 width={500}
@@ -187,12 +193,12 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
                 onMouseLeave={stopDrawing}
-                className="w-full h-28 cursor-crosshair bg-slate-950"
+                className="w-full h-28 cursor-crosshair bg-slate-50"
               />
               <button
                 type="button"
                 onClick={clearCanvas}
-                className="absolute top-2 right-2 text-[10px] bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 flex items-center gap-1"
+                className="absolute top-2 right-2 text-[10px] bg-white hover:bg-slate-100 text-slate-700 font-bold px-2 py-1 rounded-lg border border-slate-300 flex items-center gap-1 shadow-sm"
               >
                 <Eraser className="w-3 h-3" /> Clear
               </button>
@@ -201,19 +207,19 @@ export function AcceptanceModal({ isOpen, onClose, proposal, onAccepted }) {
         </div>
 
         {/* Terms Checkbox */}
-        <label className="flex items-start gap-2.5 cursor-pointer p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+        <label className="flex items-start gap-2.5 cursor-pointer p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
           <input
             type="checkbox"
             checked={agreedToTerms}
             onChange={(e) => setAgreedToTerms(e.target.checked)}
-            className="mt-0.5 rounded text-brand-500 focus:ring-brand-500 bg-slate-950 border-slate-700"
+            className="mt-0.5 rounded text-brand-600 focus:ring-brand-600 border-slate-300"
           />
-          <span className="text-xs text-slate-300 leading-relaxed">
-            I hereby confirm authorization on behalf of <strong className="text-white">{proposal.company_name}</strong> to accept this proposal and enter into contract for the scope & payment schedule outlined herein.
+          <span className="text-xs text-slate-600 leading-relaxed font-medium">
+            I hereby confirm authorization on behalf of <strong className="text-slate-900">{proposal.company_name}</strong> to accept this proposal and enter into contract for the scope & payment schedule outlined herein.
           </span>
         </label>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
           <Button
             type="button"
             variant="outline"

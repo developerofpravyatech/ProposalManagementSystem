@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, Calculator, Calendar } from 'lucide-react';
+import { Plus, Trash2, Calendar } from 'lucide-react';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Select } from '../common/Select';
@@ -77,7 +77,7 @@ export function LineItemForm({
   return (
     <div className="space-y-6">
       {/* Top Settings Bar: Currency & Duration */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
         <Select
           label="Proposal Currency"
           options={currencies}
@@ -102,7 +102,7 @@ export function LineItemForm({
       {/* Dynamic Line Items List */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
             Commercial Line Items
           </h4>
           <Button
@@ -119,17 +119,17 @@ export function LineItemForm({
         {lineItems.map((item, index) => (
           <div
             key={item.id}
-            className="p-4 rounded-xl bg-slate-900/80 border border-slate-700/80 space-y-3 relative group"
+            className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 relative group"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold text-brand-400">
+              <span className="text-xs font-mono font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
                 Item #{index + 1}
               </span>
               {lineItems.length > 1 && (
                 <button
                   type="button"
                   onClick={() => handleRemoveItem(item.id)}
-                  className="text-slate-400 hover:text-rose-400 p-1 rounded transition-colors"
+                  className="text-slate-400 hover:text-rose-600 p-1 rounded transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -167,8 +167,8 @@ export function LineItemForm({
               </div>
               <div className="sm:col-span-2 flex items-center justify-end sm:justify-center">
                 <div className="text-right sm:text-center">
-                  <span className="text-[10px] text-slate-400 block">Subtotal</span>
-                  <span className="font-mono font-bold text-white text-sm">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Subtotal</span>
+                  <span className="font-mono font-black text-slate-900 text-sm">
                     {currentSymbol}
                     {(item.subtotal || 0).toLocaleString()}
                   </span>
@@ -186,7 +186,7 @@ export function LineItemForm({
       </div>
 
       {/* Summary Calculations Footer */}
-      <div className="p-4 rounded-2xl bg-brand-950/30 border border-brand-500/20 space-y-3">
+      <div className="p-5 rounded-2xl bg-brand-50/50 border border-brand-200/80 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Discount Rate (%)"
@@ -206,26 +206,26 @@ export function LineItemForm({
           />
         </div>
 
-        <div className="border-t border-brand-500/20 pt-3 space-y-1.5 text-xs text-slate-300">
+        <div className="border-t border-brand-200 pt-3 space-y-1.5 text-xs text-slate-700 font-medium">
           <div className="flex justify-between">
             <span>Raw Subtotal:</span>
-            <span className="font-mono text-slate-200">{currentSymbol}{rawSubtotal.toLocaleString()}</span>
+            <span className="font-mono text-slate-900 font-bold">{currentSymbol}{rawSubtotal.toLocaleString()}</span>
           </div>
           {discountAmount > 0 && (
-            <div className="flex justify-between text-rose-400">
+            <div className="flex justify-between text-rose-600 font-semibold">
               <span>Discount ({discountRate}%):</span>
               <span className="font-mono">-{currentSymbol}{discountAmount.toLocaleString()}</span>
             </div>
           )}
           {taxAmount > 0 && (
-            <div className="flex justify-between text-cyan-400">
+            <div className="flex justify-between text-slate-700 font-semibold">
               <span>Tax ({taxRate}%):</span>
               <span className="font-mono">+{currentSymbol}{taxAmount.toLocaleString()}</span>
             </div>
           )}
-          <div className="flex justify-between items-center text-base font-bold text-white pt-2 border-t border-brand-500/30">
+          <div className="flex justify-between items-center text-base font-bold text-slate-900 pt-2 border-t border-brand-200">
             <span>Grand Total Investment:</span>
-            <span className="font-mono text-xl text-brand-300 font-extrabold">
+            <span className="font-mono text-2xl text-brand-700 font-black">
               {currentSymbol}{grandTotal.toLocaleString()} {currency}
             </span>
           </div>

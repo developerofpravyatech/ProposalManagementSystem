@@ -6,9 +6,7 @@ import {
   CheckCircle2, 
   Clock, 
   Plus, 
-  ArrowRight,
-  Sparkles,
-  TrendingUp
+  ArrowRight
 } from 'lucide-react';
 import { MetricCard } from '../components/admin/MetricCard';
 import { LiveActivityFeed } from '../components/admin/LiveActivityFeed';
@@ -73,15 +71,15 @@ export function DashboardPage() {
   return (
     <div className="space-y-8 p-4 sm:p-8 max-w-7xl mx-auto">
       {/* Welcome Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 sm:p-8 rounded-3xl border border-white/10 mesh-bg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm mesh-bg">
         <div className="space-y-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-400">
+          <span className="text-xs font-bold uppercase tracking-wider text-brand-600">
             PRAVYA TECH Command Center
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-display tracking-tight">
             Proposal Intelligence & Operations
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300">
+          <p className="text-xs sm:text-sm text-slate-600 font-medium">
             Real-time telemetry, 1-click WhatsApp distribution, and contract renewals.
           </p>
         </div>
@@ -105,7 +103,7 @@ export function DashboardPage() {
           value={stats?.totalProposals || '0'}
           subtitle={`${stats?.profileCount || 0} Profiles • ${stats?.quotationCount || 0} Quotes`}
           icon={FileSpreadsheet}
-          color="brand"
+          color="black"
           onClick={() => navigate('/admin/proposals')}
         />
 
@@ -114,7 +112,7 @@ export function DashboardPage() {
           value={stats?.totalViews ? `${stats.totalViews} Views` : '0 Views'}
           subtitle={`${stats?.openRate || 0}% Open Rate`}
           icon={Eye}
-          color="cyan"
+          color="brand"
           trend="+18% this wk"
         />
 
@@ -141,10 +139,10 @@ export function DashboardPage() {
         {/* Main Proposal Table */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white font-display">Recent Proposals</h3>
+            <h3 className="text-base font-extrabold text-slate-900 font-display">Recent Proposals</h3>
             <button
               onClick={() => navigate('/admin/proposals')}
-              className="text-xs font-semibold text-brand-400 hover:text-brand-300 flex items-center gap-1 transition-colors"
+              className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1 transition-colors"
             >
               View All Proposals <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -161,7 +159,7 @@ export function DashboardPage() {
 
         {/* Live Forensic Activity Feed */}
         <div className="space-y-4">
-          <h3 className="text-base font-bold text-white font-display">Client Telemetry</h3>
+          <h3 className="text-base font-extrabold text-slate-900 font-display">Client Telemetry</h3>
           <LiveActivityFeed activities={stats?.recentActivity || []} />
         </div>
       </div>

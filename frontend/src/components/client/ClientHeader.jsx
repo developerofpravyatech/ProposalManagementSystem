@@ -1,7 +1,6 @@
 import React from 'react';
-import { Download, MessageSquare, CheckCircle, ShieldCheck, Sparkles, FileText } from 'lucide-react';
+import { Download, MessageSquare, CheckCircle, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button } from '../common/Button';
-import { Badge } from '../common/Badge';
 
 export function ClientHeader({
   proposal,
@@ -14,25 +13,25 @@ export function ClientHeader({
   const isQuotation = proposal.proposal_type === 'quotation';
 
   return (
-    <header className="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3.5 transition-all">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b border-slate-200 px-4 sm:px-8 py-3.5 transition-all shadow-sm">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
         {/* Brand & Verification */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 p-[1px] shadow-glow-brand flex items-center justify-center">
-            <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center font-display font-extrabold text-white text-base">
-              P<span className="text-cyan-400">T</span>
+          <div className="w-10 h-10 rounded-xl bg-slate-950 p-[1px] shadow-sm flex items-center justify-center border border-slate-900">
+            <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center font-display font-black text-white text-base">
+              P<span className="text-brand-500">T</span>
             </div>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-white tracking-tight text-sm sm:text-base">
+              <span className="font-display font-bold text-slate-900 tracking-tight text-base">
                 PRAVYA TECH
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                 <ShieldCheck className="w-3 h-3" /> Verified Proposal
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono">
+            <p className="text-[11px] text-slate-500 font-mono font-medium">
               {proposal.proposal_number} • Prepared for {proposal.company_name}
             </p>
           </div>
@@ -61,7 +60,7 @@ export function ClientHeader({
 
           {isQuotation && (
             isAccepted ? (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold shadow-glow-emerald">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-sm">
                 <CheckCircle className="w-4 h-4" />
                 Quotation Accepted
               </div>

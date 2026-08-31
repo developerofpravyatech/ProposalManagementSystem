@@ -49,7 +49,6 @@ export function PublicProposalPage() {
       await publicApi.recordDownload(token);
       addToast('Official PDF package download started...', 'success');
       
-      // Open / trigger sample PDF download or simulated document
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(`
@@ -57,12 +56,12 @@ export function PublicProposalPage() {
             <head>
               <title>PRAVYA TECH Proposal - ${proposal.proposal_number}</title>
               <style>
-                body { font-family: sans-serif; padding: 40px; color: #1e293b; }
-                h1 { color: #4338ca; }
+                body { font-family: sans-serif; padding: 40px; color: #0f172a; }
+                h1 { color: #dc2626; font-size: 24px; }
                 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                 th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
-                th { background: #f1f5f9; }
-                .total { font-size: 20px; font-weight: bold; margin-top: 20px; text-align: right; }
+                th { background: #f8fafc; font-weight: bold; }
+                .total { font-size: 20px; font-weight: bold; margin-top: 20px; text-align: right; color: #dc2626; }
               </style>
             </head>
             <body>
@@ -122,9 +121,9 @@ export function PublicProposalPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-950 text-slate-100">
-        <Loader2 className="w-10 h-10 animate-spin text-brand-500 mb-4" />
-        <p className="text-sm text-slate-400 font-medium font-display animate-pulse">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-50 text-slate-900">
+        <Loader2 className="w-10 h-10 animate-spin text-brand-600 mb-4" />
+        <p className="text-sm text-slate-600 font-bold font-display animate-pulse">
           Loading secure proposal...
         </p>
       </div>
@@ -133,13 +132,13 @@ export function PublicProposalPage() {
 
   if (error || !proposal) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-950 text-slate-100 mesh-bg">
-        <div className="max-w-md w-full glass-card p-8 rounded-3xl text-center space-y-4 border-rose-500/20">
-          <div className="w-14 h-14 rounded-2xl bg-rose-500/15 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/30">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-50 text-slate-900 mesh-bg">
+        <div className="max-w-md w-full bg-white p-8 rounded-3xl text-center space-y-4 border border-slate-200 shadow-xl">
+          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200">
             <AlertCircle className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-white font-display">Proposal Link Unavailable</h2>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <h2 className="text-xl font-black text-slate-900 font-display">Proposal Link Unavailable</h2>
+          <p className="text-xs text-slate-500 leading-relaxed font-medium">
             {error || "This proposal link may have expired, been revoked, or does not exist. Please reach out to PRAVYA TECH for an updated link."}
           </p>
           <div className="pt-2">
@@ -157,7 +156,7 @@ export function PublicProposalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 md:pb-12">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-24 md:pb-12">
       {/* Branded Header */}
       <ClientHeader
         proposal={proposal}

@@ -7,7 +7,7 @@ export function Card({
   glass = true,
   ...props
 }) {
-  const baseClasses = glass ? 'glass-card' : 'bg-slate-900 border border-slate-800';
+  const baseClasses = glass ? 'glass-card' : 'bg-white border border-slate-200 shadow-sm';
   const hoverClasses = hover ? 'glass-card-hover cursor-pointer' : '';
 
   return (
