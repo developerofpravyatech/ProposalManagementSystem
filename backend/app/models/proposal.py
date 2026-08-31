@@ -22,7 +22,7 @@ class Proposal(Base):
     __tablename__ = "proposals"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    type: Mapped[ProposalType] = mapped_column(Enum(ProposalType), nullable=False)
+    type: Mapped[ProposalType] = mapped_column(Enum(ProposalType, name="proposal_type"), nullable=False)
     proposal_no: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     client_name: Mapped[str] = mapped_column(String(255), nullable=False)
     company_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -38,7 +38,7 @@ class Proposal(Base):
     last_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     view_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     renewal_date: Mapped[datetime | None] = mapped_column(Date, nullable=True)
-    status: Mapped[ProposalStatus] = mapped_column(Enum(ProposalStatus), default=ProposalStatus.sent, nullable=False, index=True)
+    status: Mapped[ProposalStatus] = mapped_column(Enum(ProposalStatus, name="proposal_status"), default=ProposalStatus.sent, nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 

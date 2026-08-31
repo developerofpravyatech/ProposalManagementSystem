@@ -17,16 +17,16 @@
 
 ---
 
-## Phase 1 — Mode A: Company Profile (Current Focus)
+## Phase 1 — Mode A: Company Profile (Completed)
 **Goal:** Validate the fixed company profile flow end-to-end.
 
-- [ ] Create Company Profile from admin panel
-- [ ] Verify proposal is saved in `proposals` table with `type = profile_only`
-- [ ] Copy private link (`/p/{token}`)
-- [ ] Open private link in browser and verify profile renders
-- [ ] Verify view is recorded in `proposal_views`
-- [ ] Verify PDF download works
-- [ ] Verify status transitions: `sent` → `viewed`
+- [x] Create Company Profile from admin panel
+- [x] Verify proposal is saved in `proposals` table with `type = profile_only`
+- [x] Copy private link (`/p/{token}`)
+- [x] Open private link in browser and verify profile renders
+- [x] Verify view is recorded in `proposal_views`
+- [x] Verify PDF download works
+- [x] Verify status transitions: `sent` → `viewed`
 
 ---
 

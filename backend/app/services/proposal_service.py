@@ -1,6 +1,7 @@
 import secrets
 import string
 from datetime import datetime
+from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
@@ -23,8 +24,15 @@ async def get_next_proposal_number(db: AsyncSession) -> str:
 async def create_proposal(db: AsyncSession, proposal_data: dict) -> Proposal:
     proposal_number = await get_next_proposal_number(db)
     unique_token = generate_token()
+    # Convert enum values to their string representation for SQLAlchemy
+    clean_data = {}
+    for key, value in proposal_data.items():
+        if isinstance(value, Enum):
+            clean_data[key] = value.value
+        else:
+            clean_data[key] = value
     proposal = Proposal(
-        **proposal_data,
+        **clean_data,
         proposal_no=proposal_number,
         unique_token=unique_token,
         status=ProposalStatus.sent,
