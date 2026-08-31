@@ -24,13 +24,21 @@
 
 ---
 
-## 2. Backend & API Layer (Next Phase)
-- [ ] Python/FastAPI environment setup (`backend/requirements.txt`, `backend/.env`)
-- [ ] PostgreSQL + SQLAlchemy 2.0 database engine configuration (`backend/app/database.py`)
-- [ ] Database models for `proposals` and `proposal_views` (`backend/app/models/`)
-- [ ] Pydantic v2 schemas (`backend/app/schemas/`)
-- [ ] Admin authentication API endpoints (`/api/auth/login`, `/api/auth/me`)
-- [ ] Proposal CRUD & analytics endpoints (`/api/proposals`)
-- [ ] Public token-based proposal endpoints (`/api/public/proposals/{token}`)
-- [ ] Server-side PDF generation service (`ReportLab` / `WeasyPrint`)
-- [ ] Automated testing & security review
+## 2. Backend & API Layer (✅ Completed)
+- [x] Python/FastAPI environment setup (`backend/requirements.txt`, `backend/.env`)
+- [x] PostgreSQL + SQLAlchemy 2.0 database engine configuration (`backend/app/database.py`)
+- [x] Database models for `proposals`, `proposal_views`, `admins` (`backend/app/models/`)
+- [x] Pydantic v2 schemas (`backend/app/schemas/`)
+- [x] Admin authentication API endpoints (`/api/auth/login`, `/api/auth/me`, `/api/auth/refresh`)
+- [x] Proposal CRUD & analytics endpoints (`/api/proposals`)
+- [x] Public token-based proposal endpoints (`/api/public/proposals/{token}`)
+- [x] Server-side PDF generation service (`backend/app/services/pdf_service.py`)
+- [x] FastAPI app entrypoint with CORS + routers (`backend/app/main.py`)
+
+---
+
+## 3. Next Steps
+- [ ] Database migrations with Alembic
+- [ ] Automated testing (`pytest`)
+- [ ] Security review & hardening
+- [ ] Production deployment config

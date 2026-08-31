@@ -26,7 +26,6 @@ proposalManagementSystem/
 │       ├── api/
 │       ├── App.jsx
 │       ├── assets/
-│       │   └── logo.png
 │       ├── components/
 │       ├── context/
 │       ├── hooks/
