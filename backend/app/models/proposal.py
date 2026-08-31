@@ -1,4 +1,4 @@
-from sqlalchemy import String, DateTime, Integer, Float, Text, Enum, ForeignKey, func
+from sqlalchemy import String, DateTime, Date, Integer, Numeric, Text, Enum, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from enum import Enum as PyEnum
@@ -6,8 +6,8 @@ from app.database import Base
 
 
 class ProposalType(str, PyEnum):
-    company_profile = "company_profile"
-    project_quotation = "project_quotation"
+    profile_only = "profile_only"
+    quotation_proposal = "quotation_proposal"
 
 
 class ProposalStatus(str, PyEnum):
@@ -22,14 +22,14 @@ class Proposal(Base):
     __tablename__ = "proposals"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    proposal_type: Mapped[ProposalType] = mapped_column(Enum(ProposalType), nullable=False)
-    proposal_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    type: Mapped[ProposalType] = mapped_column(Enum(ProposalType), nullable=False)
+    proposal_no: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     client_name: Mapped[str] = mapped_column(String(255), nullable=False)
     company_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     project_title: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    amount: Mapped[float | None] = mapped_column(Float, nullable=True)
+    amount: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     currency: Mapped[str | None] = mapped_column(String(10), nullable=True)
     pdf_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     unique_token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
@@ -37,7 +37,7 @@ class Proposal(Base):
     first_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     view_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    renewal_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    renewal_date: Mapped[datetime | None] = mapped_column(Date, nullable=True)
     status: Mapped[ProposalStatus] = mapped_column(Enum(ProposalStatus), default=ProposalStatus.sent, nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

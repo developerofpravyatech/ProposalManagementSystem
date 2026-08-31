@@ -1,11 +1,11 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 from app.models.proposal import ProposalType, ProposalStatus
 
 
 class ProposalBase(BaseModel):
-    proposal_type: ProposalType
+    type: ProposalType
     client_name: str = Field(..., min_length=1, max_length=255)
     company_name: Optional[str] = Field(None, max_length=255)
     phone: Optional[str] = Field(None, max_length=50)
@@ -13,7 +13,7 @@ class ProposalBase(BaseModel):
     project_title: Optional[str] = Field(None, max_length=500)
     amount: Optional[float] = None
     currency: Optional[str] = Field(None, max_length=10)
-    renewal_date: Optional[datetime] = None
+    renewal_date: Optional[date] = None
 
 
 class ProposalCreate(ProposalBase):
@@ -29,7 +29,7 @@ class ProposalUpdate(BaseModel):
     amount: Optional[float] = None
     currency: Optional[str] = Field(None, max_length=10)
     status: Optional[ProposalStatus] = None
-    renewal_date: Optional[datetime] = None
+    renewal_date: Optional[date] = None
     pdf_path: Optional[str] = None
 
 
@@ -37,7 +37,7 @@ class ProposalRead(ProposalBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    proposal_number: str
+    proposal_no: Optional[str]
     pdf_path: Optional[str]
     unique_token: str
     sent_at: Optional[datetime]

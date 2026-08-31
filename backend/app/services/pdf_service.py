@@ -72,7 +72,7 @@ def build_proposal_pdf(proposal: Proposal, filepath: str):
 
     # Brand Header
     story.append(Paragraph("PRAVYA TECH SOLUTIONS", title_style))
-    is_quotation = str(proposal.proposal_type.value) in ["project_quotation", "quotation"]
+    is_quotation = str(proposal.type.value) in ["quotation_proposal", "quotation"]
     doc_type_title = "PROJECT PROPOSAL & QUOTATION" if is_quotation else "COMPANY PROFILE & CAPABILITIES"
     story.append(Paragraph(doc_type_title, subtitle_style))
     story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
@@ -80,7 +80,7 @@ def build_proposal_pdf(proposal: Proposal, filepath: str):
     # Meta Table
     meta_data = [
         [
-            Paragraph(f"<b>Proposal #:</b> {proposal.proposal_number}", body_style),
+            Paragraph(f"<b>Proposal #:</b> {proposal.proposal_no or 'N/A'}", body_style),
             Paragraph(f"<b>Date:</b> {datetime.now().strftime('%B %d, %Y')}", body_style)
         ],
         [
@@ -185,7 +185,7 @@ def build_proposal_pdf(proposal: Proposal, filepath: str):
 
 
 async def generate_pdf(db: AsyncSession, proposal: Proposal) -> str:
-    filename = f"{proposal.proposal_number}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    filename = f"{proposal.proposal_no or proposal.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
     filepath = os.path.join(OUTPUT_DIR, filename)
     build_proposal_pdf(proposal, filepath)
     proposal.pdf_path = filepath

@@ -36,7 +36,7 @@ async def download_proposal_pdf(token: str, request: Request, db: AsyncSession =
     if not proposal.pdf_path:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PDF not available")
     from fastapi.responses import FileResponse
-    return FileResponse(proposal.pdf_path, filename=f"{proposal.proposal_number}.pdf")
+    return FileResponse(proposal.pdf_path, filename=f"{proposal.proposal_no or proposal.id}.pdf")
 
 
 @router.post("/{token}/accept")
@@ -44,9 +44,9 @@ async def accept_proposal(token: str, request: Request, db: AsyncSession = Depen
     proposal = await get_proposal_by_token(db, token)
     if not proposal:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proposal not found")
-    if proposal.proposal_type.value != "project_quotation":
+    if proposal.type.value != "quotation_proposal":
         raise HTTPException(status_code=400, detail="Only quotations can be accepted")
     proposal.status = ProposalStatus.accepted
     await db.commit()
     await db.refresh(proposal)
-    return {"detail": "Proposal accepted", "proposal_number": proposal.proposal_number}
+    return {"detail": "Proposal accepted", "proposal_no": proposal.proposal_no}

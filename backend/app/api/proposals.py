@@ -28,8 +28,8 @@ async def get_dashboard_summary(
 ):
     all_props = await get_proposals(db, limit=500)
     total_proposals = len(all_props)
-    profile_count = len([p for p in all_props if p.proposal_type.value in ["company_profile", "profile"]])
-    quotation_count = len([p for p in all_props if p.proposal_type.value in ["project_quotation", "quotation"]])
+    profile_count = len([p for p in all_props if p.type.value in ["profile_only", "profile"]])
+    quotation_count = len([p for p in all_props if p.type.value in ["quotation_proposal", "quotation"]])
     total_views = sum(p.view_count for p in all_props)
     viewed_props = len([p for p in all_props if p.view_count > 0])
     open_rate = round((viewed_props / total_proposals * 100)) if total_proposals > 0 else 0
@@ -132,7 +132,7 @@ async def renew_proposal(
     if not original:
         raise HTTPException(status_code=404, detail="Proposal not found")
     new_proposal_data = {
-        "proposal_type": original.proposal_type,
+        "type": original.type,
         "client_name": original.client_name,
         "company_name": original.company_name,
         "phone": original.phone,

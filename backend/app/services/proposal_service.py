@@ -25,7 +25,7 @@ async def create_proposal(db: AsyncSession, proposal_data: dict) -> Proposal:
     unique_token = generate_token()
     proposal = Proposal(
         **proposal_data,
-        proposal_number=proposal_number,
+        proposal_no=proposal_number,
         unique_token=unique_token,
         status=ProposalStatus.sent,
     )
@@ -43,7 +43,7 @@ async def get_proposals(db: AsyncSession, skip: int = 0, limit: int = 50, status
         query = query.where(
             (Proposal.client_name.ilike(f"%{search}%"))
             | (Proposal.company_name.ilike(f"%{search}%"))
-            | (Proposal.proposal_number.ilike(f"%{search}%"))
+            | (Proposal.proposal_no.ilike(f"%{search}%"))
             | (Proposal.unique_token.ilike(f"%{search}%"))
         )
     query = query.order_by(Proposal.created_at.desc()).offset(skip).limit(limit)
