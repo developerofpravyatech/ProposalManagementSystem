@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, Any
 from app.models.proposal import ProposalType, ProposalStatus
 
 
@@ -11,9 +11,14 @@ class ProposalBase(BaseModel):
     phone: Optional[str] = Field(None, max_length=50)
     email: Optional[EmailStr] = None
     project_title: Optional[str] = Field(None, max_length=500)
+    project_subtitle: Optional[str] = Field(None, max_length=500)
     amount: Optional[float] = None
     currency: Optional[str] = Field(None, max_length=10)
+    currency_symbol: Optional[str] = Field(None, max_length=10)
+    contract_duration: Optional[str] = Field(None, max_length=100)
     renewal_date: Optional[date] = None
+    terms: Optional[str] = None
+    line_items: Optional[list[Any]] = None
 
 
 class ProposalCreate(ProposalBase):
@@ -26,11 +31,20 @@ class ProposalUpdate(BaseModel):
     phone: Optional[str] = Field(None, max_length=50)
     email: Optional[EmailStr] = None
     project_title: Optional[str] = Field(None, max_length=500)
+    project_subtitle: Optional[str] = Field(None, max_length=500)
     amount: Optional[float] = None
     currency: Optional[str] = Field(None, max_length=10)
+    currency_symbol: Optional[str] = Field(None, max_length=10)
+    contract_duration: Optional[str] = Field(None, max_length=100)
     status: Optional[ProposalStatus] = None
     renewal_date: Optional[date] = None
+    terms: Optional[str] = None
+    line_items: Optional[list[Any]] = None
+    accepted_by: Optional[str] = Field(None, max_length=255)
+    accepted_at: Optional[datetime] = None
+    signature_data: Optional[str] = None
     pdf_path: Optional[str] = None
+    pdf_downloaded_at: Optional[datetime] = None
 
 
 class ProposalRead(ProposalBase):
@@ -44,6 +58,10 @@ class ProposalRead(ProposalBase):
     first_opened_at: Optional[datetime]
     last_opened_at: Optional[datetime]
     view_count: int
+    pdf_downloaded_at: Optional[datetime]
+    accepted_by: Optional[str]
+    accepted_at: Optional[datetime]
+    signature_data: Optional[str]
     status: ProposalStatus
     created_at: datetime
     updated_at: datetime

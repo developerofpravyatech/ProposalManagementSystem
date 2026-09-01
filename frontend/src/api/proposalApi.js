@@ -94,6 +94,16 @@ export const proposalApi = {
     }
   },
 
+  async generatePdf(proposalId) {
+    try {
+      return await apiRequest(`/proposals/${proposalId}/pdf`, {
+        method: 'POST',
+      });
+    } catch {
+      return { detail: 'PDF generated (mock)', pdf_path: `/static/proposals/PT-2026-${100 + proposalId}.pdf` };
+    }
+  },
+
   async createProposal(proposalData) {
     try {
       return await apiRequest('/proposals', {

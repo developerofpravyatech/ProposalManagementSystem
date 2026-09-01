@@ -8,7 +8,8 @@ import {
   Trash2, 
   ExternalLink,
   Search,
-  Check
+  Check,
+  FileText
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { useToast } from '../../context/ToastContext';
@@ -19,6 +20,7 @@ export function ProposalTable({
   onOpenAnalytics,
   onRenew,
   onDelete,
+  onGeneratePdf,
 }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -230,14 +232,23 @@ export function ProposalTable({
                             <MessageSquare className="w-4 h-4" />
                           </button>
 
-                          {/* Analytics Modal */}
-                          <button
-                            onClick={() => onOpenAnalytics(p)}
-                            title="Forensic Analytics & View Log"
-                            className="p-2 rounded-xl text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 transition-all shadow-sm"
-                          >
-                            <BarChart3 className="w-4 h-4" />
-                          </button>
+                           {/* Analytics Modal */}
+                           <button
+                             onClick={() => onOpenAnalytics(p)}
+                             title="Forensic Analytics & View Log"
+                             className="p-2 rounded-xl text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 transition-all shadow-sm"
+                           >
+                             <BarChart3 className="w-4 h-4" />
+                           </button>
+
+                           {/* Generate PDF */}
+                           <button
+                             onClick={() => onGeneratePdf && onGeneratePdf(p)}
+                             title="Generate Official PDF"
+                             className="p-2 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all shadow-sm"
+                           >
+                             <FileText className="w-4 h-4" />
+                           </button>
 
                           {/* Open Viewer In New Tab */}
                           <a

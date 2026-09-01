@@ -44,6 +44,16 @@ export function ProposalsPage() {
     }
   };
 
+  const handleGeneratePdf = async (proposal) => {
+    try {
+      await proposalApi.generatePdf(proposal.id);
+      addToast(`PDF generated for #${proposal.proposal_no}`, 'success');
+      fetchProposals();
+    } catch (err) {
+      addToast(err.message || 'Failed to generate PDF', 'error');
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this proposal?')) return;
     try {
@@ -91,13 +101,14 @@ export function ProposalsPage() {
       </div>
 
       {/* Main Table */}
-      <ProposalTable
-        proposals={proposals}
-        onOpenWhatsApp={(p) => setActiveWhatsAppProposal(p)}
-        onOpenAnalytics={(p) => setActiveAnalyticsProposal(p)}
-        onRenew={handleRenew}
-        onDelete={handleDelete}
-      />
+       <ProposalTable
+          proposals={proposals}
+          onOpenWhatsApp={(p) => setActiveWhatsAppProposal(p)}
+          onOpenAnalytics={(p) => setActiveAnalyticsProposal(p)}
+          onRenew={handleRenew}
+          onDelete={handleDelete}
+          onGeneratePdf={handleGeneratePdf}
+        />
 
       {/* Modals */}
       <WhatsAppModal

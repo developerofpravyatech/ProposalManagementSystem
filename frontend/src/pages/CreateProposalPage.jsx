@@ -6,7 +6,8 @@ import {
   ArrowLeft, 
   ArrowRight, 
   Check, 
-  ShieldCheck
+  ShieldCheck,
+  Settings
 } from 'lucide-react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -111,9 +112,16 @@ export function CreateProposalPage() {
         terms: proposalType === 'quotation_proposal' ? terms : null,
       };
 
-      const created = await proposalApi.createProposal(payload);
-      addToast(`Proposal #${created.proposal_no} generated successfully!`, 'success');
-      navigate('/admin/proposals');
+       const created = await proposalApi.createProposal(payload);
+       addToast(`Proposal #${created.proposal_no} generated!`, 'success');
+       addToast('Generating official PDF package...', 'info');
+       try {
+         await proposalApi.generatePdf(created.id);
+         addToast(`PDF ready for Proposal #${created.proposal_no}`, 'success');
+       } catch {
+         addToast('Proposal created (PDF can be regenerated)', 'success');
+       }
+       navigate('/admin/proposals');
     } catch (err) {
       addToast(err.message || 'Failed to create proposal', 'error');
     } finally {
@@ -139,6 +147,13 @@ export function CreateProposalPage() {
             Generate and tokenize a new proposal or company profile in seconds.
           </p>
         </div>
+
+        <button
+          onClick={() => navigate('/admin/company-settings')}
+          className="text-xs text-slate-500 hover:text-brand-600 font-bold flex items-center gap-1.5 mb-2 transition-colors"
+        >
+          <Settings className="w-3.5 h-3.5" /> Company Settings
+        </button>
 
         {/* Step Indicator */}
         <div className="flex items-center gap-2">
@@ -171,9 +186,10 @@ export function CreateProposalPage() {
             {/* Mode A: Company Profile */}
             <Card
               hover
-              onClick={() => {
+               onClick={() => {
                 setProposalType('profile_only');
                 if (!projectTitle) setProjectTitle('PRAVYA TECH — Corporate Profile & Digital Capabilities');
+                setStep(2);
               }}
               className={`space-y-4 border-2 transition-all bg-white shadow-sm ${
                 proposalType === 'profile_only'
@@ -324,7 +340,7 @@ export function CreateProposalPage() {
       )}
 
       {/* STEP 3: COMMERCIALS & LINE ITEMS (Mode B Only) */}
-      {step === 3 && proposalType === 'quotation' && (
+      {step === 3 && proposalType === 'quotation_proposal' && (
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display">Commercials, Deliverables & Contract Terms</h2>

@@ -1,7 +1,12 @@
 import { apiRequest } from './client';
 import { getMockProposals, saveMockProposals, getMockViews, saveMockViews } from './mockData';
+import { companyProfileApi } from './companyProfileApi';
 
 export const publicApi = {
+  async getCompanyProfile() {
+    return await companyProfileApi.getPublicCompanyProfile();
+  },
+
   async getProposalByToken(token) {
     try {
       return await apiRequest(`/public/proposals/${token}`);

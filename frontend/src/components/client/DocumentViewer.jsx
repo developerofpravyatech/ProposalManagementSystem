@@ -13,17 +13,35 @@ import {
   MapPin,
   Zap,
   Lock,
-  Compass
+  Compass,
+  Globe
 } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { PricingTable } from './PricingTable';
 import { Button } from '../common/Button';
 
-export function DocumentViewer({ proposal, onOpenAcceptModal }) {
+export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) {
   const [activeSection, setActiveSection] = useState('cover');
   const isQuotation = proposal.type === 'quotation_proposal';
   const isAccepted = proposal.status === 'accepted';
+  const cp = companyProfile || {};
+  const companyName = cp.company_name || 'PRAVYA TECH Solutions';
+  const tagline = cp.tagline || 'Empowering Businesses Through Technology';
+  const email = cp.email || 'contact@pravyatech.com';
+  const phone = cp.phone || '+91 98765 43210';
+  const website = cp.website || 'www.pravyatech.com';
+  const address = cp.address || 'Office: Rajkot, Gujarat, India';
+  const salesHead = cp.sales_head_name || 'Rahul Mehta';
+  const salesHeadTitle = cp.sales_head_title || 'Founder & CEO';
+  const mission = cp.mission || '';
+  const vision = cp.vision || '';
+  const coreValues = cp.core_values || [];
+  const services = cp.services || [];
+  const bniClients = cp.bni_clients || [];
+  const intlClients = cp.international_clients || [];
+  const branchOffices = cp.branch_offices || [];
+  const terms = cp.terms || '';
 
   const sections = isQuotation
     ? [
@@ -37,12 +55,14 @@ export function DocumentViewer({ proposal, onOpenAcceptModal }) {
       ]
     : [
         { id: 'cover', label: '1. Cover' },
-        { id: 'about', label: '2. About PRAVYA TECH' },
-        { id: 'services', label: '3. Enterprise Services' },
-        { id: 'process', label: '4. Delivery Methodology' },
-        { id: 'cases', label: '5. Case Studies' },
-        { id: 'stack', label: '6. Technology Stack' },
-        { id: 'contact', label: '7. Contact & Branches' },
+        { id: 'cover-letter', label: '2. Cover Letter' },
+        { id: 'mission-vision', label: '3. Mission & Vision' },
+        { id: 'services', label: '4. Services' },
+        { id: 'process', label: '5. Work Process' },
+        { id: 'clients-bni', label: '6. Clients (BNI)' },
+        { id: 'clients-intl', label: '7. Clients (Intl)' },
+        { id: 'terms', label: '8. Terms' },
+        { id: 'back-cover', label: '9. Back Cover' },
       ];
 
   const scrollToSection = (id) => {
@@ -106,8 +126,8 @@ export function DocumentViewer({ proposal, onOpenAcceptModal }) {
             </div>
             <div>
               <span className="text-slate-400 block uppercase tracking-wider font-bold">Prepared By</span>
-              <p className="text-slate-900 font-extrabold text-base mt-0.5">PRAVYA TECH Solutions</p>
-              <p className="text-slate-600 font-medium">Engineering & Cloud Architecture Division</p>
+              <p className="text-slate-600 font-medium">{companyName}</p>
+              <p className="text-slate-600 font-medium">{salesHead} • {salesHeadTitle}</p>
             </div>
           </div>
         </div>
@@ -257,142 +277,162 @@ export function DocumentViewer({ proposal, onOpenAcceptModal }) {
         </>
       )}
 
-      {/* MODE A CONTENT (Company Profile Showcase) */}
+      {/* MODE A CONTENT (9-Page Company Profile) */}
       {!isQuotation && (
         <>
-          {/* About PRAVYA TECH */}
-          <section id="about" className="space-y-4">
+          {/* PAGE 2: Cover Letter */}
+          <section id="cover-letter" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-brand-600" />
-              <h2 className="text-xl font-bold text-slate-900 font-display">About PRAVYA TECH</h2>
+              <Mail className="w-5 h-5 text-brand-600" />
+              <h2 className="text-xl font-bold text-slate-900 font-display">Cover Letter</h2>
             </div>
             <Card className="space-y-4 text-sm text-slate-600 leading-relaxed bg-white border border-slate-200 shadow-sm">
+              <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+              <p><strong>To:</strong> {proposal.client_name}, {proposal.company_name || ''}</p>
+              <p>Dear Sir/Madam,</p>
               <p>
-                <strong>PRAVYA TECH</strong> is a premier technology consulting and digital engineering firm specializing in bespoke software architecture, multi-tenant cloud ecosystems, and AI integrations. We partner with forward-thinking enterprises to modernize legacy stacks and build high-performance products.
+                It is with great pleasure that {companyName} presents this Company Profile for your consideration. 
+                As a trusted technology partner, we have consistently delivered innovative solutions that drive business growth 
+                and operational excellence for our clients worldwide.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-                  <div className="text-3xl font-black text-brand-600 font-display">99.9%</div>
-                  <div className="text-xs text-slate-500 mt-1 uppercase font-bold">Production Uptime</div>
-                </div>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-                  <div className="text-3xl font-black text-slate-900 font-display">40+</div>
-                  <div className="text-xs text-slate-500 mt-1 uppercase font-bold">Enterprise Deployments</div>
-                </div>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-                  <div className="text-3xl font-black text-emerald-600 font-display">100%</div>
-                  <div className="text-xs text-slate-500 mt-1 uppercase font-bold">Client Retention</div>
-                </div>
+              <p>
+                At {companyName}, we believe in building lasting partnerships through transparency, technical excellence, 
+                and a client-first approach. Our team of seasoned professionals is committed to understanding your unique 
+                challenges and crafting solutions that exceed expectations.
+              </p>
+              <p>We look forward to the opportunity to collaborate with you.</p>
+              <div className="pt-4">
+                <p>Warm regards,</p>
+                <p><strong>{salesHead}</strong></p>
+                <p>{salesHeadTitle}, {companyName}</p>
               </div>
             </Card>
           </section>
 
-          {/* Enterprise Services */}
+          {/* PAGE 3: Mission, Vision & Values */}
+          <section id="mission-vision" className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-brand-600" />
+              <h2 className="text-xl font-bold text-slate-900 font-display">Mission, Vision & Core Values</h2>
+            </div>
+            <Card className="space-y-4 text-sm text-slate-600 leading-relaxed bg-white border border-slate-200 shadow-sm">
+              <div>
+                <h3 className="font-bold text-slate-900">Mission</h3>
+                <p>{mission || 'To empower businesses with cutting-edge digital solutions.'}</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900">Vision</h3>
+                <p>{vision || 'To be a globally recognized technology partner.'}</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900">Our {coreValues.length} Core Values</h3>
+                {coreValues.length > 0 ? (
+                  coreValues.map((val, idx) => (
+                    <p key={idx}>{idx + 1}. <strong>{typeof val === 'object' ? val.title : val}:</strong> {typeof val === 'object' ? val.description : ''}</p>
+                  ))
+                ) : (
+                  <p>Loading values...</p>
+                )}
+              </div>
+            </Card>
+          </section>
+
+          {/* PAGE 4: Services */}
           <section id="services" className="space-y-4">
             <div className="flex items-center gap-2">
               <Cpu className="w-5 h-5 text-brand-600" />
-              <h2 className="text-xl font-bold text-slate-900 font-display">Core Capabilities & Services</h2>
+              <h2 className="text-xl font-bold text-slate-900 font-display">Our Services</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Card className="space-y-2 bg-white border border-slate-200 shadow-sm">
-                <div className="w-8 h-8 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center border border-brand-200">
-                  <Code2 className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-base">Custom Enterprise Software</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Tailored web applications, ERP/CRM suites, and microservice architectures built for high concurrency.
-                </p>
-              </Card>
-              <Card className="space-y-2 bg-white border border-slate-200 shadow-sm">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-900 flex items-center justify-center border border-slate-200">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-base">Cloud & DevOps Engineering</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Infrastructure as Code (Terraform), multi-region AWS/GCP clusters, and zero-downtime CI/CD pipelines.
-                </p>
-              </Card>
-              <Card className="space-y-2 bg-white border border-slate-200 shadow-sm">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-base">Security & Code Quality Audits</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Comprehensive vulnerability penetration testing, OWASP adherence, and code security sanitization.
-                </p>
-              </Card>
-              <Card className="space-y-2 bg-white border border-slate-200 shadow-sm">
-                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-base">AI & Data Pipelines</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Vector search implementations, LLM agent integration, automated ETL workflows, and real-time telemetry.
-                </p>
-              </Card>
-            </div>
-          </section>
-
-          {/* Delivery Process */}
-          <section id="process" className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-brand-600" />
-              <h2 className="text-xl font-bold text-slate-900 font-display">Our 5-Stage Delivery Methodology</h2>
-            </div>
-            <Card className="space-y-3 bg-white border border-slate-200 shadow-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 text-center">
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-brand-600 font-mono text-xs font-bold block">01. DISCOVER</span>
-                  <p className="text-[11px] text-slate-500 mt-1">Requirements analysis and system architecture map.</p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-slate-900 font-mono text-xs font-bold block">02. PROTOTYPE</span>
-                  <p className="text-[11px] text-slate-500 mt-1">Figma design systems and interactive UI prototypes.</p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-emerald-700 font-mono text-xs font-bold block">03. SPRINT</span>
-                  <p className="text-[11px] text-slate-500 mt-1">2-week agile development sprints with live previews.</p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-amber-700 font-mono text-xs font-bold block">04. QA & TEST</span>
-                  <p className="text-[11px] text-slate-500 mt-1">Automated test suites, security scans, and UAT.</p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                  <span className="text-blue-700 font-mono text-xs font-bold block">05. DEPLOY</span>
-                  <p className="text-[11px] text-slate-500 mt-1">Cloud launch, DNS handover, and 24/7 SLA monitoring.</p>
-                </div>
-              </div>
+            <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
+              {services.length > 0 ? (
+                services.map((svc, idx) => (
+                  <p key={idx}><strong>{idx + 1}. {typeof svc === 'object' ? svc.title : svc}</strong> — {typeof svc === 'object' ? svc.description : ''}</p>
+                ))
+              ) : (
+                <p>Loading services...</p>
+              )}
             </Card>
           </section>
 
-          {/* Contact Details */}
-          <section id="contact" className="space-y-4">
+          {/* PAGE 5: Work Process */}
+          <section id="process" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-brand-600" />
-              <h2 className="text-xl font-bold text-slate-900 font-display">Get in Touch</h2>
+              <Clock className="w-5 h-5 text-brand-600" />
+              <h2 className="text-xl font-bold text-slate-900 font-display">Our Work Process</h2>
             </div>
-            <Card className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs bg-white border border-slate-200 shadow-sm">
-              <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-brand-600 shrink-0" />
-                <div>
-                  <span className="text-slate-400 block font-bold">Official Email</span>
-                  <span className="text-slate-900 font-mono font-semibold">contact@pravyatech.com</span>
-                </div>
+            <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
+              <p><strong>Step 01: Discovery</strong> — Understanding your business goals and requirements.</p>
+              <p><strong>Step 02: Strategy</strong> — Developing a comprehensive project roadmap.</p>
+              <p><strong>Step 03: Design & Development</strong> — Executing with agile sprints and QA checks.</p>
+              <p><strong>Step 04: Testing & Review</strong> — Rigorous testing across devices and scenarios.</p>
+              <p><strong>Step 05: Launch & Support</strong> — Seamless deployment and ongoing support.</p>
+            </Card>
+          </section>
+
+          {/* PAGE 6: Top Clients (BNI Members) */}
+          <section id="clients-bni" className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-brand-600" />
+              <h2 className="text-xl font-bold text-slate-900 font-display">Top Clients Showcase (BNI Members)</h2>
+            </div>
+            <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
+              <p>We are proud to collaborate with leading organizations:</p>
+              {bniClients.map((client, idx) => (
+                <p key={idx}>• {client}</p>
+              ))}
+            </Card>
+          </section>
+
+          {/* PAGE 7: Top Clients (International) */}
+          <section id="clients-intl" className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-brand-600" />
+              <h2 className="text-xl font-bold text-slate-900 font-display">Top Clients Showcase (International)</h2>
+            </div>
+             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
+              <p>Our reach extends beyond borders:</p>
+              {intlClients.map((client, idx) => (
+                <p key={idx}>• {client}</p>
+              ))}
+            </Card>
+          </section>
+
+          {/* PAGE 8: General Terms & Conditions */}
+          <section id="terms" className="space-y-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-brand-600" />
+              <h2 className="text-xl font-bold text-slate-900 font-display">General Terms & Conditions</h2>
+            </div>
+            <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
+              <p><strong>Statement of Work</strong></p>
+              {terms.split('\n').map((line, idx) => {
+                if (!line.trim()) return null;
+                if (line.includes('Governing Law')) {
+                  const [label, ...rest] = line.split(':');
+                  return <p key={idx} className="pt-2"><strong>{label}:</strong> {rest.join(':')}</p>;
+                }
+                return <p key={idx}>{line}</p>;
+              })}
+            </Card>
+          </section>
+
+          {/* PAGE 9: Back Cover */}
+          <section id="back-cover" className="space-y-4">
+            <Card className="p-8 text-center space-y-4 bg-white border border-slate-200 shadow-sm">
+              <h2 className="text-2xl font-black text-slate-900 font-display">{companyName}</h2>
+              <p className="text-sm text-slate-600">{tagline}</p>
+              <div className="space-y-1 text-xs text-slate-500">
+                <p><strong>Branch Offices:</strong></p>
+                {branchOffices.map((office, idx) => (
+                  <p key={idx}>{office}</p>
+                ))}
               </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-slate-900 shrink-0" />
-                <div>
-                  <span className="text-slate-400 block font-bold">Direct WhatsApp</span>
-                  <span className="text-slate-900 font-mono font-semibold">+91 98765 43210</span>
-                </div>
+              <div className="space-y-1 text-xs text-slate-500">
+                <p>{email}</p>
+                <p>{phone}</p>
+                <p>{website}</p>
               </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-                <div>
-                  <span className="text-slate-400 block font-bold">Global Operations</span>
-                  <span className="text-slate-900 font-semibold">Bangalore • Dubai • London</span>
-                </div>
-              </div>
+              <p className="text-xs text-slate-400 pt-4">Thank you for considering {companyName} as your technology partner.</p>
             </Card>
           </section>
         </>

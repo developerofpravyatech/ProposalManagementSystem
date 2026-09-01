@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Any
 
 from app.database import get_db
 from app.models.proposal import Proposal, ProposalStatus
@@ -125,24 +125,34 @@ async def delete_existing_proposal(
 @router.post("/{proposal_id}/renew", response_model=ProposalRead)
 async def renew_proposal(
     proposal_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_admin=Depends(get_current_admin),
 ):
     original = await get_proposal_by_id(db, proposal_id)
     if not original:
         raise HTTPException(status_code=404, detail="Proposal not found")
+    try:
+        renewal_payload: dict[str, Any] = await request.json()
+    except Exception:
+        renewal_payload = {}
     new_proposal_data = {
         "type": original.type,
         "client_name": original.client_name,
         "company_name": original.company_name,
         "phone": original.phone,
         "email": original.email,
-        "project_title": original.project_title,
+        "project_title": renewal_payload.get("project_title", original.project_title),
+        "project_subtitle": original.project_subtitle,
         "amount": original.amount,
         "currency": original.currency,
+        "currency_symbol": original.currency_symbol,
+        "contract_duration": renewal_payload.get("contract_duration", original.contract_duration),
+        "renewal_date": renewal_payload.get("renewal_date", original.renewal_date),
+        "terms": original.terms,
+        "line_items": original.line_items,
     }
     new_proposal = await create_proposal(db, new_proposal_data)
-    new_proposal.status = ProposalStatus.renewed
     original.status = ProposalStatus.renewal_due
     await db.commit()
     await db.refresh(new_proposal)

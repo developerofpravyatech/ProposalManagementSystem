@@ -8,6 +8,10 @@ The main goal is to make the proposal-sharing process simple and professional wh
 
 ---
 
+uvicorn app.main:app --reload --port 8000
+npm run dev
+---
+
 ## What the System Does
 
 The system provides two main types of documents:

@@ -15,6 +15,7 @@ export function PublicProposalPage() {
   const { addToast } = useToast();
 
   const [proposal, setProposal] = useState(null);
+  const [companyProfile, setCompanyProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false);
@@ -26,6 +27,14 @@ export function PublicProposalPage() {
       try {
         const data = await publicApi.getProposalByToken(token);
         setProposal(data);
+
+        // Fetch company profile for Mode A viewer
+        try {
+          const cp = await publicApi.getCompanyProfile();
+          setCompanyProfile(cp);
+        } catch (cpErr) {
+          console.warn('Failed to load company profile:', cpErr);
+        }
 
         // Asynchronously record silent view event
         publicApi.recordView(token, {
@@ -168,8 +177,9 @@ export function PublicProposalPage() {
 
       {/* Main Document Content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        <DocumentViewer
+         <DocumentViewer
           proposal={proposal}
+          companyProfile={companyProfile}
           onOpenAcceptModal={() => setIsAcceptModalOpen(true)}
         />
       </main>

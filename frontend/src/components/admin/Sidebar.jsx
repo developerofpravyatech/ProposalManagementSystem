@@ -8,7 +8,8 @@ import {
   LogOut, 
   ShieldCheck,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -26,6 +27,7 @@ export function Sidebar({ isOpen, onClose }) {
     { to: '/admin/proposals', label: 'Proposals', icon: FileSpreadsheet },
     { to: '/admin/proposals/create', label: 'Create Proposal', icon: PlusCircle, highlight: true },
     { to: '/admin/renewals', label: 'Renewals Pipeline', icon: RefreshCw },
+    { to: '/admin/company-settings', label: 'Company Settings', icon: Settings },
   ];
 
   return (

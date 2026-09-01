@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ProposalsPage } from './pages/ProposalsPage';
 import { CreateProposalPage } from './pages/CreateProposalPage';
 import { RenewalsPage } from './pages/RenewalsPage';
+import { CompanySettingsPage } from './pages/CompanySettingsPage';
 import { PublicProposalPage } from './pages/PublicProposalPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -37,8 +38,10 @@ function AdminLayout() {
         return { title: 'Proposal Management', subtitle: 'View, share, track and edit company proposals' };
       case '/admin/proposals/create':
         return { title: 'Create Proposal', subtitle: 'Mode A (Company Profile) & Mode B (Quotation)' };
-      case '/admin/renewals':
-        return { title: 'Contract Renewals Pipeline', subtitle: 'Track approaching anniversaries & 1-click renew' };
+        case '/admin/renewals':
+          return { title: 'Contract Renewals Pipeline', subtitle: 'Track approaching anniversaries & 1-click renew' };
+        case '/admin/company-settings':
+          return { title: 'Company Settings', subtitle: 'Configure company profile, values, services, and clients' };
       default:
         return { title: 'Admin Command Center', subtitle: 'PRAVYA TECH PMS' };
     }
@@ -82,6 +85,7 @@ export function App() {
         <Route path="proposals" element={<ProposalsPage />} />
         <Route path="proposals/create" element={<CreateProposalPage />} />
         <Route path="renewals" element={<RenewalsPage />} />
+        <Route path="company-settings" element={<CompanySettingsPage />} />
       </Route>
 
       {/* Public Client Token Viewer (/p/:token) */}
