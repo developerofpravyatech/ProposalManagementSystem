@@ -37,6 +37,12 @@ const DEFAULT_PROFILE = {
     'Rajkot - 150ft Rd, Gondal Rd, Gujarat, India',
     'California, USA',
   ],
+  logo_data: null,
+  logo_url: null,
+  primary_color: '#4F46E5',
+  secondary_color: '#0F172A',
+  accent_color: '#10B981',
+  theme_config: [],
   terms: 'All proposals are valid for 30 days from the date of issuance.\n50% advance, 30% on milestone completion, 20% on final delivery.\nChanges to scope must be documented in writing.\nIP rights transfer upon full payment.\nConfidentiality required.\nGoverning Law: India.',
 };
 

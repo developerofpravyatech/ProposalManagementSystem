@@ -44,6 +44,12 @@ DEFAULT_COMPANY_PROFILE = {
         "Rajkot - 150ft Rd, Gondal Rd, Gujarat, India",
         "California, USA",
     ],
+    "logo_data": None,
+    "logo_url": None,
+    "primary_color": "#4F46E5",
+    "secondary_color": "#0F172A",
+    "accent_color": "#10B981",
+    "theme_config": [],
     "terms": (
         "All proposals are valid for 30 days from the date of issuance.\n"
         "Payment terms: 50% advance, 30% on milestone completion, 20% on final delivery.\n"

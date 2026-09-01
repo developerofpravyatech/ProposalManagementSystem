@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Save, Building2, Users, Globe, MapPin, Mail, Phone, FileText, Sparkles, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Save, Building2, Users, Globe, MapPin, Mail, Phone, FileText, Sparkles, Plus, Trash2, Upload, Image, Palette } from 'lucide-react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input, Textarea } from '../components/common/Input';
@@ -188,6 +188,133 @@ export function CompanySettingsPage() {
             <Input label="Sales Head Title" value={profile.sales_head_title || ''} onChange={(e) => handleInputChange('sales_head_title', e.target.value)} />
           </div>
           <Textarea label="Address / Office Location" value={profile.address || ''} onChange={(e) => handleInputChange('address', e.target.value)} />
+         </Card>
+
+        {/* Logo & Brand */}
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
+              <Image className="w-5 h-5 text-brand-600" />
+              Company Logo & Brand
+            </h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Company Logo</label>
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden bg-slate-50">
+                  {profile.logo_data ? (
+                    <img src={profile.logo_data} alt="Logo preview" className="w-full h-full object-contain" />
+                  ) : profile.logo_url ? (
+                    <img src={profile.logo_url} alt="Logo" className="w-full h-full object-contain" />
+                  ) : (
+                    <Image className="w-8 h-8 text-slate-400" />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors">
+                    <Upload className="w-4 h-4" />
+                    Upload Logo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          handleInputChange('logo_data', ev.target.result);
+                          handleInputChange('logo_url', '');
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-[11px] text-slate-500">PNG, JPG, SVG (max 2MB)</p>
+                </div>
+              </div>
+            </div>
+
+            <Input
+              label="Or enter logo URL"
+              placeholder="https://example.com/logo.png"
+              value={profile.logo_url || ''}
+              onChange={(e) => handleInputChange('logo_url', e.target.value)}
+            />
+          </div>
+        </Card>
+
+        {/* Theme Customizer */}
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
+              <Palette className="w-5 h-5 text-brand-600" />
+              Theme Colors & Custom Icons
+            </h2>
+            <p className="text-xs text-slate-500 font-medium mt-1">Customize brand colors displayed across the PDF and client portal</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Primary Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={profile.primary_color || '#4F46E5'}
+                  onChange={(e) => handleInputChange('primary_color', e.target.value)}
+                  className="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-1"
+                />
+                <Input
+                  value={profile.primary_color || ''}
+                  onChange={(e) => handleInputChange('primary_color', e.target.value)}
+                  placeholder="#4F46E5"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Secondary Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={profile.secondary_color || '#0F172A'}
+                  onChange={(e) => handleInputChange('secondary_color', e.target.value)}
+                  className="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-1"
+                />
+                <Input
+                  value={profile.secondary_color || ''}
+                  onChange={(e) => handleInputChange('secondary_color', e.target.value)}
+                  placeholder="#0F172A"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Accent Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={profile.accent_color || '#10B981'}
+                  onChange={(e) => handleInputChange('accent_color', e.target.value)}
+                  className="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-1"
+                />
+                <Input
+                  value={profile.accent_color || ''}
+                  onChange={(e) => handleInputChange('accent_color', e.target.value)}
+                  placeholder="#10B981"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-200 space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">Custom Icon Set</label>
+            <p className="text-[11px] text-slate-500">Configure SVG icon paths for document sections (optional).</p>
+            <ArrayField
+              label="Icon Mappings (e.g. section:icon-name)"
+              items={profile.theme_config || []}
+              onChange={(val) => handleInputChange('theme_config', val)}
+              placeholder="services:Cpu, mission:Sparkles, clients:Building2"
+            />
+          </div>
         </Card>
 
         {/* Mission & Vision */}

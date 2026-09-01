@@ -26,8 +26,8 @@ def build_profile_pdf(proposal: Proposal, filepath: str, company_profile: "Compa
     )
     styles = getSampleStyleSheet()
     
-    brand_indigo = colors.HexColor("#4F46E5")
-    brand_dark = colors.HexColor("#0F172A")
+    brand_indigo = colors.HexColor(company_profile.primary_color) if company_profile and company_profile.primary_color else colors.HexColor("#4F46E5")
+    brand_dark = colors.HexColor(company_profile.secondary_color) if company_profile and company_profile.secondary_color else colors.HexColor("#0F172A")
     brand_muted = colors.HexColor("#64748B")
     brand_slate = colors.HexColor("#F8FAFC")
     

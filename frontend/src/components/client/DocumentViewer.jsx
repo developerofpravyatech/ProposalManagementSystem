@@ -98,6 +98,15 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
       <section id="cover" className="relative rounded-3xl overflow-hidden bg-white p-8 sm:p-14 border border-slate-200 shadow-md mesh-bg">
         <div className="max-w-3xl space-y-6">
           <div className="flex items-center gap-3">
+            {(cp.logo_data || cp.logo_url) ? (
+              <img src={cp.logo_data || cp.logo_url} alt={companyName} className="w-10 h-10 rounded-xl object-contain" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-slate-950 p-[1px] shadow-sm flex items-center justify-center border border-slate-900">
+                <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center font-display font-black text-white text-base">
+                  P<span className="text-brand-500">T</span>
+                </div>
+              </div>
+            )}
             <Badge type={proposal.type} />
             <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
               Ref: {proposal.proposal_no}
@@ -280,12 +289,12 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
       {/* MODE A CONTENT (9-Page Company Profile) */}
       {!isQuotation && (
         <>
-          {/* PAGE 2: Cover Letter */}
-          <section id="cover-letter" className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-brand-600" />
-              <h2 className="text-xl font-bold text-slate-900 font-display">Cover Letter</h2>
-            </div>
+           {/* PAGE 2: Cover Letter */}
+           <section id="cover-letter" className="space-y-4">
+             <div className="flex items-center gap-2">
+               <Mail className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+               <h2 className="text-xl font-bold text-slate-900 font-display">Cover Letter</h2>
+             </div>
             <Card className="space-y-4 text-sm text-slate-600 leading-relaxed bg-white border border-slate-200 shadow-sm">
               <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
               <p><strong>To:</strong> {proposal.client_name}, {proposal.company_name || ''}</p>
@@ -312,7 +321,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 3: Mission, Vision & Values */}
           <section id="mission-vision" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-brand-600" />
+              <Sparkles className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">Mission, Vision & Core Values</h2>
             </div>
             <Card className="space-y-4 text-sm text-slate-600 leading-relaxed bg-white border border-slate-200 shadow-sm">
@@ -340,7 +349,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 4: Services */}
           <section id="services" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Cpu className="w-5 h-5 text-brand-600" />
+              <Cpu className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">Our Services</h2>
             </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
@@ -357,7 +366,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 5: Work Process */}
           <section id="process" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-brand-600" />
+              <Clock className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">Our Work Process</h2>
             </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
@@ -369,12 +378,12 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
             </Card>
           </section>
 
-          {/* PAGE 6: Top Clients (BNI Members) */}
-          <section id="clients-bni" className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-brand-600" />
-              <h2 className="text-xl font-bold text-slate-900 font-display">Top Clients Showcase (BNI Members)</h2>
-            </div>
+           {/* PAGE 6: Top Clients (BNI Members) */}
+           <section id="clients-bni" className="space-y-4">
+             <div className="flex items-center gap-2">
+               <Building2 className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+               <h2 className="text-xl font-bold text-slate-900 font-display">Top Clients Showcase (BNI Members)</h2>
+             </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
               <p>We are proud to collaborate with leading organizations:</p>
               {bniClients.map((client, idx) => (
@@ -386,7 +395,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 7: Top Clients (International) */}
           <section id="clients-intl" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5 text-brand-600" />
+              <Globe className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">Top Clients Showcase (International)</h2>
             </div>
              <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
@@ -400,7 +409,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 8: General Terms & Conditions */}
           <section id="terms" className="space-y-4">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-brand-600" />
+              <ShieldCheck className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">General Terms & Conditions</h2>
             </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">

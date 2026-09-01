@@ -19,6 +19,12 @@ class CompanyProfileBase(BaseModel):
     bni_clients: Optional[list[Any]] = None
     international_clients: Optional[list[Any]] = None
     branch_offices: Optional[list[Any]] = None
+    logo_data: Optional[str] = None
+    logo_url: Optional[str] = None
+    primary_color: Optional[str] = Field(None, max_length=20)
+    secondary_color: Optional[str] = Field(None, max_length=20)
+    accent_color: Optional[str] = Field(None, max_length=20)
+    theme_config: Optional[list[Any]] = None
     terms: Optional[str] = None
 
 
