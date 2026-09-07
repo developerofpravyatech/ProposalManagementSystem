@@ -8,7 +8,7 @@ from sqlalchemy.future import select
 from app.database import get_db
 from app.models.admin import Admin
 from app.schemas.auth import AdminCreate, AdminRead, AdminLogin, Token
-from app.utils.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
+from app.utils.security import create_access_token, create_refresh_token, decode_token
 
 
 class LoginRequest(BaseModel):
@@ -41,7 +41,7 @@ async def register(admin_in: AdminCreate, db: AsyncSession = Depends(get_db)):
     admin = Admin(
         email=admin_in.email,
         full_name=admin_in.full_name,
-        hashed_password=hash_password(admin_in.password),
+        password=admin_in.password,
     )
     db.add(admin)
     await db.commit()
@@ -53,7 +53,7 @@ async def register(admin_in: AdminCreate, db: AsyncSession = Depends(get_db)):
 async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Admin).where(Admin.email == login_data.email))
     admin = result.scalar_one_or_none()
-    if not admin or not verify_password(login_data.password, admin.hashed_password):
+    if not admin or admin.password != login_data.password:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     access_token = create_access_token({"sub": str(admin.id)})
     refresh_token = create_refresh_token({"sub": str(admin.id)})

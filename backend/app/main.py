@@ -4,10 +4,11 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
+from sqlalchemy.future import select
 from app.database import engine, Base, async_session_maker
 from app.api import api_router
-from app.utils.security import settings, hash_password
-from sqlalchemy.future import select
+from app.utils.security import settings
 from app.models.admin import Admin
 
 os.makedirs(settings.PDF_OUTPUT_DIR, exist_ok=True)
@@ -15,20 +16,34 @@ os.makedirs(settings.PDF_OUTPUT_DIR, exist_ok=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        print("[STARTUP] Beginning database setup...")
+        async with engine.begin() as conn:
+            print("[STARTUP] Dropping enum types...")
+            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("DROP TYPE IF EXISTS proposal_status CASCADE")))
+            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("DROP TYPE IF EXISTS proposal_type CASCADE")))
+            print("[STARTUP] Dropping existing tables...")
+            await conn.run_sync(Base.metadata.drop_all)
+            print("[STARTUP] Creating tables...")
+            await conn.run_sync(Base.metadata.create_all)
+            print("[STARTUP] Tables created successfully.")
 
-    async with async_session_maker() as session:
-        result = await session.execute(select(Admin).where(Admin.email == "admin@pravyatech.com"))
-        if not result.scalar_one_or_none():
-            default_admin = Admin(
-                email="admin@pravyatech.com",
-                full_name="Admin",
-                hashed_password=hash_password("admin123"),
-                is_active=True,
-            )
-            session.add(default_admin)
-            await session.commit()
+        async with async_session_maker() as session:
+            result = await session.execute(select(Admin).where(Admin.email == "admin@pravyatech.com"))
+            if not result.scalar_one_or_none():
+                print("[STARTUP] Seeding default admin user...")
+                default_admin = Admin(
+                    email="admin@pravyatech.com",
+                    full_name="Admin",
+                    password="admin123",
+                    is_active=True,
+                )
+                session.add(default_admin)
+                await session.commit()
+                print("[STARTUP] Default admin seeded.")
+    except Exception as e:
+        print(f"[STARTUP] Error during database setup: {e}")
+        raise
 
     yield
 
@@ -42,7 +57,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://192.168.1.101:5173", "http://192.168.1.101:3000", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://192.168.1.70:5173",
+        "http://192.168.1.101:5173",
+        "http://localhost:3000",
+        "http://192.168.1.101:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,8 +88,3 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
-
-
-@app.options("/{path:path}")
-async def catch_all_options(request: Request, path: str):
-    return Response(status_code=200)
