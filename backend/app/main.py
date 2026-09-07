@@ -4,9 +4,11 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
-from app.database import engine, Base
+from app.database import engine, Base, async_session_maker
 from app.api import api_router
-from app.utils.security import settings
+from app.utils.security import settings, hash_password
+from sqlalchemy.future import select
+from app.models.admin import Admin
 
 os.makedirs(settings.PDF_OUTPUT_DIR, exist_ok=True)
 
@@ -15,6 +17,19 @@ os.makedirs(settings.PDF_OUTPUT_DIR, exist_ok=True)
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    async with async_session_maker() as session:
+        result = await session.execute(select(Admin).where(Admin.email == "admin@pravyatech.com"))
+        if not result.scalar_one_or_none():
+            default_admin = Admin(
+                email="admin@pravyatech.com",
+                full_name="Admin",
+                hashed_password=hash_password("admin123"),
+                is_active=True,
+            )
+            session.add(default_admin)
+            await session.commit()
+
     yield
 
 

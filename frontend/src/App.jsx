@@ -73,7 +73,7 @@ export function App() {
   return (
     <Routes>
       {/* Root redirect */}
-      <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/admin/login" replace />} />
 
       {/* Public Admin Auth */}
       <Route path="/admin/login" element={<LoginPage />} />

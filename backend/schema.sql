@@ -1,3 +1,14 @@
+CREATE TABLE admins (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    full_name VARCHAR(255) NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_admins_email ON admins(email);
+
 -- Drop existing tables if needed (optional)
 -- DROP TABLE IF EXISTS proposal_views;
 -- DROP TABLE IF EXISTS proposals;

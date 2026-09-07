@@ -10,6 +10,28 @@ The main goal is to make the proposal-sharing process simple and professional wh
 
 uvicorn app.main:app --reload --port 8000
 npm run dev
+
+## Setup
+
+### Prerequisites
+- Python 3.9+
+- Node.js and npm
+
+### Backend
+```powershell
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+### Frontend
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The backend API will be available at `http://localhost:8000` and the frontend dev server will be available at `http://localhost:5173`.
 ---
 
 ## What the System Does

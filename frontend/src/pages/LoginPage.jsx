@@ -101,18 +101,6 @@ export function LoginPage() {
               Sign In to Command Center
             </Button>
           </form>
-
-          {/* Quick Demo Access Bar */}
-          <div className="pt-2 border-t border-slate-100 text-center">
-            <button
-              type="button"
-              onClick={handleQuickDemo}
-              className="w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 hover:text-slate-900 transition-all flex items-center justify-center gap-2 group shadow-sm"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-brand-600 group-hover:rotate-12 transition-transform" />
-              1-Click Superadmin Demo Login
-            </button>
-          </div>
         </Card>
 
         {/* Footer info */}
