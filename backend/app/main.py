@@ -74,12 +74,29 @@ async def root():
     return {
         "message": "PRAVYA TECH Proposal Management System API is running",
         "documentation": "/docs",
-        "health": "/health",
+        "health": "/api/health",
         "api_endpoints": "/api",
         "version": "1.0.0"
     }
 
 
+@app.get("/api/health")
+async def api_health():
+    db_status = "ok"
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "error"
+    return {"success": True, "api": "ok", "database": db_status}
+
+
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"}
+    db_status = "ok"
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "error"
+    return {"status": "ok", "database": db_status}

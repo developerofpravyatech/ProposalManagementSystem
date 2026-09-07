@@ -607,7 +607,7 @@ The migration must successfully create the required tables.
 ### STOP
 
 ---
-
+-------------------------------------------------------------
 # PHASE 5 — ADMIN AUTHENTICATION
 
 ## Objective
