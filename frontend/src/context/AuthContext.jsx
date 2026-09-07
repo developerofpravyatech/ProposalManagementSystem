@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { authApi } from '../api/authApi';
 
 const AuthContext = createContext(null);
@@ -18,7 +19,9 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const res = await authApi.login(email, password);
     if (res.user) {
-      setUser(res.user);
+      flushSync(() => {
+        setUser(res.user);
+      });
     }
     return res;
   };

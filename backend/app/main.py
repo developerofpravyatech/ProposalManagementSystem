@@ -19,14 +19,9 @@ async def lifespan(app: FastAPI):
     try:
         print("[STARTUP] Beginning database setup...")
         async with engine.begin() as conn:
-            print("[STARTUP] Dropping enum types...")
-            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("DROP TYPE IF EXISTS proposal_status CASCADE")))
-            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("DROP TYPE IF EXISTS proposal_type CASCADE")))
-            print("[STARTUP] Dropping existing tables...")
-            await conn.run_sync(Base.metadata.drop_all)
-            print("[STARTUP] Creating tables...")
+            print("[STARTUP] Creating tables if they don't exist...")
             await conn.run_sync(Base.metadata.create_all)
-            print("[STARTUP] Tables created successfully.")
+            print("[STARTUP] Tables ready.")
 
         async with async_session_maker() as session:
             result = await session.execute(select(Admin).where(Admin.email == "admin@pravyatech.com"))
