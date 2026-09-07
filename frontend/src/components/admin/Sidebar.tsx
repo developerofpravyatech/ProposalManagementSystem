@@ -9,7 +9,8 @@ import {
   ShieldCheck,
   ChevronRight,
   Sparkles,
-  Settings
+  Settings,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -24,6 +25,7 @@ export function Sidebar({ isOpen, onClose }) {
 
   const navItems = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/admin/clients', label: 'Clients', icon: Users },
     { to: '/admin/proposals', label: 'Proposals', icon: FileSpreadsheet },
     { to: '/admin/proposals/create', label: 'Create Proposal', icon: PlusCircle, highlight: true },
     { to: '/admin/renewals', label: 'Renewals Pipeline', icon: RefreshCw },

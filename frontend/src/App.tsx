@@ -6,6 +6,9 @@ import { Header } from './components/admin/Header';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProposalsPage } from './pages/ProposalsPage';
+import { ClientsPage } from './pages/ClientsPage';
+import { ProposalDetailPage } from './pages/ProposalDetailPage';
+import { ProposalEditPage } from './pages/ProposalEditPage';
 import { CreateProposalPage } from './pages/CreateProposalPage';
 import { RenewalsPage } from './pages/RenewalsPage';
 import { CompanySettingsPage } from './pages/CompanySettingsPage';
@@ -79,11 +82,14 @@ export function App() {
       <Route path="/admin/login" element={<LoginPage />} />
 
       {/* Protected Admin Routes */}
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="clients" element={<ClientsPage />} />
         <Route path="proposals" element={<ProposalsPage />} />
         <Route path="proposals/create" element={<CreateProposalPage />} />
+        <Route path="proposals/:id" element={<ProposalDetailPage />} />
+        <Route path="proposals/:id/edit" element={<ProposalEditPage />} />
         <Route path="renewals" element={<RenewalsPage />} />
         <Route path="company-settings" element={<CompanySettingsPage />} />
       </Route>

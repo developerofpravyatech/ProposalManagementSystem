@@ -1,8 +1,15 @@
 import { apiRequest } from './client';
+import { Proposal, DashboardStats, ProposalAnalytics } from '../types';
 import { getMockProposals, saveMockProposals, getMockViews, generateToken } from './mockData';
 
+interface ProposalFilters {
+  status?: string;
+  type?: string;
+  search?: string;
+}
+
 export const proposalApi = {
-  async getDashboardStats() {
+  async getDashboardStats(): Promise<DashboardStats> {
     try {
       return await apiRequest('/proposals/dashboard-stats');
     } catch {
@@ -55,10 +62,14 @@ export const proposalApi = {
     }
   },
 
-  async getProposals(filters = {}) {
+  async getProposals(filters: ProposalFilters = {}) {
     try {
-      const params = new URLSearchParams(filters);
-      const list = await apiRequest(`/proposals?${params.toString()}`);
+      const params = new URLSearchParams();
+      if (filters.status && filters.status !== 'all') params.set('status', filters.status);
+      if (filters.type && filters.type !== 'all') params.set('type', filters.type);
+      if (filters.search) params.set('search', filters.search);
+      const query = params.toString();
+      const list = await apiRequest(`/proposals${query ? '?' + query : ''}`);
       return list;
     } catch {
       let list = getMockProposals();
@@ -83,7 +94,7 @@ export const proposalApi = {
     }
   },
 
-  async getProposalById(id) {
+  async getProposalById(id: string | number) {
     try {
       return await apiRequest(`/proposals/${id}`);
     } catch {
@@ -94,17 +105,17 @@ export const proposalApi = {
     }
   },
 
-  async generatePdf(proposalId) {
+  async generatePdf(proposalId: string | number) {
     try {
       return await apiRequest(`/proposals/${proposalId}/pdf`, {
         method: 'POST',
       });
     } catch {
-      return { detail: 'PDF generated (mock)', pdf_path: `/static/proposals/PT-2026-${100 + proposalId}.pdf` };
+      return { detail: 'PDF generated (mock)', pdf_path: `/static/proposals/PT-2026-${100 + Number(proposalId)}.pdf` };
     }
   },
 
-  async createProposal(proposalData) {
+  async createProposal(proposalData: Partial<Proposal>) {
     try {
       return await apiRequest('/proposals', {
         method: 'POST',
@@ -114,7 +125,7 @@ export const proposalApi = {
       const list = getMockProposals();
       const nextId = list.length > 0 ? Math.max(...list.map(p => p.id)) + 1 : 1;
       const proposal_number = `PT-2026-${String(100 + nextId).padStart(3, '0')}`;
-      const token = generateToken(proposalData.project_title, proposalData.company_name);
+      const token = generateToken(proposalData.project_title || '', proposalData.company_name || '');
 
       const newProposal = {
         id: nextId,
@@ -137,7 +148,7 @@ export const proposalApi = {
     }
   },
 
-  async updateProposal(id, updateData) {
+  async updateProposal(id: string | number, updateData: Partial<Proposal>) {
     try {
       return await apiRequest(`/proposals/${id}`, {
         method: 'PUT',
@@ -154,7 +165,7 @@ export const proposalApi = {
     }
   },
 
-  async deleteProposal(id) {
+  async deleteProposal(id: string | number) {
     try {
       return await apiRequest(`/proposals/${id}`, { method: 'DELETE' });
     } catch {
@@ -165,7 +176,7 @@ export const proposalApi = {
     }
   },
 
-  async duplicateForRenewal(id, renewalPayload = {}) {
+  async duplicateForRenewal(id: string | number, renewalPayload: Partial<Proposal> = {}) {
     try {
       return await apiRequest(`/proposals/${id}/renew`, {
         method: 'POST',
@@ -180,7 +191,7 @@ export const proposalApi = {
 
       const nextId = Math.max(...list.map(p => p.id)) + 1;
       const proposal_number = `PT-2026-${String(100 + nextId).padStart(3, '0')}`;
-      const token = generateToken(`renewal-${original.project_title}`, original.company_name);
+      const token = generateToken(`renewal-${original.project_title || ''}`, original.company_name || '');
 
       const cloned = {
         ...original,
@@ -198,7 +209,7 @@ export const proposalApi = {
         created_at: new Date().toISOString(),
         sent_at: new Date().toISOString(),
         renewal_date: renewalPayload.renewal_date || original.renewal_date,
-        project_title: renewalPayload.project_title || `${original.project_title} (Renewal)`,
+        project_title: renewalPayload.project_title || `${original.project_title || 'Proposal'} (Renewal)`,
       };
 
       list.unshift(cloned);
@@ -207,7 +218,7 @@ export const proposalApi = {
     }
   },
 
-  async getProposalAnalytics(id) {
+  async getProposalAnalytics(id: string | number): Promise<ProposalAnalytics> {
     try {
       return await apiRequest(`/proposals/${id}/analytics`);
     } catch {
@@ -219,12 +230,13 @@ export const proposalApi = {
       const views = allViews.filter(v => v.proposal_id === Number(id)).reverse();
 
       return {
-        proposal,
         total_views: proposal.view_count || views.length,
+        unique_devices: new Set(views.map(v => v.device_type)).size,
         first_opened_at: proposal.first_opened_at,
         last_opened_at: proposal.last_opened_at,
         pdf_downloaded_at: proposal.pdf_downloaded_at,
-        views
+        downloaded: !!proposal.pdf_downloaded_at,
+        events: views,
       };
     }
   }

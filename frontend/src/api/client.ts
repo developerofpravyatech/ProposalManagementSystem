@@ -1,10 +1,10 @@
 // Central API client with seamless fallback to localStorage mock engine
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = '/api';
 
 export async function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem('pravya_admin_token');
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
@@ -23,8 +23,7 @@ export async function apiRequest(endpoint, options = {}) {
 
     return await res.json();
   } catch (err) {
-    // If backend is offline or network error, let caller handle fallback or rethrow
-    console.warn(`[PMS API Client] Network request to ${endpoint} failed, checking local engine:`, err.message);
+    console.warn(`[PMS API Client] Network request to ${endpoint} failed:`, err);
     throw err;
   }
 }
