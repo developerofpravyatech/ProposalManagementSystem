@@ -117,6 +117,7 @@ export function ProposalTable({
                 <th className="px-6 py-4">Client & Company</th>
                 <th className="px-6 py-4">Amount</th>
                 <th className="px-6 py-4">Status & Views</th>
+                <th className="px-6 py-4">Created</th>
                 <th className="px-6 py-4">Last Activity</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -124,7 +125,7 @@ export function ProposalTable({
             <tbody className="divide-y divide-slate-100">
               {filteredProposals.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
                     <p className="text-base font-bold text-slate-700">No proposals match your search or filters</p>
                     <p className="text-xs text-slate-500 mt-1">Try resetting the filters or creating a new proposal</p>
                   </td>
@@ -186,6 +187,15 @@ export function ProposalTable({
                             <Download className="w-3 h-3" /> PDF Downloaded
                           </div>
                         )}
+                      </td>
+
+                      {/* Created */}
+                      <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500">
+                        {new Date(p.created_at).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
                       </td>
 
                       {/* Last Activity */}

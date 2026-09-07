@@ -96,8 +96,8 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Top 4 KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* Top 5 KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
         <MetricCard
           title="Total Proposals"
           value={stats?.totalProposals || '0'}
@@ -105,6 +105,14 @@ export function DashboardPage() {
           icon={FileSpreadsheet}
           color="black"
           onClick={() => navigate('/admin/proposals')}
+        />
+
+        <MetricCard
+          title="Sent"
+          value={stats?.sentCount || '0'}
+          subtitle="Awaiting Response"
+          icon={FileSpreadsheet}
+          color="brand"
         />
 
         <MetricCard

@@ -45,6 +45,7 @@ async def get_dashboard_summary(
         "acceptedCount": len(accepted),
         "totalAcceptedValue": total_accepted_val,
         "renewalsDueCount": len([p for p in all_props if p.status == ProposalStatus.renewal_due]),
+        "sentCount": len([p for p in all_props if p.status == ProposalStatus.sent]),
         "recentActivity": []
     }
 
