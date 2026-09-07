@@ -1,302 +1,544 @@
-# Development To-Do & Progress Tracker — PRAVYA TECH PMS
+# PRAVYA TECH Proposal Management System — To-Do List
 
-## Phase 0 — Foundation (Completed)
-
-- [x] Project structure + development environment
-- [x] FastAPI backend foundation
-- [x] PostgreSQL + SQLAlchemy async setup with `asyncpg`
-- [x] Database models: `proposals`, `proposal_views`, `admins`
-- [x] Admin authentication API (`/api/auth/login`, `/api/auth/me`, `/api/auth/refresh`)
-- [x] Proposal CRUD APIs (`/api/proposals`)
-- [x] Public token-based client endpoints (`/api/public/proposals/{token}`)
-- [x] PDF generation service (`backend/app/services/pdf_service.py`)
-- [x] React + TypeScript frontend
-- [x] Admin Dashboard UI
-- [x] Client Proposal Portal UI (`/p/{token}`)
-- [x] CORS + frontend-backend integration
-- [x] Admin login end-to-end with JSON auth
+> Implementation follows the 18-phase plan in `markdown/agent.md`.
+> Complete one phase at a time, verify the Definition of Done, then STOP.
 
 ---
 
-## Phase 1 — Mode A: Company Profile (Next Up)
+## Phase 1 — Project Structure + Development Environment
 
-**Goal:** Validate the fixed company profile flow end-to-end.
+- [ ] Create backend folder structure (`app/main.py`, `app/core/`, `app/models/`, `app/schemas/`, `app/routers/`, `app/services/`, `app/repositories/`, `app/utils/`)
+- [ ] Create backend `tests/`, `requirements.txt`, `.env.example`, `.gitignore`
+- [ ] Create frontend folder structure (`src/components/`, `src/pages/`, `src/layouts/`, `src/services/`, `src/hooks/`, `src/types/`, `src/utils/`, `src/routes/`, `src/context/`, `src/App.tsx`, `src/main.tsx`)
+- [ ] Create frontend `public/`, `package.json`, `tsconfig.json`, `vite.config.ts`
+- [ ] Create root `.env.example`
+- [ ] Ensure `.env` is ignored by Git
+- [ ] Verify frontend starts (`npm run dev`)
+- [ ] Verify backend starts (`uvicorn app.main:app --reload`)
+- [ ] Verify TypeScript compilation works
+- [ ] Verify Python imports work
 
-### Admin Actions
-
-- [ ] Navigate to `/admin/proposals/create`
-- [ ] Select **Mode A: Company Profile**
-- [ ] Fill required fields:
-  - Client name
-  - Company name
-  - Phone/email
-  - Project title
-- [ ] Click **Generate Company Profile**
-- [ ] Verify success toast shows proposal number
-- [ ] Redirect to `/admin/proposals`
-
-### Backend Verification
-
-- [ ] Verify proposal is saved in `proposals` table with `type = profile_only`
-- [ ] Verify `proposal_no` is generated (e.g., `PT-2026-001`)
-- [ ] Verify `unique_token` is a non-empty string
-- [ ] Verify `status = sent`
-- [ ] Verify `pdf_path` is populated after PDF generation
-
-### Client Verification
-
-- [ ] Copy private link from proposals table
-- [ ] Open `/p/{token}` in browser
-- [ ] Verify company profile renders without errors
-- [ ] Verify mobile responsive layout
-
-### Tracking Verification
-
-- [ ] Check `proposal_views` table has a new entry
-- [ ] Verify `view_count` incremented to 1
-- [ ] Verify `first_opened_at` is set
-- [ ] Verify `last_opened_at` is set
-- [ ] Verify status changed from `sent` to `viewed`
-
-### PDF Verification
-
-- [ ] Click **Download PDF** from client viewer
-- [ ] Verify PDF downloads successfully
-- [ ] Verify PDF contains correct company profile content
+### STOP — Do not begin Phase 2 automatically.
 
 ---
 
-## Phase 2 — Mode B: Project Proposal + Quotation
+## Phase 2 — FastAPI Backend Foundation
 
-**Goal:** Validate the dynamic quotation workflow with structured pricing.
+- [ ] Configure FastAPI application
+- [ ] Create application entry point
+- [ ] Set up router registration
+- [ ] Implement configuration management from environment variables
+- [ ] Configure CORS
+- [ ] Create error handling foundation
+- [ ] Implement health endpoint (`GET /api/health`)
+- [ ] Create router directory structure (`health.py`, `auth.py`, `proposals.py`, `clients.py`, `dashboard.py`, `public.py`)
+- [ ] Verify `/api/health` returns HTTP 200
+- [ ] Verify FastAPI application starts successfully
 
-### Admin Actions
-
-- [ ] Navigate to `/admin/proposals/create`
-- [ ] Select **Mode B: Project Proposal + Quotation**
-- [ ] Fill Step 1: Client/company information
-- [ ] Fill Step 2: Project title, description, timeline
-- [ ] Fill Step 3:
-  - Add line items with title, description, quantity, unit price
-  - Select currency (USD, INR, AED, etc.)
-  - Set contract duration
-  - Set renewal date
-  - Enter terms/conditions
-- [ ] Click **Generate Proposal & Private Link**
-- [ ] Verify proposal appears in `/admin/proposals`
-
-### Backend Verification
-
-- [ ] Verify proposal saved with `type = quotation_proposal`
-- [ ] Verify `amount` matches total of line items
-- [ ] Verify `currency` is stored correctly
-- [ ] Verify `renewal_date` is saved
-- [ ] Verify `line_items` data is stored
-- [ ] Verify `unique_token` is generated
-
-### Client Verification
-
-- [ ] Open `/p/{token}` in browser
-- [ ] Verify 12-page quotation structure renders:
-  - Cover page
-  - Executive summary
-  - Scope & deliverables
-  - Technical solution
-  - Commercials/pricing table
-  - SLA & terms
-  - Sign-off section
-- [ ] Verify pricing table shows line items correctly
-- [ ] Verify currency symbol displays correctly
-- [ ] Verify mobile responsive layout
-
-### Acceptance Flow
-
-- [ ] Click **Accept & Sign Proposal**
-- [ ] Enter signer name and designation
-- [ ] Choose signature mode (type/draw)
-- [ ] Agree to terms
-- [ ] Submit acceptance
-- [ ] Verify status changed to `accepted`
-- [ ] Verify confetti celebration triggers
-- [ ] Verify acceptance recorded in `proposal_views`
+### STOP
 
 ---
 
-## Phase 3 — Tracking & Engagement
+## Phase 3 — PostgreSQL + SQLAlchemy Setup
 
-**Goal:** Ensure all client interactions are tracked accurately.
+- [ ] Ensure PostgreSQL is running and database `proposal_management_system` exists
+- [ ] Configure async SQLAlchemy engine (`SQLAlchemy 2.0` + `asyncpg`)
+- [ ] Create async session maker
+- [ ] Create declarative base
+- [ ] Create reusable database session dependency
+- [ ] Implement configuration loading from environment variables
+- [ ] Add database connection test/health check
+- [ ] Handle connection errors cleanly
+- [ ] Verify FastAPI connects to PostgreSQL successfully
+- [ ] Verify async SQLAlchemy session works
+- [ ] Ensure no plaintext credentials are hardcoded
 
-### View Tracking
-
-- [ ] Open `/p/{token}` multiple times from different devices
-- [ ] Verify each open creates a new `proposal_views` entry
-- [ ] Verify `view_count` increments correctly
-- [ ] Verify `first_opened_at` is set on first open
-- [ ] Verify `last_opened_at` updates on subsequent opens
-- [ ] Verify `ip_address` and `user_agent` are captured
-
-### PDF Download Tracking
-
-- [ ] Open `/p/{token}` and click Download PDF
-- [ ] Verify download event is recorded
-- [ ] Verify PDF file is generated in `generated_pdfs/` directory
-- [ ] Verify PDF contains correct proposal data
-
-### Analytics Verification
-
-- [ ] Open analytics modal from admin panel
-- [ ] Verify total views count is correct
-- [ ] Verify unique devices count is correct
-- [ ] Verify event timeline shows all opens/downloads
-- [ ] Verify timestamps are accurate
-
-### WhatsApp Sharing
-
-- [ ] Click WhatsApp share button in admin panel
-- [ ] Verify message template includes correct:
-  - Client name
-  - Proposal number
-  - Private link
-  - Amount/currency
-- [ ] Verify WhatsApp opens with pre-filled message
-- [ ] Verify link works when opened by client
+### STOP
 
 ---
 
-## Phase 4 — Renewal Management
+## Phase 4 — Database Models + Migrations
 
-**Goal:** Validate renewal workflow creates new proposals without breaking history.
+- [ ] Read `markdown/database-schema.md`
+- [ ] Create `users` model
+- [ ] Create `clients` model
+- [ ] Create `proposals` model
+- [ ] Create `proposal_items` model
+- [ ] Create `proposal_views` model
+- [ ] Define relationships between models
+- [ ] Configure Alembic
+- [ ] Create initial migration
+- [ ] Run `alembic upgrade head`
+- [ ] Verify database tables are created
+- [ ] Verify foreign keys are correct
+- [ ] Verify required indexes and unique constraints
 
-### Renewal Creation
-
-- [ ] Navigate to `/admin/renewals`
-- [ ] Find a quotation with `status = accepted`
-- [ ] Click **Renew** button
-- [ ] Verify new proposal is created with:
-  - New `proposal_no`
-  - New `unique_token`
-  - Same client/company info
-  - Same line items/pricing
-- [ ] Verify original proposal status changes to `renewal_due`
-- [ ] Verify new proposal status is `sent`
-
-### New Link Verification
-
-- [ ] Copy new proposal's private link
-- [ ] Open `/p/{token}` in browser
-- [ ] Verify new proposal renders correctly
-- [ ] Verify it's a separate record from original
-
-### Historical Preservation
-
-- [ ] Verify original proposal data is unchanged
-- [ ] Verify original proposal is still accessible
-- [ ] Verify both proposals exist in database
-- [ ] Verify `proposal_views` are separate for each
+### STOP
 
 ---
 
-## Phase 5 — Hardening & Testing
+## Phase 5 — Admin Authentication
 
-**Goal:** Make the system reliable and secure.
+- [ ] Read `markdown/auth.md`
+- [ ] Implement admin user model per `markdown/database-schema.md`
+- [ ] Implement secure password hashing
+- [ ] Implement `POST /api/auth/login`
+- [ ] Implement `GET /api/auth/me`
+- [ ] Implement `POST /api/auth/refresh`
+- [ ] Configure JWT (issuance, validation, expiration)
+- [ ] Create authentication dependency/middleware
+- [ ] Protect admin API routes
+- [ ] Ensure passwords are never returned via API
+- [ ] Use environment-based JWT secret
+- [ ] Verify admin can authenticate
+- [ ] Verify JWT is issued correctly
+- [ ] Verify protected API rejects unauthenticated requests
+- [ ] Verify `/api/auth/me` returns authenticated admin
+- [ ] Verify invalid credentials are rejected
 
-### Backend Testing
+### STOP
 
-- [ ] Write pytest tests for `/api/auth/login`
-- [ ] Write pytest tests for `/api/auth/register`
-- [ ] Write pytest tests for `/api/proposals` CRUD
-- [ ] Write pytest tests for `/api/public/proposals/{token}`
-- [ ] Write pytest tests for `/api/proposals/{id}/renew`
-- [ ] Write pytest tests for `/api/proposals/{id}/analytics`
-- [ ] Achieve 80%+ code coverage
+---
 
-### Frontend Testing
+## Phase 6 — Proposal CRUD APIs
 
-- [ ] Test login flow with invalid credentials
-- [ ] Test login flow with valid credentials
-- [ ] Test proposal creation with missing fields
-- [ ] Test proposal listing with filters
-- [ ] Test public viewer with invalid token
-- [ ] Test acceptance flow end-to-end
+- [ ] Read `markdown/api-structure.md`, `markdown/proposal-workflow.md`, `markdown/database-schema.md`
+- [ ] Implement Client CRUD APIs (Create, List, Retrieve, Update, Delete)
+- [ ] Implement `GET /api/proposals`
+- [ ] Implement `POST /api/proposals`
+- [ ] Implement `GET /api/proposals/{id}`
+- [ ] Implement `PUT /api/proposals/{id}`
+- [ ] Implement `DELETE /api/proposals/{id}`
+- [ ] Support Company Profile mode
+- [ ] Support Project Proposal + Quotation mode
+- [ ] Implement structured quotation line items
+- [ ] Enforce unique proposal numbers
+- [ ] Implement cryptographic private token generation for each proposal
+- [ ] Validate required client fields
+- [ ] Validate proposal type, pricing, currency, line items, contract duration, renewal date
+- [ ] Protect endpoints with admin authentication
+
+### STOP
+
+---
+
+## Phase 7 — React + TypeScript Frontend
+
+- [ ] Initialize React + Vite + TypeScript application
+- [ ] Configure TypeScript (`tsconfig.json`)
+- [ ] Configure Vite (`vite.config.ts`)
+- [ ] Create API client service (`src/services/api.ts`)
+- [ ] Configure API base URL
+- [ ] Implement authentication handling in API client
+- [ ] Implement request/response handling
+- [ ] Implement error handling
+- [ ] Set up React Router
+- [ ] Create routes: `/login`, `/dashboard`, `/clients`, `/proposals`, `/proposals/create`, `/proposals/:id`, `/proposals/:id/edit`
+- [ ] Create TypeScript types/interfaces for `User`, `Client`, `Proposal`, `ProposalItem`, API responses
+- [ ] Avoid unnecessary `any` types
+- [ ] Verify React application starts
+- [ ] Verify TypeScript compilation works
+- [ ] Verify router works
+- [ ] Verify backend communication works
+
+### STOP
+
+---
+
+## Phase 8 — Admin Dashboard
+
+- [ ] Read `markdown/ui-design.md`
+- [ ] Create admin layout (Sidebar, Header, Main content, User menu, Logout)
+- [ ] Implement navigation: Dashboard, Clients, Proposals, Renewals, Settings
+- [ ] Create dashboard cards: Total Proposals, Sent, Viewed, Accepted, Renewal Due
+- [ ] Create proposal list table with columns: Proposal No., Client, Company, Project, Type, Amount, Currency, Status, Created, Actions
+- [ ] Implement UI states: Loading, Empty, Error, Success
+- [ ] Implement responsive design (Desktop, Laptop, Tablet)
+- [ ] Verify admin can log in
+- [ ] Verify dashboard opens
+- [ ] Verify sidebar works
+- [ ] Verify proposal list works
+- [ ] Verify logout works
+- [ ] Verify protected routes work
+
+### STOP
+
+---
+
+## Phase 9 — Company Profile Workflow
+
+- [ ] Read `markdown/pdf-generation.md`
+- [ ] Implement Mode A: Company Profile workflow
+- [ ] Create admin interface for Company Profile creation
+- [ ] Support 9-page company profile structure:
+  - [ ] Page 1: Company Profile Cover
+  - [ ] Page 2: Cover Letter
+  - [ ] Page 3: Mission / Vision / Core Values
+  - [ ] Page 4: Services
+  - [ ] Page 5: Work Process
+  - [ ] Page 6: Top Clients / BNI
+  - [ ] Page 7: Top Clients / International
+  - [ ] Page 8: Terms / Statement of Work
+  - [ ] Page 9: Back Cover / Contact Information
+- [ ] Store company profile as proposal with proposal number, private token, status, timestamps
+- [ ] Prepare profile data for PDF generation
+- [ ] Ensure no quotation-specific pricing is required for profile-only mode
+
+### STOP
+
+---
+
+## Phase 10 — Project Proposal + Quotation Workflow
+
+- [ ] Read `markdown/proposal-workflow.md`
+- [ ] Implement Mode B: Project Proposal + Quotation workflow
+- [ ] Support dynamic client information (Name, Company, Phone, Email)
+- [ ] Support project information (Title, Subtitle)
+- [ ] Support proposal metadata (Proposal Number, Issue Date, Valid Until)
+- [ ] Support structured line items (Item, Description, Quantity, Unit Price, Total)
+- [ ] Support currency selection
+- [ ] Support contract duration
+- [ ] Support renewal date
+- [ ] Implement pricing total calculation
+- [ ] Implement proposal workflow: Create → Edit → Save → Review → Generate
+- [ ] Use documented proposal statuses only
+- [ ] Verify admin can create quotation
+- [ ] Verify client information works
+- [ ] Verify project information works
+- [ ] Verify line items work
+- [ ] Verify totals calculate correctly
+- [ ] Verify currency works
+- [ ] Verify contract duration works
+- [ ] Verify renewal date works
+- [ ] Verify proposal is stored correctly
+
+### STOP
+
+---
+
+## Phase 11 — PDF Generation
+
+- [ ] Read `markdown/pdf-generation.md`
+- [ ] Implement backend PDF generation service
+- [ ] Generate 9-page Company Profile PDF
+- [ ] Generate 12-page Project Proposal PDF with structure:
+  - [ ] Page 1: Dynamic Project Cover
+  - [ ] Page 2: Dynamic Cover Letter
+  - [ ] Pages 3–8: Embedded Company Profile / Case Studies
+  - [ ] Page 9: Dynamic Pricing / Quotation
+  - [ ] Page 10: Payment Information
+  - [ ] Page 11: Acceptance / Sign-Off
+  - [ ] Page 12: Back Cover / Contact
+- [ ] Implement `POST /api/proposals/{id}/generate-pdf`
+- [ ] Store generated PDFs securely
+- [ ] Do not expose server file paths to clients
+- [ ] Verify Company profile PDF generates
+- [ ] Verify Quotation PDF generates
+- [ ] Verify dynamic information appears correctly
+- [ ] Verify pricing appears correctly
+- [ ] Verify PDF page structure is correct
+- [ ] Verify PDF can be downloaded by authorized admin
+- [ ] Verify PDF generation errors are handled
+
+### STOP
+
+---
+
+## Phase 12 — Private `/p/{token}` Client Viewer
+
+- [ ] Create public route `/p/{token}`
+- [ ] Implement `GET /api/public/proposals/{token}`
+- [ ] Ensure token is unique and cryptographically secure
+- [ ] Do not expose internal database IDs to client
+- [ ] Display: PRAVYA TECH branding, proposal information, client information, project information, PDF viewer, Download button, WhatsApp button, Accept button
+- [ ] Disable/placeholder features not yet implemented
+- [ ] Implement responsive design (Desktop, Tablet, Mobile)
+- [ ] Handle invalid/expired token safely
+- [ ] Do not reveal whether internal proposal IDs exist
+- [ ] Verify `/p/{token}` works
+- [ ] Verify valid token loads correct proposal
+- [ ] Verify invalid token is handled safely
+- [ ] Verify internal proposal IDs are not required
+- [ ] Verify client viewer is responsive
+- [ ] Verify sensitive internal information is hidden
+
+### STOP
+
+---
+
+## Phase 13 — View + Download Tracking
+
+- [ ] Read `markdown/tracking.md`
+- [ ] Create view event on every `/p/{token}` opening
+- [ ] Record: `proposal_id`, `viewed_at`, `ip_address`, `user_agent`
+- [ ] Update proposal: `first_opened_at`, `last_opened_at`, `view_count`
+- [ ] Update proposal status on first open per documented workflow
+- [ ] Track PDF downloads
+- [ ] Update `download_count`
+- [ ] Record download event/timestamp
+- [ ] Implement admin analytics (Total Views, Downloads, First Opened, Last Opened)
+- [ ] Implement view history
+- [ ] Test: Client opens link → View event created → View count increases → First opened recorded → Last opened updated
+- [ ] Test: Client downloads PDF → Download tracked → Admin can determine download activity
+
+### STOP
+
+---
+
+## Phase 14 — WhatsApp Sharing
+
+- [ ] Add "Share via WhatsApp" action to proposal actions
+- [ ] Generate message with client name and private proposal URL
+- [ ] Use configured PRAVYA TECH contact details
+- [ ] Ensure shared URL uses `/p/{token}` format
+- [ ] Do not expose internal proposal IDs, database URLs, or server file paths
+- [ ] Verify admin can share proposal through WhatsApp
+- [ ] Verify correct client name is used
+- [ ] Verify private proposal URL is included
+- [ ] Verify URL uses token
+- [ ] Verify no internal IDs are exposed
+
+### STOP
+
+---
+
+## Phase 15 — Quote Acceptance
+
+- [ ] Implement public acceptance endpoint `POST /api/public/proposals/{token}/accept`
+- [ ] Identify proposal using private token only
+- [ ] Do not allow arbitrary proposal IDs from client
+- [ ] Display "Accept Quote" button on quotation proposals
+- [ ] Show confirmation dialog: "Are you sure you want to accept this quotation?" with Cancel/Accept
+- [ ] Record `accepted_at` timestamp on acceptance
+- [ ] Update proposal status per documented workflow
+- [ ] Show acceptance status and timestamp to admin
+- [ ] Test: Client opens proposal → Clicks Accept → Confirms → Acceptance recorded → Admin sees accepted proposal
+
+### STOP
+
+---
+
+## Phase 16 — Renewal Management
+
+- [ ] Read `markdown/renewals.md`
+- [ ] Ensure proposals support `contract_duration` and `renewal_date`
+- [ ] Create `/renewals` dashboard
+- [ ] Display: Upcoming Renewal, Renewal Due, Overdue, Renewed
+- [ ] Implement renewal workflow:
+  - [ ] Duplicate original proposal
+  - [ ] Keep client, project, and pricing
+  - [ ] Update dates
+  - [ ] Generate new proposal number
+  - [ ] Generate new private token
+  - [ ] Generate new PDF
+  - [ ] Create new proposal
+- [ ] Maintain history relationship between old and new proposals
+- [ ] Keep historical proposals available
+- [ ] Verify renewal dates are stored
+- [ ] Verify upcoming renewals are identified
+- [ ] Verify overdue renewals are identified
+- [ ] Verify admin can renew a quotation
+- [ ] Verify new proposal is created
+- [ ] Verify new proposal number is generated
+- [ ] Verify new private token is generated
+- [ ] Verify historical proposal remains unchanged
+- [ ] Verify proposal history is linked
+- [ ] Verify new PDF can be generated
+
+### STOP
+
+---
+
+## Phase 17 — Testing + Security Review
+
+### Backend Tests
+- [ ] Test Health endpoint
+- [ ] Test Authentication flows
+- [ ] Test Users CRUD
+- [ ] Test Clients CRUD
+- [ ] Test Proposal CRUD
+- [ ] Test Proposal Items
+- [ ] Test Token generation
+- [ ] Test PDF generation
+- [ ] Test Public proposal access
+- [ ] Test View tracking
+- [ ] Test Download tracking
+- [ ] Test Acceptance
+- [ ] Test Renewal
+
+### Frontend Tests
+- [ ] Test Login
+- [ ] Test Dashboard
+- [ ] Test Clients
+- [ ] Test Proposal creation
+- [ ] Test Proposal editing
+- [ ] Test Proposal details
+- [ ] Test PDF generation
+- [ ] Test Public viewer
+- [ ] Test Download
+- [ ] Test WhatsApp
+- [ ] Test Acceptance
+- [ ] Test Renewals
 
 ### Security Review
+- [ ] Verify passwords are hashed
+- [ ] Verify JWT secrets are not hardcoded
+- [ ] Verify `.env` is not committed
+- [ ] Verify admin APIs require authentication
+- [ ] Verify public APIs use private tokens
+- [ ] Verify internal proposal IDs are not used as client access tokens
+- [ ] Verify SQL queries are parameterized through SQLAlchemy
+- [ ] Verify Pydantic validation is applied
+- [ ] Verify file uploads/downloads are controlled
+- [ ] Verify sensitive database information is not returned
+- [ ] Verify CORS is correctly configured
+- [ ] Verify error messages do not expose internal implementation details
 
-- [ ] Change default JWT `SECRET_KEY` in production
-- [ ] Restrict CORS origins to actual domains
-- [ ] Add rate limiting on `/api/auth/login`
-- [ ] Add input validation on all endpoints
-- [ ] Sanitize user inputs to prevent XSS
-- [ ] Ensure no sensitive data exposed in API responses
-- [ ] Add HTTPS enforcement for production
+### Hard Rule Verification
+- [ ] Unique private token
+- [ ] Token-based client access
+- [ ] Every client opening tracked
+- [ ] Every PDF download trackable
+- [ ] Status workflow consistent
+- [ ] Renewal creates new proposal/version/link
+- [ ] PDF generation in backend
+- [ ] Structured pricing
+- [ ] Mobile/desktop client viewer
+- [ ] No sensitive internal information exposed
 
-### Error Handling
+### End-to-End Test
+- [ ] Run complete business workflow:
+  - [ ] Admin Login
+  - [ ] Create Client
+  - [ ] Create Proposal
+  - [ ] Add Pricing
+  - [ ] Generate PDF
+  - [ ] Generate Private Link
+  - [ ] Share via WhatsApp
+  - [ ] Client Opens Link
+  - [ ] View Recorded
+  - [ ] Client Downloads PDF
+  - [ ] Download Recorded
+  - [ ] Client Accepts Quote
+  - [ ] Admin Sees Acceptance
+  - [ ] Renewal Becomes Due
+  - [ ] Admin Renews
+  - [ ] New Proposal Created
+  - [ ] New Token Created
+  - [ ] New PDF Generated
 
-- [ ] Add user-friendly error messages
-- [ ] Add loading skeletons for all data fetches
-- [ ] Add retry logic for failed API calls
-- [ ] Add offline detection and user notification
-- [ ] Add proper error boundaries in React
+- [ ] Automated tests pass
+- [ ] Integration tests pass
+- [ ] Main user workflow works
+- [ ] Security review complete
+- [ ] No critical errors remain
+- [ ] No critical console errors remain
+- [ ] No broken API endpoints remain
+- [ ] Responsive client viewer works
 
----
-
-## Phase 6 — Production Readiness
-
-**Goal:** Prepare for deployment.
-
-### Database
-
-- [ ] Set up Alembic migrations
-- [ ] Create migration for initial schema
-- [ ] Test rollback/upgrade scenarios
-- [ ] Add database backup automation
-- [ ] Add database connection pooling
-
-### Environment & Config
-
-- [ ] Create `.env.example` with all required vars
-- [ ] Add environment validation on startup
-- [ ] Separate dev/staging/production configs
-- [ ] Add secret management solution
-
-### Docker & Deployment
-
-- [ ] Create `Dockerfile` for backend
-- [ ] Create `Dockerfile` for frontend
-- [ ] Create `docker-compose.yml` with:
-  - PostgreSQL
-  - Backend
-  - Frontend
-  - Nginx reverse proxy
-- [ ] Test full stack in Docker
-- [ ] Add health check endpoints
-
-### Documentation
-
-- [ ] Update `README.md` with setup instructions
-- [ ] Document API endpoints in `markdown/api-structure.md`
-- [ ] Document database schema in `markdown/database-schema.md`
-- [ ] Create deployment guide
-- [ ] Create user manual for admins
-
-### Monitoring & Maintenance
-
-- [ ] Add application logging
-- [ ] Add error tracking (Sentry/Rollbar)
-- [ ] Add performance monitoring
-- [ ] Set up automated backups
-- [ ] Create runbook for common issues
+### STOP
 
 ---
 
-## Hard Rules Reminder
+## Phase 18 — Production Deployment
 
-1. Every proposal must have a unique private token (`/p/{token}`)
-2. Client access is token-based only
-3. Every client opening must be tracked in `proposal_views`
-4. Every PDF download must be trackable
-5. Proposal status must follow: `sent` → `viewed` → `accepted` / `renewal_due` → `renewed`
-6. Renewals must create new proposal version/link
-7. PDF generation stays in backend
-8. Pricing must be structured line items
-9. Client pages must be responsive
-10. Never expose sensitive DB data to clients
+- [ ] Read `markdown/workflow.md`
+- [ ] Configure production PostgreSQL
+- [ ] Configure production backend
+- [ ] Configure production frontend
+- [ ] Configure production environment variables
+- [ ] Configure production PDF storage
+- [ ] Run database migrations
+- [ ] Verify database
+- [ ] Create required admin account
+- [ ] Verify indexes
+- [ ] Verify constraints
+- [ ] Verify FastAPI production startup
+- [ ] Verify CORS configuration
+- [ ] Verify environment variables
+- [ ] Verify database connection
+- [ ] Verify logging
+- [ ] Verify error handling
+- [ ] Verify PDF generation
+- [ ] Verify file storage
+- [ ] Build production frontend
+- [ ] Verify API URL
+- [ ] Verify routing
+- [ ] Verify authentication
+- [ ] Verify public `/p/{token}` routes
+- [ ] Verify responsive layout
+- [ ] Ensure `.env` and secrets are not committed
+- [ ] Enable HTTPS
+- [ ] Run final smoke test:
+  - [ ] Login
+  - [ ] Create proposal
+  - [ ] Generate PDF
+  - [ ] Open private link
+  - [ ] Track view
+  - [ ] Download
+  - [ ] Track download
+  - [ ] Accept
+  - [ ] Renew
+
+- [ ] Production frontend deployed
+- [ ] Production backend deployed
+- [ ] Production PostgreSQL configured
+- [ ] Database migrations applied
+- [ ] Environment secrets configured
+- [ ] PDF storage works
+- [ ] Authentication works
+- [ ] Public proposal links work
+- [ ] Tracking works
+- [ ] Acceptance works
+- [ ] Renewal works
+- [ ] HTTPS enabled
+- [ ] Final smoke test passes
+
+### STOP — All phases complete.
+
+---
+
+## Final System Checklist
+
+### Admin Features
+- [ ] Login
+- [ ] Dashboard
+- [ ] Clients
+- [ ] Create Proposal
+- [ ] Edit Proposal
+- [ ] View Proposal
+- [ ] Generate PDF
+- [ ] Share Proposal
+- [ ] WhatsApp
+- [ ] Analytics
+- [ ] Acceptance
+- [ ] Renewals
+- [ ] Proposal History
+
+### Company Profile
+- [ ] 9-page company profile
+- [ ] Private link
+- [ ] View tracking
+- [ ] Download tracking
+- [ ] WhatsApp sharing
+
+### Project Proposal
+- [ ] 12-page proposal
+- [ ] Client information
+- [ ] Project information
+- [ ] Line items
+- [ ] Pricing
+- [ ] Currency
+- [ ] Contract duration
+- [ ] Renewal date
+- [ ] Payment information
+- [ ] Acceptance
+- [ ] Private link
+- [ ] Tracking
+
+### Client Experience
+- [ ] Open private link
+- [ ] View proposal
+- [ ] Download PDF
+- [ ] Contact PRAVYA TECH
+- [ ] Accept quotation (no account required)
