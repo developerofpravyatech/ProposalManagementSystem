@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.future import select
 from app.database import engine, Base, async_session_maker
 from app.api import api_router
-from app.utils.security import settings
+from app.utils.security import settings, hash_password
 from app.models.admin import Admin
 
 os.makedirs(settings.PDF_OUTPUT_DIR, exist_ok=True)
@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
                 default_admin = Admin(
                     email="admin@pravyatech.com",
                     full_name="Admin",
-                    password="admin123",
+                    password=hash_password("admin123"),
                     is_active=True,
                 )
                 session.add(default_admin)
