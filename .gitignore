@@ -64,3 +64,12 @@ lerna-debug.log*
 *.der
 .cache/
 .parcel-cache/
+
+node_modules
+package.json
+package-lock.json
+pnpm-lock.yaml
+bun.lock
+yarn.lock
+.gitignore
+agent-manager.json

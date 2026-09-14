@@ -21,11 +21,41 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             print("[STARTUP] Creating tables if they don't exist...")
             await conn.run_sync(Base.metadata.create_all)
+
+            print("[STARTUP] Migrating admins table to plain-text password column...")
+            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM information_schema.columns
+                        WHERE table_name = 'admins'
+                        AND column_name = 'hashed_password'
+                    ) THEN
+                        IF NOT EXISTS (
+                            SELECT 1
+                            FROM information_schema.columns
+                            WHERE table_name = 'admins'
+                            AND column_name = 'password'
+                        ) THEN
+                            ALTER TABLE admins ADD COLUMN password VARCHAR(255);
+                        END IF;
+
+                        UPDATE admins
+                        SET password = hashed_password
+                        WHERE password IS NULL;
+
+                        ALTER TABLE admins DROP COLUMN hashed_password;
+                    END IF;
+                END $$;
+            """)))
+
             print("[STARTUP] Tables ready.")
 
         async with async_session_maker() as session:
             result = await session.execute(select(Admin).where(Admin.email == "admin@pravyatech.com"))
-            if not result.scalar_one_or_none():
+            admin = result.scalar_one_or_none()
+            if not admin:
                 print("[STARTUP] Seeding default admin user...")
                 default_admin = Admin(
                     email="admin@pravyatech.com",
@@ -36,6 +66,12 @@ async def lifespan(app: FastAPI):
                 session.add(default_admin)
                 await session.commit()
                 print("[STARTUP] Default admin seeded.")
+            else:
+                admin.password = hash_password("admin123")
+                admin.full_name = "Admin"
+                admin.is_active = True
+                await session.commit()
+                print("[STARTUP] Default admin password synced.")
     except Exception as e:
         print(f"[STARTUP] Error during database setup: {e}")
         raise
