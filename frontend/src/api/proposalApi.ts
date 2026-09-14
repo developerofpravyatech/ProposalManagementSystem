@@ -239,5 +239,29 @@ export const proposalApi = {
         events: views,
       };
     }
-  }
+  },
+
+  async getProposalViews(id: string | number) {
+    try {
+      return await apiRequest(`/proposals/${id}/analytics`);
+    } catch {
+      const list = getMockProposals();
+      const proposal = list.find(p => p.id === Number(id));
+      if (!proposal) throw new Error('Proposal not found');
+
+      const allViews = getMockViews();
+      const views = allViews
+        .filter(v => v.proposal_id === Number(id))
+        .sort((a, b) => new Date(b.viewed_at).getTime() - new Date(a.viewed_at).getTime());
+
+      return {
+        total_views: proposal.view_count || views.length,
+        unique_devices: new Set(views.map(v => v.device_type)).size,
+        first_opened_at: proposal.first_opened_at,
+        last_opened_at: proposal.last_opened_at,
+        views,
+        downloads: views.filter(v => v.action === 'PDF Downloaded'),
+      };
+    }
+  },
 };

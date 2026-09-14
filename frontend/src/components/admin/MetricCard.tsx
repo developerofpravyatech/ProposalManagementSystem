@@ -7,9 +7,9 @@ export function MetricCard({
   value,
   subtitle,
   icon: Icon,
-  trend,
+  trend = undefined,
   color = 'brand', // 'brand', 'black', 'emerald', 'amber'
-  onClick,
+  onClick = undefined,
 }) {
   const colorSchemes = {
     brand: {

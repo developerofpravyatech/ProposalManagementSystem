@@ -3,13 +3,22 @@ import { Loader2 } from 'lucide-react';
 
 export function Button({
   children,
-  variant = 'primary', // 'primary', 'secondary', 'outline', 'danger', 'ghost', 'whatsapp'
-  size = 'md', // 'sm', 'md', 'lg'
+  variant = 'primary',
+  size = 'md',
   isLoading = false,
   disabled = false,
   icon: Icon,
   className = '',
   ...props
+}: {
+  children?: React.ReactNode;
+  variant?: string;
+  size?: string;
+  isLoading?: boolean;
+  disabled?: boolean;
+  icon?: React.ComponentType<any>;
+  className?: string;
+  [key: string]: any;
 }) {
   const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
 
@@ -43,4 +52,3 @@ export function Button({
     </button>
   );
 }
-

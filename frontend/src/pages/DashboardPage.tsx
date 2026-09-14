@@ -8,6 +8,7 @@ import {
   Plus, 
   ArrowRight
 } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { MetricCard } from '../components/admin/MetricCard';
 import { LiveActivityFeed } from '../components/admin/LiveActivityFeed';
 import { ProposalTable } from '../components/admin/ProposalTable';
@@ -16,6 +17,19 @@ import { AnalyticsModal } from '../components/admin/AnalyticsModal';
 import { Button } from '../components/common/Button';
 import { proposalApi } from '../api/proposalApi';
 import { useToast } from '../context/ToastContext';
+
+const STATUS_COLORS: Record<string, string> = {
+  sent: '#94A3B8',
+  viewed: '#DC2626',
+  accepted: '#10B981',
+  renewal_due: '#F59E0B',
+  renewed: '#3B82F6',
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  profile_only: '#0F172A',
+  quotation_proposal: '#DC2626',
+};
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -46,6 +60,22 @@ export function DashboardPage() {
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  const chartData = React.useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    const typeCounts: Record<string, number> = {};
+    proposals.forEach((p) => {
+      statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+      typeCounts[p.type] = (typeCounts[p.type] || 0) + 1;
+    });
+    return {
+      status: Object.entries(statusCounts).map(([name, value]) => ({ name, value })),
+      types: Object.entries(typeCounts).map(([name, value]) => ({
+        name: name === 'profile_only' ? 'Profile' : 'Quotation',
+        value,
+      })),
+    };
+  }, [proposals]);
 
   const handleRenew = async (proposal) => {
     try {
@@ -140,6 +170,54 @@ export function DashboardPage() {
           color="amber"
           onClick={() => navigate('/admin/renewals')}
         />
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Status Distribution */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h3 className="text-sm font-black text-slate-900 font-display mb-4">Status Distribution</h3>
+          {chartData.status.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={chartData.status}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="45%"
+                  cy="50%"
+                  outerRadius={75}
+                  label={({ name, percent }) => `${name.replace('_', ' ')} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {chartData.status.map((entry) => (
+                    <Cell key={entry.name} fill={STATUS_COLORS[entry.name] || '#94A3B8'} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">No data available</div>
+          )}
+        </div>
+
+        {/* Type Distribution */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h3 className="text-sm font-black text-slate-900 font-display mb-4">Proposal Types</h3>
+          {chartData.types.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={chartData.types} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={{ stroke: '#CBD5E1' }} />
+                <YAxis tick={{ fontSize: 12 }} axisLine={{ stroke: '#CBD5E1' }} />
+                <Tooltip />
+                <Bar dataKey="value" fill="#DC2626" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">No data available</div>
+          )}
+        </div>
       </div>
 
       {/* Two Column Grid: Recent Proposals & Live Forensic Activity */}

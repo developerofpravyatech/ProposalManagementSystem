@@ -485,7 +485,7 @@ class PDFGenerator:
 ---
 
 ## ✅ PHASE 3: Admin Dashboard Frontend
-**Duration:** 2 weeks | **Status:** Admin Interface  
+**Duration:** 2 weeks | **Status:** Near Complete  
 **Objective:** Build complete admin dashboard for proposal management
 
 ### 📌 What to Do
@@ -594,7 +594,23 @@ class PDFGenerator:
   - Delete
   - Create Renewal (if eligible)
 
-##### 4. Proposal Engagement/Tracking Page
+##### 4. Proposal Engagement/Tracking Page — ✅ DONE
+- **File:** `frontend/src/pages/ProposalTrackingPage.tsx`
+- Timeline view of all view events:
+  - Date & Time of view
+  - IP Address
+  - Device/Browser info (with icons and badges)
+- Download events timeline (separate section)
+- City/Location display (from mock data/IP)
+- Summary metrics cards (total views, unique devices, first/last opened, PDF downloads)
+- Filter by event type: All, Page Views, Downloads, Accepted
+- Expand/collapse event details (user agent, device, browser)
+- Unique IP addresses display
+- Export tracking data as CSV
+- Route: `/admin/proposals/:id/tracking`
+- Accessible via "View Tracking" button in Proposal Detail sidebar
+
+##### 4. Proposal Engagement/Tracking Page (PLANNED)
 - Timeline view of all view events:
   - Date & Time of view
   - IP Address
@@ -655,33 +671,33 @@ class PDFGenerator:
 
 ### ✅ CRITICAL Components
 
-- React 18 functional components with hooks
-- React Router v6 for page routing
-- Axios for API calls with interceptors
-- Form handling with custom hooks or React Hook Form
-- TanStack Query for server state management
-- TanStack Table for data tables
-- Recharts for charts/analytics
-- Tailwind CSS for styling
-- React Icons for UI icons
-- Protected routes/auth guards
-- Local storage for JWT tokens
-- Form validation (client-side)
-- Loading states and error handling
-- Toast notifications (react-toastify or similar)
+- [x] React 18 functional components with hooks
+- [x] React Router v6 for page routing
+- [x] Axios for API calls with interceptors
+- [x] Form handling with custom hooks or React Hook Form
+- [x] TanStack Query for server state management
+- [x] TanStack Table for data tables
+- [x] Recharts for charts/analytics
+- [x] Tailwind CSS for styling
+- [x] React Icons for UI icons
+- [x] Protected routes/auth guards
+- [x] Local storage for JWT tokens
+- [x] Form validation (client-side)
+- [x] Loading states and error handling
+- [x] Toast notifications (react-toastify or similar)
 
 ### ⚠️ IMPORTANT Components
 
-- Modal/Dialog components for actions
-- Confirmation dialogs for destructive actions
-- Dropdown menus for bulk actions
-- Date picker components (date-fns, react-datepicker)
-- File upload components (for future document uploads)
-- Search and filter UI
-- Pagination controls
-- Sort indicators
-- Skeleton loaders while fetching
-- Error boundary components
+- [ ] Modal/Dialog components for actions
+- [ ] Confirmation dialogs for destructive actions
+- [ ] Dropdown menus for bulk actions
+- [ ] Date picker components (date-fns, react-datepicker)
+- [ ] File upload components (for future document uploads)
+- [ ] Search and filter UI
+- [ ] Pagination controls
+- [ ] Sort indicators
+- [ ] Skeleton loaders while fetching
+- [ ] Error boundary components
 
 ### 💡 OPTIONAL Components
 

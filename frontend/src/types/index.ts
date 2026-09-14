@@ -67,6 +67,27 @@ export interface ProposalView {
   user_agent?: string;
 }
 
+export interface TrackingEvent {
+  id: number;
+  proposal_id: number;
+  viewed_at: string;
+  ip_address: string;
+  city?: string;
+  user_agent?: string;
+  device_type: string;
+  browser: string;
+  action: string;
+}
+
+export interface ProposalTracking {
+  total_views: number;
+  unique_devices: number;
+  first_opened_at?: string;
+  last_opened_at?: string;
+  views: TrackingEvent[];
+  downloads: TrackingEvent[];
+}
+
 export interface ProposalAnalytics {
   total_views: number;
   unique_devices: number;

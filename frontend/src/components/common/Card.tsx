@@ -6,6 +6,12 @@ export function Card({
   hover = false,
   glass = true,
   ...props
+}: {
+  children?: React.ReactNode;
+  className?: string;
+  hover?: boolean;
+  glass?: boolean;
+  [key: string]: any;
 }) {
   const baseClasses = glass ? 'glass-card' : 'bg-white border border-slate-200 shadow-sm';
   const hoverClasses = hover ? 'glass-card-hover cursor-pointer' : '';

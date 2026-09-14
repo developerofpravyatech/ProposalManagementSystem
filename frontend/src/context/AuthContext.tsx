@@ -9,11 +9,19 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = authApi.getCurrentUser();
-    if (storedUser) {
-      setUser(storedUser);
-    }
-    setLoading(false);
+    const checkAuth = async () => {
+      try {
+        const storedUser = await authApi.getCurrentUser();
+        if (storedUser) {
+          setUser(storedUser);
+        }
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
   }, []);
 
   const login = async (email, password) => {

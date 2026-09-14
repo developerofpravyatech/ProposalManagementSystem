@@ -18,6 +18,10 @@ export async function apiRequest(endpoint, options = {}) {
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({ detail: res.statusText }));
+      if (res.status === 401) {
+        localStorage.removeItem('pravya_admin_token');
+        localStorage.removeItem('pravya_admin_user');
+      }
       throw new Error(errorData.detail || `Request failed with status ${res.status}`);
     }
 

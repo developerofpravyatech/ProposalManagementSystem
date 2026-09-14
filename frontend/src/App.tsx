@@ -13,6 +13,7 @@ import { CreateProposalPage } from './pages/CreateProposalPage';
 import { RenewalsPage } from './pages/RenewalsPage';
 import { CompanySettingsPage } from './pages/CompanySettingsPage';
 import { PublicProposalPage } from './pages/PublicProposalPage';
+import { ProposalTrackingPage } from './pages/ProposalTrackingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 // Protected Admin Layout Wrapper
@@ -90,6 +91,7 @@ export function App() {
         <Route path="proposals/create" element={<CreateProposalPage />} />
         <Route path="proposals/:id" element={<ProposalDetailPage />} />
         <Route path="proposals/:id/edit" element={<ProposalEditPage />} />
+        <Route path="proposals/:id/tracking" element={<ProposalTrackingPage />} />
         <Route path="renewals" element={<RenewalsPage />} />
         <Route path="company-settings" element={<CompanySettingsPage />} />
       </Route>
