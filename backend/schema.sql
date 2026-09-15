@@ -34,7 +34,6 @@ CREATE TABLE proposals (
     contract_duration VARCHAR(100),
     renewal_date DATE,
     terms TEXT,
-    line_items JSON,
     pdf_path VARCHAR(500),
     unique_token VARCHAR(255) NOT NULL UNIQUE,
     sent_at TIMESTAMPTZ,
@@ -62,3 +61,40 @@ CREATE INDEX idx_proposals_status ON proposals(status);
 CREATE INDEX idx_proposals_unique_token ON proposals(unique_token);
 CREATE INDEX idx_proposals_proposal_no ON proposals(proposal_no);
 CREATE INDEX idx_proposal_views_proposal_id ON proposal_views(proposal_id);
+
+-- Line Items (replaces JSON line_items column)
+CREATE TABLE proposal_line_items (
+    id BIGSERIAL PRIMARY KEY,
+    proposal_id BIGINT NOT NULL REFERENCES proposals(id) ON DELETE CASCADE,
+    title VARCHAR(500) NOT NULL,
+    description VARCHAR(1000),
+    quantity INTEGER NOT NULL DEFAULT 1,
+    unit_price NUMERIC(10, 2),
+    subtotal NUMERIC(10, 2),
+    currency VARCHAR(10),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_line_items_proposal_id ON proposal_line_items(proposal_id);
+
+-- Proposal Content Sections (replaces JSON content column)
+CREATE TABLE proposal_content (
+    id BIGSERIAL PRIMARY KEY,
+    proposal_id BIGINT NOT NULL REFERENCES proposals(id) ON DELETE CASCADE,
+    cover TEXT,
+    cover_letter TEXT,
+    company_profile TEXT,
+    services TEXT,
+    process TEXT,
+    terms TEXT,
+    clients TEXT,
+    pricing TEXT,
+    payment_methods TEXT,
+    acceptance TEXT,
+    branches TEXT,
+    closing_statement TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(proposal_id)
+);

@@ -1,8 +1,10 @@
-from sqlalchemy import String, DateTime, Date, Integer, Numeric, Text, Enum, ForeignKey, JSON, func
+from sqlalchemy import String, DateTime, Date, Integer, Numeric, Text, Enum, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from enum import Enum as PyEnum
 from app.database import Base
+from app.models.line_item import ProposalLineItem
+from app.models.proposal_content import ProposalContent
 
 
 class ProposalType(str, PyEnum):
@@ -36,8 +38,6 @@ class Proposal(Base):
     contract_duration: Mapped[str | None] = mapped_column(String(100), nullable=True)
     renewal_date: Mapped[datetime | None] = mapped_column(Date, nullable=True)
     terms: Mapped[str | None] = mapped_column(Text, nullable=True)
-    line_items: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    content: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     pdf_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     unique_token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -53,6 +53,8 @@ class Proposal(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     views: Mapped[list["ProposalView"]] = relationship("ProposalView", back_populates="proposal", cascade="all, delete-orphan")
+    line_items: Mapped[list["ProposalLineItem"]] = relationship("ProposalLineItem", back_populates="proposal", cascade="all, delete-orphan")
+    content_data: Mapped["ProposalContent"] = relationship("ProposalContent", back_populates="proposal", cascade="all, delete-orphan", uselist=False)
 
 
 class ProposalView(Base):
