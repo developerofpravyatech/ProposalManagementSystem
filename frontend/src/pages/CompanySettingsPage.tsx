@@ -59,12 +59,12 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, size = 'sm'
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (file.size > 2 * 1024 * 1024) {
       alert('File size must be less than 2MB');
       return;
     }
-    
+
     const reader = new FileReader();
     reader.onload = (ev) => {
       const result = ev.target?.result as string;
@@ -467,7 +467,7 @@ export function CompanySettingsPage() {
             <Input label="Sales Head Name" value={profile.sales_head_name || ''} onChange={(e) => handleInputChange('sales_head_name', e.target.value)} />
             <Input label="Sales Head Title" value={profile.sales_head_title || ''} onChange={(e) => handleInputChange('sales_head_title', e.target.value)} />
           </div>
-          </Card>
+        </Card>
 
         {/* Logo & Brand */}
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
@@ -541,7 +541,7 @@ export function CompanySettingsPage() {
         {/* Theme Customizer */}
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
-             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
+            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
               <Palette className="w-5 h-5 text-brand-600" />
               Theme Colors
             </h2>

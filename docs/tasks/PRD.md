@@ -230,12 +230,62 @@ audit_logs         - Activity tracking (future)
 
 ---
 
+## 🚨 CRITICAL BUGS TO FIX (Blockers)
+
+### 1. Frontend Changes Not Persisting to Database
+**Issue:** When making changes from the frontend (Company Settings, Proposal Editor, etc.), the data is not being saved to the database.
+
+**Root Cause Investigation Needed:**
+- [ ] Check API service calls (`frontend/src/api/*.ts`) - verify correct endpoints and payload structure
+- [ ] Check backend API routes - verify they accept the request format and commit transactions
+- [ ] Check database models - verify columns match the data being sent
+- [ ] Check authentication - verify JWT token is being sent with requests
+- [ ] Check CORS - verify frontend origin is allowed
+- [ ] Check request/response logging - add debug logging to trace the flow
+
+**Affected Areas:**
+- Company Profile settings (CompanySettingsPage.tsx)
+- Proposal creation/editing (CreateProposalPage, ProposalEditPage)
+- Line items management
+- Theme/configuration settings
+
+### 2. Company Profile PDF Design Mismatch
+**Issue:** Generated 9-page company profile PDF does not match the expected design.
+
+**Reference Design:** `docs/PRV-Q1810-01.html` (converted from the target PDF)
+
+**Requirements:**
+- [ ] **Exact visual match** to PRV-Q1810-01.html - every page, layout, typography, colors
+- [ ] **Page-by-page parity:**
+  - Page 1: Cover page with PRAVYA TECH logo, "Company Profile" title, contact info
+  - Page 2: Cover letter with founder signature, 8 key selling points
+  - Page 3: Mission, Vision & 4 Core Values (Customers First, Integrity, Great Teamwork, Focus on Solutions)
+  - Page 4: 16 Services in 4 categories (Design, Development, Marketing, Analytics) - 2 column layout
+  - Page 5: 5-step Work Process with diagram
+  - Page 6: Top BNI Clients showcase (logo grid)
+  - Page 7: International Clients showcase (logo grid)
+  - Page 8: Terms & Conditions / SOW (Payment terms, Timeline, Scope, AMC, Cancellation, Support, Confidentiality)
+  - Page 9: Back cover with 3 branch offices (Rajkot, Gondal, California) + social links
+- [ ] **Typography:** Match exact fonts, sizes, weights, letter-spacing from reference
+- [ ] **Colors:** Match exact brand colors (red accent #EF2923/#FC1D23, dark text #231F20)
+- [ ] **Layout:** Exact margins, spacing, alignment, page breaks
+- [ ] **Images/Logos:** Embed client logos, company logo, signature image
+
+**Technical Approach:**
+- Use the HTML reference as visual specification
+- Consider using `weasyprint` or `playwright` for HTML-to-PDF conversion instead of ReportLab for pixel-perfect results
+- Or enhance ReportLab implementation with precise measurements from the HTML
+- Store static content in database/config for easy updates
+
+---
+
 ## 🎯 IMMEDIATE ACTION ITEMS (This Week)
 
-1. **Complete Public Proposal Page** - `/p/{token}` frontend + backend tracking
-2. **Fix PDF Generation** - Ensure 9-page profile and 12-page proposal render correctly
-3. **Add Accept Proposal Flow** - Client acceptance updates status, notifies admin
-4. **Test End-to-End** - Create proposal → Generate PDF → Client views → Accepts
+1. **Fix Data Persistence Bug** - Debug and fix frontend→backend→database save flow
+2. **Fix Company Profile PDF** - Match PRV-Q1810-01.html design exactly (9 pages)
+3. **Complete Public Proposal Page** - `/p/{token}` frontend + backend tracking
+4. **Add Accept Proposal Flow** - Client acceptance updates status, notifies admin
+5. **Test End-to-End** - Create proposal → Generate PDF → Client views → Accepts
 
 ---
 
