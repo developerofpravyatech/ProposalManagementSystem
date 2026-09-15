@@ -72,18 +72,12 @@ export const companyProfileApi = {
   },
 
   async updateCompanyProfile(profileData) {
-    try {
-      const updated = await apiRequest('/company-profile', {
-        method: 'PUT',
-        body: JSON.stringify(profileData),
-      });
-      saveLocalProfile(updated);
-      return updated;
-    } catch {
-      const merged = { ...getLocalProfile(), ...profileData };
-      saveLocalProfile(merged);
-      return merged;
-    }
+    const updated = await apiRequest('/company-profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+    saveLocalProfile(updated);
+    return updated;
   },
 
   async getPublicCompanyProfile() {
