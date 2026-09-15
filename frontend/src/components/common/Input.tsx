@@ -1,5 +1,12 @@
 import React from 'react';
 
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+  icon?: React.FC<{ className?: string }>;
+}
+
 export function Input({
   label,
   error,
@@ -8,7 +15,7 @@ export function Input({
   className = '',
   id,
   ...props
-}) {
+}: InputProps) {
   const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
   return (
@@ -38,6 +45,12 @@ export function Input({
   );
 }
 
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+}
+
 export function Textarea({
   label,
   error,
@@ -46,7 +59,7 @@ export function Textarea({
   id,
   rows = 3,
   ...props
-}) {
+}: TextareaProps) {
   const textareaId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
   return (

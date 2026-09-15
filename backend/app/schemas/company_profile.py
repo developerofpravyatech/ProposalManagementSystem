@@ -21,11 +21,22 @@ class CompanyProfileBase(BaseModel):
     branch_offices: Optional[list[Any]] = None
     logo_data: Optional[str] = None
     logo_url: Optional[str] = None
+    qr_code: Optional[str] = None
     primary_color: Optional[str] = Field(None, max_length=20)
     secondary_color: Optional[str] = Field(None, max_length=20)
     accent_color: Optional[str] = Field(None, max_length=20)
-    theme_config: Optional[list[Any]] = None
+    theme_config: Optional[dict[str, Any]] = None
     terms: Optional[str] = None
+    
+    # Bank Details
+    bank_name: Optional[str] = Field(None, max_length=255)
+    bank_account_name: Optional[str] = Field(None, max_length=255)
+    bank_account_number: Optional[str] = Field(None, max_length=50)
+    bank_ifsc: Optional[str] = Field(None, max_length=20)
+    bank_branch: Optional[str] = Field(None, max_length=255)
+    upi_id: Optional[str] = Field(None, max_length=100)
+    swift_code: Optional[str] = Field(None, max_length=20)
+    iban: Optional[str] = Field(None, max_length=50)
 
 
 class CompanyProfileUpdate(CompanyProfileBase):

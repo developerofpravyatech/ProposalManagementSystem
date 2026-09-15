@@ -43,10 +43,8 @@
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .glass-card-hover:hover {
-    background: #FFFFFF;
-    border-color: rgba(220, 38, 38, 0.3);
     transform: translateY(-2px);
-    box-shadow: 0 12px 25px -8px rgba(220, 38, 38, 0.12);
+    box-shadow: 0 12px 25px -8px rgba(0, 0, 0, 0.08);
   }
 
   .glass-dock {

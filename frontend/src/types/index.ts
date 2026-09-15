@@ -44,6 +44,7 @@ export interface Proposal {
   renewal_date?: string;
   terms?: string;
   line_items?: ProposalItem[];
+  content?: Record<string, any>;
   pdf_path?: string;
   unique_token: string;
   sent_at?: string;
@@ -129,10 +130,11 @@ export interface CompanyProfile {
   branch_offices?: any[];
   logo_data?: string;
   logo_url?: string;
+  qr_code?: string;
   primary_color?: string;
   secondary_color?: string;
   accent_color?: string;
-  theme_config?: any[];
+  theme_config?: Record<string, string>;
   terms?: string;
   created_at: string;
   updated_at: string;

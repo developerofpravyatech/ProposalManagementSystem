@@ -21,6 +21,9 @@ export async function apiRequest(endpoint, options = {}) {
       if (res.status === 401) {
         localStorage.removeItem('pravya_admin_token');
         localStorage.removeItem('pravya_admin_user');
+        if (window.location.pathname !== '/admin/login') {
+          window.location.href = '/admin/login';
+        }
       }
       throw new Error(errorData.detail || `Request failed with status ${res.status}`);
     }

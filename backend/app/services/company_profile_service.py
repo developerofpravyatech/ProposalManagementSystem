@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.company_profile import CompanyProfile
@@ -46,10 +47,11 @@ DEFAULT_COMPANY_PROFILE = {
     ],
     "logo_data": None,
     "logo_url": None,
+    "qr_code": None,
     "primary_color": "#4F46E5",
     "secondary_color": "#0F172A",
     "accent_color": "#10B981",
-    "theme_config": [],
+    "theme_config": {},
     "terms": (
         "All proposals are valid for 30 days from the date of issuance.\n"
         "Payment terms: 50% advance, 30% on milestone completion, 20% on final delivery.\n"
@@ -58,6 +60,15 @@ DEFAULT_COMPANY_PROFILE = {
         "Confidentiality: Both parties agree to protect sensitive information shared during the engagement.\n"
         "Governing Law: This agreement shall be governed by the laws of India."
     ),
+    # Bank Details
+    "bank_name": "HDFC Bank",
+    "bank_account_name": "PRAVYA TECH Solutions",
+    "bank_account_number": "50200012345678",
+    "bank_ifsc": "HDFC0001234",
+    "bank_branch": "Rajkot Main Branch",
+    "upi_id": "pravyatech@hdfcbank",
+    "swift_code": "HDFCINBB",
+    "iban": None,
 }
 
 
@@ -79,9 +90,15 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
 
 async def update_company_profile(db: AsyncSession, update_data: dict) -> CompanyProfile:
     profile = await get_or_create_company_profile(db)
+    updated = False
     for key, value in update_data.items():
+        if key in {"id", "created_at", "updated_at"}:
+            continue
         if value is not None and hasattr(profile, key):
             setattr(profile, key, value)
+            updated = True
+    if updated:
+        profile.updated_at = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(profile)
     return profile

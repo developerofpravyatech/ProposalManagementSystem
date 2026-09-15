@@ -5,6 +5,7 @@ export function Button({
   children,
   variant = 'primary',
   size = 'md',
+  iconOnly = false,
   isLoading = false,
   disabled = false,
   icon: Icon,
@@ -14,6 +15,7 @@ export function Button({
   children?: React.ReactNode;
   variant?: string;
   size?: string;
+  iconOnly?: boolean;
   isLoading?: boolean;
   disabled?: boolean;
   icon?: React.ComponentType<any>;
@@ -28,6 +30,12 @@ export function Button({
     lg: 'px-6 py-3 text-base gap-2.5 font-semibold',
   };
 
+  const iconOnlySizes = {
+    sm: 'w-8 h-8 p-0',
+    md: 'w-9 h-9 p-0',
+    lg: 'w-11 h-11 p-0',
+  };
+
   const variants = {
     primary: 'bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-600/25 hover:shadow-brand-600/40 focus:ring-brand-600 border border-brand-500/40',
     secondary: 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900 focus:ring-slate-900 shadow-sm',
@@ -40,7 +48,7 @@ export function Button({
   return (
     <button
       disabled={disabled || isLoading}
-      className={`${baseStyles} ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`${baseStyles} ${iconOnly ? iconOnlySizes[size] : sizes[size]} ${variants[variant]} ${className}`}
       {...props}
     >
       {isLoading ? (

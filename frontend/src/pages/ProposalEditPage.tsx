@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { Input, Textarea } from '../components/common/Input';
@@ -51,6 +51,66 @@ export function ProposalEditPage() {
 
   const updateField = (field: string, value: any) => {
     setProposal((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const updateContentField = (path: string, value: any) => {
+    setProposal((prev: any) => {
+      const content = { ...(prev.content || {}) };
+      const coverLetter = { ...(content.cover_letter || {}) };
+      const keys = path.split('.');
+      let target: any = coverLetter;
+      for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
+        target[key] = { ...(target[key] || {}) };
+        target = target[key];
+      }
+      target[keys[keys.length - 1]] = value;
+      return { ...prev, content: { ...content, cover_letter: coverLetter } };
+    });
+  };
+
+  const coverLetter = proposal?.content?.cover_letter || {};
+
+  const letterBodyLines = Array.isArray(coverLetter.letter_body) ? coverLetter.letter_body : (coverLetter.letter_body ? [coverLetter.letter_body] : ['']);
+
+  const updateLetterBody = (lines: string[]) => {
+    updateContentField('letter_body', lines.filter(l => l.trim()));
+  };
+
+  const addLetterBodyLine = () => {
+    updateLetterBody([...letterBodyLines, '']);
+  };
+
+  const updateLetterBodyLine = (index: number, value: string) => {
+    const newLines = [...letterBodyLines];
+    newLines[index] = value;
+    updateLetterBody(newLines);
+  };
+
+  const removeLetterBodyLine = (index: number) => {
+    updateLetterBody(letterBodyLines.filter((_, i) => i !== index));
+  };
+
+  const companyProfile = proposal?.content?.company_profile || {};
+
+  const updateCompanyField = (field: string, value: any) => {
+    updateContentField('company_profile.' + field, value);
+  };
+
+  const coreValues = Array.isArray(companyProfile.core_values) ? companyProfile.core_values : [];
+
+  const updateCoreValue = (index: number, field: string, value: string) => {
+    const newValues = [...coreValues];
+    newValues[index] = { ...newValues[index], [field]: value };
+    updateCompanyField('core_values', newValues);
+  };
+
+  const addCoreValue = () => {
+    updateCompanyField('core_values', [...coreValues, { title: '', description: '' }]);
+  };
+
+  const removeCoreValue = (index: number) => {
+    updateCompanyField('core_values', coreValues.filter((_, i) => i !== index));
   };
 
   if (loading) {
@@ -249,6 +309,141 @@ export function ProposalEditPage() {
           value={proposal.terms || ''}
           onChange={(e) => updateField('terms', e.target.value)}
         />
+
+        {/* Cover Letter */}
+        <Card className="p-6 bg-white space-y-6">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display">Cover Letter</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Recipient Name"
+              value={coverLetter.recipient_name || ''}
+              onChange={(e) => updateContentField('recipient_name', e.target.value)}
+            />
+            <Input
+              label="Recipient Designation"
+              value={coverLetter.recipient_designation || ''}
+              onChange={(e) => updateContentField('recipient_designation', e.target.value)}
+            />
+            <Input
+              label="Date"
+              type="date"
+              value={coverLetter.letter_date ? (coverLetter.letter_date.includes('T') ? coverLetter.letter_date.split('T')[0] : coverLetter.letter_date) : ''}
+              onChange={(e) => updateContentField('letter_date', e.target.value)}
+            />
+            <Input
+              label="Signer Name"
+              value={coverLetter.signer_name || ''}
+              onChange={(e) => updateContentField('signer_name', e.target.value)}
+            />
+            <Input
+              label="Signer Designation"
+              value={coverLetter.signer_designation || ''}
+              onChange={(e) => updateContentField('signer_designation', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">Letter Body</label>
+            {letterBodyLines.map((line, idx) => (
+              <div key={idx} className="flex gap-2 items-start">
+                <Textarea
+                  value={line}
+                  onChange={(e) => updateLetterBodyLine(idx, e.target.value)}
+                  rows={2}
+                  placeholder={`Paragraph ${idx + 1}...`}
+                  className="flex-1"
+                />
+                {letterBodyLines.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeLetterBodyLine(idx)}
+                    className="text-rose-500 hover:text-rose-700 p-2 flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addLetterBodyLine} className="flex items-center justify-center">
+              Add Paragraph
+            </Button>
+          </div>
+
+          <Textarea
+            label="Proposal Introduction"
+            rows={3}
+            value={coverLetter.proposal_introduction || ''}
+            onChange={(e) => updateContentField('proposal_introduction', e.target.value)}
+            placeholder="Short introduction to the enclosed proposal..."
+          />
+        </Card>
+      </Card>
+
+      {/* Company Profile */}
+      <Card className="p-6 bg-white space-y-6">
+        <div className="border-b border-slate-200 pb-4">
+          <h2 className="text-lg font-black text-slate-900 font-display">Company Profile</h2>
+        </div>
+
+        <Textarea
+          label="Positioning"
+          rows={2}
+          value={companyProfile.positioning || ''}
+          onChange={(e) => updateCompanyField('positioning', e.target.value)}
+          placeholder="A Creative, Strategic & Accountable Design Agency."
+        />
+
+        <Textarea
+          label="Vision"
+          rows={2}
+          value={companyProfile.vision || ''}
+          onChange={(e) => updateCompanyField('vision', e.target.value)}
+          placeholder="To become a global leader in mobile-first technology..."
+        />
+
+        <Textarea
+          label="Mission"
+          rows={4}
+          value={companyProfile.mission || ''}
+          onChange={(e) => updateCompanyField('mission', e.target.value)}
+          placeholder="At PRAVYA Tech, our mission is to..."
+        />
+
+        <div className="space-y-2">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">Core Values</label>
+          {coreValues.map((val, idx) => (
+            <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={val.title || ''}
+                  onChange={(e) => updateCoreValue(idx, 'title', e.target.value)}
+                  placeholder="Value title (e.g. Customers First)"
+                  className="flex-1"
+                />
+                {coreValues.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeCoreValue(idx)}
+                    className="text-rose-500 hover:text-rose-700 p-2 flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <Input
+                value={val.description || ''}
+                onChange={(e) => updateCoreValue(idx, 'description', e.target.value)}
+                placeholder="Description"
+              />
+            </div>
+          ))}
+          <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addCoreValue} className="flex items-center justify-center">
+            Add Core Value
+          </Button>
+        </div>
       </Card>
 
       {/* Step 2: Line Items (Quotation Only) */}

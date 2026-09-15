@@ -34,9 +34,9 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
   const address = cp.address || 'Office: Rajkot, Gujarat, India';
   const salesHead = cp.sales_head_name || 'Rahul Mehta';
   const salesHeadTitle = cp.sales_head_title || 'Founder & CEO';
-  const mission = cp.mission || '';
-  const vision = cp.vision || '';
-  const coreValues = cp.core_values || [];
+  const mission = proposal.content?.company_profile?.mission || cp.mission || '';
+  const vision = proposal.content?.company_profile?.vision || cp.vision || '';
+  const coreValues = proposal.content?.company_profile?.core_values || cp.core_values || [];
   const services = cp.services || [];
   const bniClients = cp.bni_clients || [];
   const intlClients = cp.international_clients || [];

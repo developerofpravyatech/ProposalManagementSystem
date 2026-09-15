@@ -1,470 +1,637 @@
+import base64
+import copy
+import io
+import json
 import os
-from datetime import datetime
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, PageBreak
+import shutil
+import subprocess
+import uuid
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any
+
+import qrcode
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from markupsafe import Markup
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import Any
-from app.models.proposal import Proposal
+
 from app.models.company_profile import CompanyProfile
+from app.models.proposal import Proposal
 from app.utils.security import settings
 
-OUTPUT_DIR = settings.PDF_OUTPUT_DIR or "./generated_pdfs"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+OUTPUT_DIR = Path(settings.PDF_OUTPUT_DIR or "./generated_pdfs")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
+
+REFERENCE_CONTENT = {
+    "cover": {
+        "project_title": "Genie - Ask, Give Connect !!",
+        "cover_tagline": "Build your company's strong online presence.",
+        "client_name": "Mr. Mohammad Sharif",
+        "client_designation": "Executive Director",
+        "client_website": "www.pravyatech.com",
+        "prepared_by_name": "Mr. Pratikbharathi Goswami",
+        "prepared_by_designation": "Sales Head",
+        "office_name": "PRAVYA TECH (HEAD OFFICE)",
+        "office_address": "618 Level 6, 150 Feet Ring Road,\nOpp. Imperial Heights,\nRajkot 360005.",
+        "phone": "+(91) 898 0000 196",
+        "email": "talk@pravyatech.com",
+        "issued_date": "25/05/2026",
+        "valid_till": "01/06/2026",
+        "closing_tagline": "We are not developing the technology,\nWe are technology.",
+    },
+    "cover_letter": {
+        "recipient_name": "Mr. Mohammad Sharif",
+        "recipient_designation": "Director",
+        "letter_date": "23/05/2026",
+        "letter_body": [
+            "PRAVYA TECH is pleased to submit this website development proposal. We understand the importance of a strong digital presence and the role a customized, user-friendly website plays in building trust with customers.",
+            "The proposed website will be performance-driven, responsive, scalable, and optimized for a seamless user experience. Our team combines creativity, technical expertise, and industry knowledge to align every deliverable with your business goals.",
+            "The enclosed proposal includes the project scope, timeline, technologies, and cost breakdown. We are committed to transparent communication, timely delivery, and long-term support.",
+        ],
+        "signer_name": "PRATIKBHARATHI GOSWAMI",
+        "signer_designation": "FOUNDER & CEO",
+        "proposal_introduction": "Thank you for considering PRAVYA TECH. We look forward to building a lasting partnership.",
+    },
+    "company_profile": {
+        "positioning": "A Creative, Strategic & Accountable Design Agency.",
+        "vision": "To become a global leader in mobile-first technology by empowering businesses and individuals with innovative, intuitive, and impactful digital solutions.",
+        "mission": "To design and develop smart, scalable, user-centric mobile and web applications that solve real-world problems with simplicity, speed, and a seamless user experience.",
+        "core_values": [
+            {"title": "Customers First", "description": "Client outcomes guide every decision."},
+            {"title": "Act with Integrity", "description": "We earn trust through transparent work."},
+            {"title": "Great Teamwork", "description": "Shared ownership produces better outcomes."},
+            {"title": "Focus on Solutions", "description": "We turn constraints into practical progress."},
+        ],
+    },
+    "services": {
+        "positioning": "We are a leading design agency with a market-leading presence in the digital market.",
+        "categories": [
+            {"name": "DESIGN", "items": ["Wordpress UI / UX", "Mobile App UI / UX", "E-Commerce UI / UX", "Custom Application Design"]},
+            {"name": "DEVELOPMENT", "items": ["Wordpress Development", "Mobile App Development", "E-Commerce Development", "Custom Application Development"]},
+            {"name": "MARKETING / COMMUNICATION", "items": ["Social Media Marketing", "Email Marketing", "Whatsapp Chatbot"]},
+            {"name": "ANALYTICS", "items": ["Website Analytics", "Mobile App Analytics"]},
+        ],
+        "additional_labels": ["Website Designing", "Research & Analysis", "Content Marketing", "Design & Illustration"],
+    },
+    "process": {
+        "intro": "We work with clients to develop the right strategy from the very first stage to the last stage.",
+        "heading": "Our work process - From very first touch point to launch and beyond.",
+        "steps": [
+            {"number": "01", "title": "Initial Discussion", "description": "Initial meeting, project discussion, assessment, and agreement."},
+            {"number": "02", "title": "Research & Design", "description": "Research, project outline, wireframes, artwork, and revisions."},
+            {"number": "03", "title": "Development", "description": "Coding, development, validation, and cross-platform testing."},
+            {"number": "04", "title": "Implementation", "description": "Implementation, content placement, optimization, and testing."},
+            {"number": "05", "title": "Finalization", "description": "Final refinement, deployment, maintenance, training, and support."},
+        ],
+    },
+    "terms": {
+        "payment_terms": ["50% Advanced", "50% Immediately After Deployment", "18% GST will be applicable as per government regulations."],
+        "annual_maintenance_contract": ["25% of project value as per bill.", "AMC applies when existing features are not working or technical bugs occur.", "New features and requirements are not included in AMC."],
+        "services_limitations": ["PRAVYA TECH is not liable for issues occurring in integrated third-party services including Cloud, Backups, E-Mail, SMS, WhatsApp, IVR, and other integrated software or services."],
+        "exclusions": ["Anything not specified in the approved specification and demo system.", "Third-party software and API integrations not specifically mentioned.", "Cloud hosting charges.", "Future updates in App, Web, or Software."],
+        "client_side_support": ["One decision-maker is required from the client side.", "PRAVYA TECH will communicate with that person and their decisions will be final for the engagement."],
+        "project_cancellation": ["Payment is non-refundable once work has started from PRAVYA TECH's side."],
+    },
+    "clients": {
+        "bni": [
+            {"name": "Shree Cement"},
+            {"name": "Adani Group"},
+            {"name": "Reliance Industries"},
+            {"name": "Tata Consultancy Services"},
+            {"name": "Infosys"},
+            {"name": "Wipro"},
+        ],
+        "international": [
+            {"name": "TechFlow Inc. (USA)"},
+            {"name": "EuroTech Solutions (Germany)"},
+            {"name": "Asia Pacific Digital (Singapore)"},
+            {"name": "UK Digital Labs (London)"},
+            {"name": "Canada Tech Ventures (Toronto)"},
+        ],
+    },
+    "pricing": {
+        "items": [{"name": "Genie - Ask, Give & Connect", "description": ["Android & iOS App", "Web Admin Panel", "Technical Support", "Include Server Cost"], "price": "9 OMR", "unit": "Member / Year"}],
+        "currency": "OMR",
+        "billing_unit": "Member / Year",
+        "tax_rate": 18,
+        "note": "Note: the amount is excluding 18% GST.",
+    },
+    "payment_methods": {
+        "qr_code": None,
+        "upi_id": "PRAVYA2618@OKSBI",
+        "bank_name": "STATE BANK OF INDIA",
+        "account_number": "40410281486",
+        "branch_name": "Bhanktinagar Station Main Road",
+        "ifsc": "SBIN0001851",
+        "swift_code": "",
+        "iban": "",
+    },
+    "acceptance": {
+        "text": "By signing this document, the client confirms acceptance of the quote and authorizes PRAVYA TECH to commence the project. The client accepts the project scope, estimated timeline, payment terms, and relevant terms and conditions.",
+        "additional_work_clause": "Additional work outside the agreed scope may require a separate quotation and written approval.",
+        "signature_fields": {"date": "Date", "name": "Name", "signature": "Signature"},
+    },
+    "branches": [
+        {"branch_name": "PRAVYA TECH (MAIN BRANCH)", "address": "618 LEVEL 6, 150 FEET RING ROAD,\nOPP. IMPERIAL HEIGHTS, NEAR BIG BAZAR,\nRAJKOT 360005.", "phone": "+(91) 898 00 00 196", "email": "sales@pravyatech.com", "website": "www.pravyatech.com"},
+        {"branch_name": "SECOND BRANCH", "address": "304, NAKSHATRA 6, GONDAL ROAD,\nOPP. PINEVINTA HOTEL,\nRAJKOT 360002.", "phone": "+(91) 898 00 00 196", "email": "sales@pravyatech.com", "website": ""},
+        {"branch_name": "THIRD BRANCH", "address": "143 KERRY CMN,\nFremont, California U.S.A,\n94536.", "phone": "+1 (408) 507-6353", "email": "sales@pravyatech.com", "website": ""},
+    ],
+    "closing_statement": "Take your business to the next level.",
+}
 
 
-def build_profile_pdf(proposal: Proposal, filepath: str, company_profile: "CompanyProfile | None" = None):
-    doc = SimpleDocTemplate(
-        filepath,
-        pagesize=A4,
-        rightMargin=50,
-        leftMargin=50,
-        topMargin=50,
-        bottomMargin=50
-    )
-    styles = getSampleStyleSheet()
-    
-    brand_indigo = colors.HexColor(company_profile.primary_color) if company_profile and company_profile.primary_color else colors.HexColor("#4F46E5")
-    brand_dark = colors.HexColor(company_profile.secondary_color) if company_profile and company_profile.secondary_color else colors.HexColor("#0F172A")
-    brand_muted = colors.HexColor("#64748B")
-    brand_slate = colors.HexColor("#F8FAFC")
-    
-    title_style = ParagraphStyle(
-        'DocTitle',
-        parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
-        fontSize=24,
-        leading=28,
-        textColor=brand_indigo,
-        spaceAfter=8,
-        alignment=1
-    )
-    
-    subtitle_style = ParagraphStyle(
-        'DocSubtitle',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=12,
-        leading=16,
-        textColor=brand_muted,
-        spaceAfter=20,
-        alignment=1
-    )
-
-    section_heading = ParagraphStyle(
-        'SectionHeading',
-        parent=styles['Heading2'],
-        fontName='Helvetica-Bold',
-        fontSize=16,
-        leading=20,
-        textColor=brand_dark,
-        spaceBefore=16,
-        spaceAfter=10
-    )
-
-    body_style = ParagraphStyle(
-        'BodyText',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=11,
-        leading=15,
-        textColor=brand_dark
-    )
-
-    center_style = ParagraphStyle(
-        'CenterText',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=11,
-        leading=15,
-        textColor=brand_dark,
-        alignment=1
-    )
-
-    story = []
-
-    company = company_profile.company_name if company_profile else "PRAVYA TECH Solutions"
-    tagline = company_profile.tagline if company_profile else "Empowering Businesses Through Technology"
-    email = company_profile.email if company_profile else "contact@pravyatech.com"
-    phone = company_profile.phone if company_profile else "+91 98765 43210"
-    website = company_profile.website if company_profile else "www.pravyatech.com"
-    address = company_profile.address if company_profile else "Office: Rajkot, Gujarat, India"
-    sales_head = company_profile.sales_head_name if company_profile else "Rahul Mehta"
-    sales_head_title = company_profile.sales_head_title if company_profile else "Founder & CEO"
-    mission = company_profile.mission if company_profile else ""
-    vision = company_profile.vision if company_profile else ""
-    core_values = company_profile.core_values if company_profile else []
-    services = company_profile.services if company_profile else []
-    bni_clients = company_profile.bni_clients if company_profile else []
-    intl_clients = company_profile.international_clients if company_profile else []
-    branch_offices = company_profile.branch_offices if company_profile else []
-    terms_text = company_profile.terms if company_profile else ""
-
-    # ==================== PAGE 1: Cover ====================
-    story.append(Spacer(1, 80))
-    story.append(Paragraph(company, title_style))
-    story.append(Paragraph("COMPANY PROFILE", title_style))
-    story.append(Spacer(1, 30))
-    story.append(Paragraph("Prepared for:", subtitle_style))
-    story.append(Paragraph(f"<b>{proposal.company_name or proposal.client_name}</b>", subtitle_style))
-    story.append(Spacer(1, 40))
-    
-    meta_data = [
-        [Paragraph(f"<b>Proposal #:</b> {proposal.proposal_no or 'N/A'}", center_style), 
-         Paragraph(f"<b>Date:</b> {datetime.now().strftime('%B %d, %Y')}", center_style)],
-        [Paragraph(f"<b>Client:</b> {proposal.client_name}", center_style), 
-         Paragraph(f"<b>Email:</b> {proposal.email or 'N/A'}", center_style)],
-        [Paragraph(f"<b>Phone:</b> {proposal.phone or 'N/A'}", center_style), 
-         Paragraph(f"<b>Company:</b> {proposal.company_name or 'N/A'}", center_style)],
-    ]
-    meta_table = Table(meta_data, colWidths=[200, 200])
-    meta_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), brand_slate),
-        ('PADDING', (0, 0), (-1, -1), 10),
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ]))
-    story.append(meta_table)
-    story.append(Spacer(1, 60))
-    story.append(Paragraph("Sales Head", center_style))
-    story.append(Paragraph(sales_head, center_style))
-    story.append(Paragraph(address, center_style))
-    story.append(Paragraph(f"{email} | {phone}", center_style))
-    story.append(PageBreak())
-
-    # ==================== PAGE 2: Cover Letter ====================
-    story.append(Paragraph("Cover Letter", section_heading))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
-    story.append(Paragraph(f"<b>Date:</b> {datetime.now().strftime('%B %d, %Y')}", body_style))
-    story.append(Paragraph(f"<b>To:</b> {proposal.client_name}, {proposal.company_name or ''}", body_style))
-    story.append(Spacer(1, 20))
-    story.append(Paragraph("Dear Sir/Madam,", body_style))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(
-        f"It is with great pleasure that {company} presents this Company Profile for your consideration. "
-        "As a trusted technology partner, we have consistently delivered innovative solutions that drive business growth "
-        "and operational excellence for our clients worldwide.",
-        body_style
-    ))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(
-        "At our company, we believe in building lasting partnerships through transparency, technical excellence, "
-        "and a client-first approach. Our team of seasoned professionals is committed to understanding your unique "
-        "challenges and crafting solutions that exceed expectations.",
-        body_style
-    ))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(
-        "We look forward to the opportunity to collaborate with you and contribute to your success.",
-        body_style
-    ))
-    story.append(Spacer(1, 40))
-    story.append(Paragraph("Warm regards,", body_style))
-    story.append(Spacer(1, 20))
-    story.append(Paragraph(sales_head, body_style))
-    story.append(Paragraph(f"{sales_head_title}, {company}", body_style))
-    story.append(PageBreak())
-
-    # ==================== PAGE 3: Mission, Vision & Values ====================
-    story.append(Paragraph("Mission, Vision & Core Values", section_heading))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
-    story.append(Paragraph("<b>Mission</b>", body_style))
-    story.append(Paragraph(mission, body_style))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("<b>Vision</b>", body_style))
-    story.append(Paragraph(vision, body_style))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph(f"<b>Our {len(core_values)} Core Values</b>", body_style))
-    story.append(Spacer(1, 6))
-    for i, val in enumerate(core_values, 1):
-        if isinstance(val, dict):
-            story.append(Paragraph(f"{i}. <b>{val.get('title', '')}:</b> {val.get('description', '')}", body_style))
+def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    result = copy.deepcopy(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(result.get(key), dict):
+            result[key] = _deep_merge(result[key], value)
         else:
-            story.append(Paragraph(f"{i}. {val}", body_style))
-    story.append(PageBreak())
+            result[key] = value
+    return result
 
-    # ==================== PAGE 4: Services ====================
-    story.append(Paragraph("Our Services", section_heading))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
-    story.append(Paragraph("We offer a comprehensive suite of digital services designed to elevate your business:", body_style))
-    story.append(Spacer(1, 12))
-    for i, svc in enumerate(services, 1):
-        if isinstance(svc, dict):
-            story.append(Paragraph(f"<b>{i}. {svc.get('title', '')}</b>", body_style))
-            story.append(Paragraph(svc.get('description', ''), body_style))
+
+def _as_dict(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def _as_list(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else []
+
+
+def _item_text(item: Any, key: str = "name", fallback: str = "") -> str:
+    if isinstance(item, dict):
+        return str(item.get(key) or item.get("title") or fallback)
+    if hasattr(item, key):
+        return str(getattr(item, key) or fallback)
+    return str(item or fallback)
+
+
+def _safe_hex(value: Any, fallback: str) -> str:
+    text = str(value or "").strip()
+    if len(text) in {4, 7} and text.startswith("#"):
+        return text
+    return fallback
+
+
+def _format_date(value: Any, fallback: str | None = None) -> str:
+    if value:
+        try:
+            if isinstance(value, datetime):
+                return value.strftime("%d/%m/%Y")
+            return datetime.fromisoformat(str(value).replace("Z", "+00:00")).strftime("%d/%m/%Y")
+        except ValueError:
+            return str(value)
+    return fallback or datetime.now().strftime("%d/%m/%Y")
+
+
+def _service_categories(company_profile: CompanyProfile | None) -> list[dict[str, Any]]:
+    services = _as_list(company_profile.services if company_profile else None)
+    names = [_item_text(item, "title") for item in services if _item_text(item, "title")]
+    if not names:
+        return copy.deepcopy(REFERENCE_CONTENT["services"]["categories"])
+    groups = {
+        "DESIGN": [],
+        "DEVELOPMENT": [],
+        "MARKETING / COMMUNICATION": [],
+        "ANALYTICS": [],
+    }
+    for name in names:
+        lowered = name.lower()
+        if any(word in lowered for word in ["design", "ui / ux", "illustration"]):
+            groups["DESIGN"].append(name)
+        elif any(word in lowered for word in ["development", "wordpress", "mobile", "ecommerce", "application"]):
+            groups["DEVELOPMENT"].append(name)
+        elif any(word in lowered for word in ["marketing", "social", "email", "whatsapp"]):
+            groups["MARKETING / COMMUNICATION"].append(name)
         else:
-            story.append(Paragraph(f"<b>{i}. {svc}</b>", body_style))
-        story.append(Spacer(1, 8))
-    story.append(PageBreak())
-
-    # ==================== PAGE 5: Work Process ====================
-    story.append(Paragraph("Our Work Process", section_heading))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
-    story.append(Paragraph("We follow a proven 5-step methodology to ensure successful project delivery:", body_style))
-    story.append(Spacer(1, 16))
-    story.append(Paragraph("<b>Step 01: Discovery</b>", body_style))
-    story.append(Paragraph("Understanding your business goals, target audience, and project requirements through in-depth consultation.", body_style))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph("<b>Step 02: Strategy</b>", body_style))
-    story.append(Paragraph("Developing a comprehensive project roadmap with clear milestones, deliverables, and timelines.", body_style))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph("<b>Step 03: Design & Development</b>", body_style))
-    story.append(Paragraph("Executing the project with agile sprints, continuous feedback loops, and quality assurance checks.", body_style))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph("<b>Step 04: Testing & Review</b>", body_style))
-    story.append(Paragraph("Rigorous testing across devices and scenarios to ensure flawless functionality and performance.", body_style))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph("<b>Step 05: Launch & Support</b>", body_style))
-    story.append(Paragraph("Seamless deployment, training, and ongoing support to maximize your investment and ensure long-term success.", body_style))
-    story.append(PageBreak())
-
-    # ==================== PAGE 6: Top Clients (BNI Members) ====================
-    story.append(Paragraph("Top Clients Showcase", section_heading))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
-    story.append(Paragraph("<b>BNI Members & Regional Partners</b>", body_style))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("We are proud to collaborate with leading organizations across various industries:", body_style))
-    story.append(Spacer(1, 12))
-    for client in bni_clients:
-        story.append(Paragraph(f"• {client}", body_style))
-        story.append(Spacer(1, 4))
-    story.append(Spacer(1, 20))
-    story.append(Paragraph("These partnerships reflect our commitment to delivering excellence and building trust.", body_style))
-    story.append(PageBreak())
-
-    # ==================== PAGE 7: Top Clients (International) ====================
-    story.append(Paragraph("Global Clientele", section_heading))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
-    story.append(Paragraph("<b>International Partners</b>", body_style))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Our reach extends beyond borders, serving clients across the globe:", body_style))
-    story.append(Spacer(1, 12))
-    for client in intl_clients:
-        story.append(Paragraph(f"• {client}", body_style))
-        story.append(Spacer(1, 4))
-    story.append(Spacer(1, 20))
-    story.append(Paragraph("Our global presence enables us to bring diverse perspectives and best practices to every engagement.", body_style))
-    story.append(PageBreak())
-
-    # ==================== PAGE 8: Terms & Conditions ====================
-    story.append(Paragraph("General Terms & Conditions", section_heading))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
-    for line in terms_text.split('\n'):
-        if line.strip():
-            if line.startswith('Governing Law'):
-                story.append(Paragraph(f"<b>{line.split(':', 1)[0]}:</b> {line.split(': ', 1)[1] if ':' in line else line}", body_style))
-            else:
-                story.append(Paragraph(line, body_style))
-    story.append(PageBreak())
-
-    # ==================== PAGE 9: Back Cover ====================
-    story.append(Spacer(1, 100))
-    story.append(Paragraph(company, title_style))
-    story.append(Paragraph(tagline, subtitle_style))
-    story.append(Spacer(1, 40))
-    story.append(Paragraph("<b>Branch Offices:</b>", center_style))
-    story.append(Spacer(1, 10))
-    for office in branch_offices:
-        story.append(Paragraph(str(office), center_style))
-    story.append(Spacer(1, 30))
-    story.append(Paragraph(email, center_style))
-    story.append(Paragraph(phone, center_style))
-    story.append(Paragraph(website, center_style))
-    story.append(Spacer(1, 40))
-    story.append(Paragraph("Thank you for considering us as your technology partner.", center_style))
-
-    doc.build(story)
+            groups["ANALYTICS"].append(name)
+    return [{"name": name, "items": items or ["Custom digital solutions"]} for name, items in groups.items()]
 
 
-def build_quotation_pdf(proposal: Proposal, filepath: str):
-    doc = SimpleDocTemplate(
-        filepath,
-        pagesize=A4,
-        rightMargin=40,
-        leftMargin=40,
-        topMargin=40,
-        bottomMargin=40
-    )
-    styles = getSampleStyleSheet()
-    
-    brand_indigo = colors.HexColor("#4F46E5")
-    brand_dark = colors.HexColor("#0F172A")
-    brand_muted = colors.HexColor("#64748B")
-    
-    title_style = ParagraphStyle(
-        'DocTitle',
-        parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
-        fontSize=22,
-        leading=26,
-        textColor=brand_indigo,
-        spaceAfter=6
-    )
-    
-    subtitle_style = ParagraphStyle(
-        'DocSubtitle',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=12,
-        leading=16,
-        textColor=brand_muted,
-        spaceAfter=14
-    )
+def _terms_from_text(text: str) -> dict[str, list[str]]:
+    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
+    if not lines:
+        return copy.deepcopy(REFERENCE_CONTENT["terms"])
+    return {
+        "payment_terms": lines[:2],
+        "annual_maintenance_contract": lines[2:4],
+        "services_limitations": lines[4:5],
+        "exclusions": lines[5:7],
+        "client_side_support": lines[7:8],
+        "project_cancellation": lines[8:],
+    }
 
-    section_heading = ParagraphStyle(
-        'SectionHeading',
-        parent=styles['Heading2'],
-        fontName='Helvetica-Bold',
-        fontSize=14,
-        leading=18,
-        textColor=brand_dark,
-        spaceBefore=12,
-        spaceAfter=8
-    )
 
-    body_style = ParagraphStyle(
-        'BodyText',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=10,
-        leading=14,
-        textColor=brand_dark
-    )
+def _normalize_clients(value: Any) -> list[dict[str, Any]]:
+    result = []
+    for item in _as_list(value):
+        if isinstance(item, dict):
+            result.append({"name": str(item.get("name") or item.get("title") or "Client"), "logo": item.get("logo") or item.get("logo_url")})
+        else:
+            result.append({"name": str(item), "logo": None})
+    return result
 
-    story = []
 
-    # Brand Header
-    story.append(Paragraph("PRAVYA TECH SOLUTIONS", title_style))
-    story.append(Paragraph("PROJECT PROPOSAL & QUOTATION", subtitle_style))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=brand_indigo, spaceAfter=14))
+def _normalize_branches(value: Any) -> list[dict[str, Any]]:
+    result = []
+    for index, item in enumerate(_as_list(value), 1):
+        if isinstance(item, dict):
+            result.append({
+                "branch_name": str(item.get("branch_name") or item.get("name") or f"BRANCH {index:02d}"),
+                "address": str(item.get("address") or item.get("location") or ""),
+                "phone": str(item.get("phone") or ""),
+                "email": str(item.get("email") or ""),
+                "website": str(item.get("website") or ""),
+            })
+        else:
+            result.append({"branch_name": f"BRANCH {index:02d}", "address": str(item), "phone": "", "email": "", "website": ""})
+    return result
 
-    # Meta Table
-    meta_data = [
-        [
-            Paragraph(f"<b>Proposal #:</b> {proposal.proposal_no or 'N/A'}", body_style),
-            Paragraph(f"<b>Date:</b> {datetime.now().strftime('%B %d, %Y')}", body_style)
-        ],
-        [
-            Paragraph(f"<b>Client Name:</b> {proposal.client_name}", body_style),
-            Paragraph(f"<b>Company:</b> {proposal.company_name or 'N/A'}", body_style)
-        ],
-        [
-            Paragraph(f"<b>Email:</b> {proposal.email or 'N/A'}", body_style),
-            Paragraph(f"<b>Phone:</b> {proposal.phone or 'N/A'}", body_style)
-        ]
+
+def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -> dict[str, Any]:
+    raw_value = getattr(proposal, "content", None)
+    if isinstance(raw_value, str):
+        try:
+            raw_value = json.loads(raw_value)
+        except json.JSONDecodeError:
+            raw_value = {}
+    raw = _as_dict(raw_value)
+    content = _deep_merge(REFERENCE_CONTENT, raw)
+
+    company = str(getattr(company_profile, "company_name", None) or "PRAVYA TECH")
+    tagline = str(getattr(company_profile, "tagline", None) or "Empowering Businesses Through Technology")
+    email = str(getattr(company_profile, "email", None) or "talk@pravyatech.com")
+    phone = str(getattr(company_profile, "phone", None) or "+(91) 898 0000 196")
+    website = str(getattr(company_profile, "website", None) or "www.pravyatech.com")
+    address = str(getattr(company_profile, "address", None) or "Rajkot, Gujarat, India")
+    sales_head = str(getattr(company_profile, "sales_head_name", None) or "Pratikbharathi Goswami")
+    sales_head_title = str(getattr(company_profile, "sales_head_title", None) or "Founder & CEO")
+
+    cover = content.setdefault("cover", {})
+    cover.setdefault("project_title", getattr(proposal, "project_title", None) or company)
+    cover.setdefault("cover_tagline", getattr(proposal, "project_subtitle", None) or tagline)
+    cover.setdefault("client_name", getattr(proposal, "client_name", None) or company)
+    cover.setdefault("client_designation", "Executive Director")
+    cover.setdefault("client_website", getattr(proposal, "company_name", None) or website)
+    cover.setdefault("prepared_by_name", sales_head)
+    cover.setdefault("prepared_by_designation", sales_head_title)
+    cover.setdefault("office_name", company)
+    cover.setdefault("office_address", address)
+    cover.setdefault("phone", phone)
+    cover.setdefault("email", email)
+    created = getattr(proposal, "created_at", None)
+    cover.setdefault("issued_date", _format_date(created))
+    cover.setdefault("valid_till", (created + timedelta(days=7)).strftime("%d/%m/%Y") if created else (datetime.now() + timedelta(days=7)).strftime("%d/%m/%Y"))
+    cover.setdefault("closing_tagline", "We are not developing the technology,\nWe are technology.")
+
+    letter = content.setdefault("cover_letter", {})
+    letter.setdefault("recipient_name", getattr(proposal, "client_name", None) or cover.get("client_name", "Valued Client"))
+    letter.setdefault("recipient_designation", "Director")
+    letter.setdefault("letter_date", cover.get("issued_date", datetime.now().strftime("%d/%m/%Y")))
+    letter.setdefault("signer_name", sales_head.upper())
+    letter.setdefault("signer_designation", sales_head_title.upper())
+    letter.setdefault("proposal_introduction", "Thank you for considering PRAVYA TECH. We look forward to building a lasting partnership.")
+
+    profile_data = content.setdefault("company_profile", {})
+    raw_profile = _as_dict(raw.get("company_profile"))
+    if not raw_profile.get("vision") and getattr(company_profile, "vision", None):
+        profile_data["vision"] = company_profile.vision
+    if not raw_profile.get("mission") and getattr(company_profile, "mission", None):
+        profile_data["mission"] = company_profile.mission
+    if not raw_profile.get("core_values") and getattr(company_profile, "core_values", None):
+        profile_data["core_values"] = company_profile.core_values
+
+    services_data = content.setdefault("services", {})
+    if not raw.get("services") and company_profile and getattr(company_profile, "services", None):
+        services_data["categories"] = _service_categories(company_profile)
+
+    process_data = content.setdefault("process", {})
+    process_data.setdefault("steps", copy.deepcopy(REFERENCE_CONTENT["process"]["steps"]))
+
+    terms_data = content.setdefault("terms", {})
+    raw_terms = raw.get("terms_sections")
+    if isinstance(raw_terms, dict):
+        terms_data.update(raw_terms)
+    elif not raw.get("terms") and getattr(company_profile, "terms", None):
+        terms_data.update(_terms_from_text(company_profile.terms))
+
+    clients_data = content.setdefault("clients", {})
+    if not raw.get("clients"):
+        if getattr(company_profile, "bni_clients", None):
+            clients_data["bni"] = _normalize_clients(company_profile.bni_clients)
+        if getattr(company_profile, "international_clients", None):
+            clients_data["international"] = _normalize_clients(company_profile.international_clients)
+
+    pricing_data = content.setdefault("pricing", {})
+    line_items = _as_list(getattr(proposal, "line_items", None))
+    if line_items:
+        pricing_items = []
+        for item in line_items:
+            if isinstance(item, dict):
+                pricing_items.append({
+                    "name": str(item.get("title") or item.get("name") or "Project delivery"),
+                    "description": [str(item.get("description") or "")] if item.get("description") else [],
+                    "price": f"{getattr(proposal, 'currency_symbol', None) or ''}{float(item.get('unit_price') or 0):,.2f}",
+                    "unit": str(getattr(proposal, "contract_duration", None) or "Project"),
+                })
+        pricing_data["items"] = pricing_items
+        pricing_data["currency"] = getattr(proposal, "currency", None) or "USD"
+        pricing_data["note"] = f"Total investment: {(getattr(proposal, 'currency_symbol', None) or '')}{float(getattr(proposal, 'amount') or 0):,.2f} {getattr(proposal, 'currency', '')}"
+
+    payment_data = content.setdefault("payment_methods", {})
+    if company_profile:
+        payment_data.setdefault("qr_code", getattr(company_profile, "qr_code", None) or getattr(company_profile, "payment_qr_code", None))
+        payment_data.setdefault("upi_id", getattr(company_profile, "upi_id", None) or "PRAVYA2618@OKSBI")
+        payment_data.setdefault("bank_name", getattr(company_profile, "bank_name", None) or "STATE BANK OF INDIA")
+        payment_data.setdefault("account_number", getattr(company_profile, "bank_account_number", None) or "40410281486")
+        payment_data.setdefault("branch_name", getattr(company_profile, "bank_branch", None) or "Rajkot")
+        payment_data.setdefault("ifsc", getattr(company_profile, "bank_ifsc", None) or "SBIN0001851")
+        payment_data.setdefault("swift_code", getattr(company_profile, "swift_code", None) or "")
+        payment_data.setdefault("iban", getattr(company_profile, "iban", None) or "")
+
+    if not raw.get("branches") and getattr(company_profile, "branch_offices", None):
+        content["branches"] = _normalize_branches(company_profile.branch_offices)
+
+    return content
+
+
+def _nl2br_filter(value: Any) -> Markup:
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br/>")
+    return Markup(text)
+
+
+def _qr_src(value: Any) -> str:
+    try:
+        source = str(value or "www.pravyatech.com")
+        if source.startswith("data:"):
+            return source
+        buffer = io.BytesIO()
+        qrcode.make(source).save(buffer, format="PNG")
+        encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+        return f"data:image/png;base64,{encoded}"
+    except Exception:
+        return ""
+
+
+def _template_context(content: dict[str, Any], company_profile: CompanyProfile | None) -> dict[str, Any]:
+    primary = _safe_hex(getattr(company_profile, "primary_color", None), "#4F46E5")
+    dark = _safe_hex(getattr(company_profile, "secondary_color", None), "#0F172A")
+    accent = _safe_hex(getattr(company_profile, "accent_color", None), "#10B981")
+
+    terms = content.get("terms", {})
+    terms_sections = [
+        ("Payment Terms", terms.get("payment_terms", [])),
+        ("Annual Maintenance Contract", terms.get("annual_maintenance_contract", [])),
+        ("Services Limitations", terms.get("services_limitations", [])),
+        ("Exclusions", terms.get("exclusions", [])),
+        ("Client Side Support", terms.get("client_side_support", [])),
+        ("Project Cancellation", terms.get("project_cancellation", [])),
     ]
-    meta_table = Table(meta_data, colWidths=[250, 250])
-    meta_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
-        ('PADDING', (0, 0), (-1, -1), 6),
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ]))
-    story.append(meta_table)
-    story.append(Spacer(1, 14))
 
-    # Project Details
-    story.append(Paragraph("1. Executive Overview", section_heading))
-    project_title = proposal.project_title or "Bespoke Enterprise Technology Architecture"
-    story.append(Paragraph(f"<b>Project Title:</b> {project_title}", body_style))
-    story.append(Spacer(1, 4))
-    story.append(Paragraph(
-        "PRAVYA TECH is pleased to submit this official document outlining the architectural deliverables, "
-        "production milestones, SLA commitments, and terms of engagement tailored for your enterprise.",
-        body_style
-    ))
-    story.append(Spacer(1, 14))
+    payment = dict(content.get("payment_methods", {}))
+    payment["qr_src"] = _qr_src(payment.get("qr_code") or payment.get("upi_id") or "www.pravyatech.com")
+    payment["swift_iban"] = str(payment.get("swift_code") or payment.get("iban") or "")
 
-    # Commercials Table if quotation
-    if proposal.type.value in ["quotation_proposal", "quotation"]:
-        story.append(Paragraph("2. Commercials & Investment Summary", section_heading))
-        currency = proposal.currency or "USD"
-        amount = proposal.amount or 0.0
-        
-        pricing_data = [
-            [
-                Paragraph("<b>Item Description</b>", body_style),
-                Paragraph("<b>Qty</b>", body_style),
-                Paragraph(f"<b>Amount ({currency})</b>", body_style)
-            ],
-            [
-                Paragraph(f"{project_title} — Core Delivery & Deployment", body_style),
-                Paragraph("1", body_style),
-                Paragraph(f"{amount:,.2f}", body_style)
-            ],
-            [
-                Paragraph("<b>Total Investment (Payable)</b>", body_style),
-                Paragraph("", body_style),
-                Paragraph(f"<b>{currency} {amount:,.2f}</b>", body_style)
-            ]
+    return {
+        "colors": {
+            "primary": primary,
+            "dark": dark,
+            "accent": accent,
+            "light": "#F8FAFC",
+            "line": "#E2E8F0",
+            "muted": "#64748B",
+        },
+        "cover": content.get("cover", {}),
+        "cover_letter": content.get("cover_letter", {}),
+        "company_profile": content.get("company_profile", {}),
+        "services": content.get("services", {}),
+        "process": content.get("process", {}),
+        "terms_sections": terms_sections,
+        "clients": content.get("clients", {}),
+        "pricing": content.get("pricing", {}),
+        "payment": payment,
+        "acceptance": content.get("acceptance", {}),
+        "branches": content.get("branches", []),
+        "closing_statement": content.get("closing_statement", "Take your business to the next level."),
+    }
+
+
+def _find_browser() -> str:
+    if os.name == "nt":
+        candidates = [
+            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+            os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe"),
+            os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
         ]
-        price_table = Table(pricing_data, colWidths=[330, 50, 120])
-        price_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#EEF2FF")),
-            ('TEXTCOLOR', (0, 0), (-1, 0), brand_indigo),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
-            ('PADDING', (0, 0), (-1, -1), 6),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#F1F5F9")),
-            ('ALIGN', (1, 0), (1, -1), 'CENTER'),
-            ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
-        ]))
-        story.append(price_table)
-        story.append(Spacer(1, 14))
-
-    # Terms & Engagement
-    story.append(Paragraph("3. Terms & Service Level Agreement", section_heading))
-    terms_text = (
-        "• Milestone-based delivery with continuous staging deployment reviews.<br/>"
-        "• Standard 90-day comprehensive post-launch warranty covering defect rectification.<br/>"
-        "• 100% intellectual property ownership transferred upon final milestone settlement.<br/>"
-        "• Proposal validity is 30 days from date of issuance."
-    )
-    story.append(Paragraph(terms_text, body_style))
-    story.append(Spacer(1, 20))
-
-    # Sign-off Box
-    story.append(Paragraph("4. Authorization & Sign-off", section_heading))
-    sign_data = [
-        [
-            Paragraph("<b>For PRAVYA TECH Solutions:</b>", body_style),
-            Paragraph(f"<b>For {proposal.company_name or proposal.client_name}:</b>", body_style)
-        ],
-        [
-            Paragraph("<br/><br/>___________________________<br/>Authorized Signatory", body_style),
-            Paragraph("<br/><br/>___________________________<br/>Client Signature & Date", body_style)
-        ]
-    ]
-    sign_table = Table(sign_data, colWidths=[250, 250])
-    sign_table.setStyle(TableStyle([
-        ('PADDING', (0, 0), (-1, -1), 8),
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
-    ]))
-    story.append(sign_table)
-
-    doc.build(story)
-
-
-def build_proposal_pdf(proposal: Proposal, filepath: str, company_profile: "CompanyProfile | None" = None):
-    if proposal.type.value == "profile_only":
-        build_profile_pdf(proposal, filepath, company_profile)
     else:
-        build_quotation_pdf(proposal, filepath)
+        candidates = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "microsoft-edge"]
+    for candidate in candidates:
+        if os.path.exists(candidate) or shutil.which(candidate):
+            return candidate
+    raise RuntimeError("No compatible Chromium/Edge browser found for HTML->PDF rendering")
 
 
-async def _fetch_company_profile(db: AsyncSession) -> "CompanyProfile | None":
+def _render_html_to_pdf(html: str, filepath: str) -> None:
+    html_path = OUTPUT_DIR / f"_render_{uuid.uuid4().hex}.html"
+    html_path.write_text(html, encoding="utf-8")
+    try:
+        browser = _find_browser()
+        url = html_path.resolve().as_uri()
+        command = [
+            browser,
+            "--headless",
+            "--disable-gpu",
+            "--no-sandbox",
+            "--no-pdf-header-footer",
+            f"--print-to-pdf={os.path.abspath(filepath)}",
+            "--virtual-time-budget=15000",
+            url,
+        ]
+        result = subprocess.run(command, capture_output=True, text=True, timeout=90)
+        if not os.path.exists(filepath) or os.path.getsize(filepath) == 0:
+            detail = result.stderr[-1500:] if result.stderr else "no error output"
+            raise RuntimeError(f"HTML->PDF rendering failed: {detail}")
+    finally:
+        html_path.unlink(missing_ok=True)
+
+
+def render_proposal_pdf(content: dict[str, Any], company_profile: CompanyProfile | None, filepath: str) -> None:
+    context = _template_context(content, company_profile)
+    env = Environment(
+        loader=FileSystemLoader(str(TEMPLATE_DIR)),
+        autoescape=select_autoescape(["html", "htm", "xml"]),
+    )
+    env.filters["nl2br"] = _nl2br_filter
+    template = env.get_template("proposal_template.html")
+    html = template.render(**context)
+    _render_html_to_pdf(html, filepath)
+
+
+def build_proposal_pdf(proposal: Proposal, filepath: str, company_profile: CompanyProfile | None = None):
+    content = _build_content(proposal, company_profile)
+    render_proposal_pdf(content, company_profile, filepath)
+
+
+def build_profile_pdf(proposal: Proposal, filepath: str, company_profile: CompanyProfile | None = None):
+    build_proposal_pdf(proposal, filepath, company_profile)
+
+
+def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath: str) -> None:
+    """Render a dedicated company profile PDF using company_profile_template.html."""
+    cp = company_profile
+
+    primary = _safe_hex(getattr(cp, "primary_color", None), "#4F46E5")
+    dark = _safe_hex(getattr(cp, "secondary_color", None), "#0F172A")
+    accent = _safe_hex(getattr(cp, "accent_color", None), "#10B981")
+
+    company_name = str(getattr(cp, "company_name", None) or "PRAVYA TECH")
+    tagline = str(getattr(cp, "tagline", None) or "Empowering Businesses Through Technology")
+    email = str(getattr(cp, "email", None) or "")
+    phone = str(getattr(cp, "phone", None) or "")
+    website = str(getattr(cp, "website", None) or "")
+    address = str(getattr(cp, "address", None) or "")
+    sales_head_name = str(getattr(cp, "sales_head_name", None) or "")
+    sales_head_title = str(getattr(cp, "sales_head_title", None) or "")
+
+    # Logo src: prefer logo_data (base64), fall back to logo_url
+    logo_data = getattr(cp, "logo_data", None)
+    logo_url = getattr(cp, "logo_url", None)
+    logo_src = logo_data if logo_data else (logo_url if logo_url else "")
+
+    # Core values – normalise
+    raw_core_values = _as_list(getattr(cp, "core_values", None))
+    core_values = []
+    for v in raw_core_values:
+        if isinstance(v, dict):
+            core_values.append(v)
+        else:
+            core_values.append({"title": str(v), "description": ""})
+
+    # Services
+    raw_services = _as_list(getattr(cp, "services", None))
+    services = []
+    for s in raw_services:
+        if isinstance(s, dict):
+            services.append(s)
+        else:
+            services.append({"title": str(s), "description": ""})
+
+    # Clients
+    bni_clients = _normalize_clients(getattr(cp, "bni_clients", None))
+    international_clients = _normalize_clients(getattr(cp, "international_clients", None))
+
+    # Branches
+    branches = _normalize_branches(getattr(cp, "branch_offices", None))
+
+    # Terms
+    terms_text = str(getattr(cp, "terms", None) or "")
+    terms_dict = _terms_from_text(terms_text) if terms_text else {}
+    terms_sections = [
+        ("Payment Terms", terms_dict.get("payment_terms", [])),
+        ("Annual Maintenance Contract", terms_dict.get("annual_maintenance_contract", [])),
+        ("Services Limitations", terms_dict.get("services_limitations", [])),
+        ("Exclusions", terms_dict.get("exclusions", [])),
+        ("Client Side Support", terms_dict.get("client_side_support", [])),
+        ("Project Cancellation", terms_dict.get("project_cancellation", [])),
+    ]
+    # Only include sections that have content
+    terms_sections = [(t, items) for t, items in terms_sections if items]
+
+    # Payment
+    payment: dict[str, Any] = {}
+    if cp:
+        payment["qr_code"] = getattr(cp, "qr_code", None)
+        payment["upi_id"] = str(getattr(cp, "upi_id", None) or "")
+        payment["bank_name"] = str(getattr(cp, "bank_name", None) or "")
+        payment["account_number"] = str(getattr(cp, "bank_account_number", None) or "")
+        payment["branch_name"] = str(getattr(cp, "bank_branch", None) or "")
+        payment["ifsc"] = str(getattr(cp, "bank_ifsc", None) or "")
+        payment["swift_code"] = str(getattr(cp, "swift_code", None) or "")
+        payment["iban"] = str(getattr(cp, "iban", None) or "")
+        payment["swift_iban"] = payment["swift_code"] or payment["iban"] or "-"
+        payment["qr_src"] = _qr_src(payment["qr_code"] or payment["upi_id"] or website or "")
+
+    # Calculate total pages: Cover + Profile + Services? + Terms? + BNI? + Intl? + Payment? + Branches
+    total_pages = 2  # cover + profile always
+    if services:
+        total_pages += 1
+    if terms_sections:
+        total_pages += 1
+    if bni_clients:
+        total_pages += 1
+    if international_clients:
+        total_pages += 1
+    if payment and (payment.get("bank_name") or payment.get("upi_id")):
+        total_pages += 1
+    total_pages += 1  # branches/closing
+
+    positioning = getattr(cp, "tagline", None) or tagline
+    closing_statement = "Take your business to the next level."
+
+    env = Environment(
+        loader=FileSystemLoader(str(TEMPLATE_DIR)),
+        autoescape=select_autoescape(["html", "htm", "xml"]),
+    )
+    env.filters["nl2br"] = _nl2br_filter
+    template = env.get_template("company_profile_template.html")
+    html = template.render(
+        colors={
+            "primary": primary,
+            "dark": dark,
+            "accent": accent,
+            "light": "#F8FAFC",
+            "line": "#E2E8F0",
+            "muted": "#64748B",
+        },
+        company_name=company_name,
+        tagline=tagline,
+        email=email,
+        phone=phone,
+        website=website,
+        address=address,
+        sales_head_name=sales_head_name,
+        sales_head_title=sales_head_title,
+        logo_src=logo_src,
+        positioning=positioning,
+        vision=str(getattr(cp, "vision", None) or ""),
+        mission=str(getattr(cp, "mission", None) or ""),
+        core_values=core_values,
+        services=services,
+        terms_sections=terms_sections,
+        bni_clients=bni_clients,
+        international_clients=international_clients,
+        payment=payment,
+        branches=branches,
+        closing_statement=closing_statement,
+        total_pages=total_pages,
+        current_year=datetime.now().year,
+    )
+    _render_html_to_pdf(html, filepath)
+
+
+async def _fetch_company_profile(db: AsyncSession) -> CompanyProfile | None:
     result = await db.execute(select(CompanyProfile).limit(1))
     return result.scalar_one_or_none()
 
 
+def build_company_profile_pdf(company_profile: CompanyProfile | None, filepath: str):
+    render_company_profile_pdf(company_profile, filepath)
+
+
 async def generate_pdf(db: AsyncSession, proposal: Proposal) -> str:
     filename = f"{proposal.proposal_no or proposal.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
-    filepath = os.path.join(OUTPUT_DIR, filename)
+    filepath = str(OUTPUT_DIR / filename)
     company_profile = await _fetch_company_profile(db)
     build_proposal_pdf(proposal, filepath, company_profile)
     proposal.pdf_path = filepath
+    proposal.status = "sent"
+    proposal.sent_at = proposal.sent_at or datetime.now()
     await db.commit()
     await db.refresh(proposal)
     return filepath

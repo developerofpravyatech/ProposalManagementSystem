@@ -152,6 +152,7 @@ async def renew_proposal(
         "renewal_date": renewal_payload.get("renewal_date", original.renewal_date),
         "terms": original.terms,
         "line_items": original.line_items,
+        "content": original.content,
     }
     new_proposal = await create_proposal(db, new_proposal_data)
     original.status = ProposalStatus.renewal_due

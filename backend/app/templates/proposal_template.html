@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>{{ cover.project_title | default('PRAVYA TECH Proposal', true) }}</title>
+<style>
+:root {
+  --primary: {{ colors.primary }};
+  --dark: {{ colors.dark }};
+  --accent: {{ colors.accent }};
+  --light: {{ colors.light }};
+  --line: {{ colors.line }};
+  --muted: {{ colors.muted }};
+  --white: #ffffff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html, body { margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(--dark); font-size: 9.2pt; line-height: 1.45; }
+@page { size: A4; margin: 0; }
+.page { width: 210mm; height: 297mm; position: relative; page-break-after: always; background: var(--white); overflow: hidden; }
+.page:last-child { page-break-after: auto; }
+.pad { position: absolute; top: 17mm; left: 14mm; right: 14mm; bottom: 12mm; }
+.page-cover { padding: 0; }
+.page-cover .pad { top: 22mm; }
+.b { font-weight: 700; }
+.up { text-transform: uppercase; }
+/* ---------- top bar + header ---------- */
+.topbar { position: absolute; top: 0; left: 0; right: 0; height: 3mm; background: var(--primary); }
+.hdr { display: flex; justify-content: space-between; align-items: baseline; }
+.hdr-brand { font-size: 10pt; font-weight: 800; color: var(--dark); }
+.hdr-meta { font-size: 7.5pt; color: var(--muted); }
+.hdr-meta b { color: var(--primary); font-weight: 700; }
+.hdr-line { border: none; border-top: 0.4mm solid var(--line); margin: 2mm 0 5mm 0; }
+.page-title { font-size: 15pt; font-weight: 800; color: var(--dark); letter-spacing: -0.2pt; margin-bottom: 1.5mm; }
+.section-top { margin-top: 4mm; }
+/* ---------- shared bits ---------- */
+.eyebrow { font-size: 7pt; font-weight: 800; letter-spacing: 1pt; text-transform: uppercase; color: var(--primary); }
+.card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 5mm; }
+.card-accent-bar { border-top: 2.5mm solid var(--primary); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4mm; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+/* footer */
+.footer { position: absolute; left: 14mm; right: 14mm; bottom: 5mm; }
+.footer div { border-top: 0.35mm solid var(--line); padding-top: 1.5mm; display: flex; justify-content: space-between; font-size: 6.8pt; color: var(--muted); }
+/* ================= PAGE 1 : COVER ================= */
+.cover-band { position: absolute; top: 0; left: 0; right: 0; height: 44mm; background: var(--primary); }
+.cover-band-brand { display: flex; justify-content: space-between; padding: 10mm 14mm 0 14mm; color: var(--white); }
+.cover-brand { font-size: 17pt; font-weight: 800; }
+.cover-meta { text-align: right; font-size: 8pt; }
+.cover-meta div:first-child { font-weight: 700; letter-spacing: 0.5pt; }
+.cover-meta div:last-child { opacity: 0.85; margin-top: 1mm; }
+.cover-title { font-size: 25pt; font-weight: 800; letter-spacing: -0.8pt; line-height: 1.08; color: var(--dark); }
+.cover-tagline { font-size: 11pt; font-weight: 700; color: var(--dark); margin-top: 3mm; }
+.cover-underline { width: 18mm; height: 1.2mm; background: var(--accent); margin-top: 4mm; }
+.cover-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 7mm; }
+.info-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; overflow: hidden; }
+.info-card .ic-head { background: var(--primary); color: var(--white); font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8pt; padding: 2.5mm 4mm; }
+.info-card .ic-body { padding: 3.5mm 4mm; }
+.ic-line { font-size: 9pt; color: var(--dark); margin-bottom: 1mm; }
+.ic-sub { font-size: 7.8pt; color: var(--muted); }
+.cover-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
+.date-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm 5mm; }
+.date-card .eyebrow { color: var(--primary); }
+.date-value { font-size: 10pt; font-weight: 700; margin-top: 1.5mm; }
+.cover-contact { margin-top: 6mm; }
+.cover-address { font-size: 8.3pt; color: var(--dark); margin-top: 1.5mm; line-height: 1.5; }
+.cover-contact-line { font-size: 7.8pt; color: var(--muted); margin-top: 1.5mm; }
+.cover-closing { position: absolute; left: 14mm; right: 14mm; bottom: 15mm; background: var(--dark); border-radius: 2.5mm; padding: 4mm 5mm; }
+.cover-closing p { color: var(--white); font-size: 10pt; font-weight: 700; line-height: 1.4; }
+/* ================= PAGE 2 : COVER LETTER ================= */
+.letter-recipient { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 5mm; position: relative; }
+.letter-recipient .date { position: absolute; top: 5mm; right: 5mm; font-size: 8pt; color: var(--muted); }
+.letter-body p { font-size: 9.2pt; margin-top: 3mm; text-align: justify; }
+.letter-sign-block { margin-top: 6mm; }
+.letter-intro-card { background: #EEF2FF; border: 0.35mm solid #C7D2FE; border-radius: 2.5mm; padding: 4.5mm 5mm; margin-top: 8mm; }
+.letter-intro-card .eyebrow { color: var(--primary); }
+.letter-intro-card p { font-size: 8.3pt; margin-top: 1.5mm; color: var(--dark); }
+/* ================= PAGE 3 : COMPANY PROFILE ================= */
+.cp-positioning { font-size: 16pt; font-weight: 800; letter-spacing: -0.3pt; color: var(--dark); line-height: 1.15; }
+.vm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 6mm; }
+.vm-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 5mm; }
+.vm-card:nth-child(2) { background: var(--white); }
+.vm-body { font-size: 8.6pt; margin-top: 2mm; color: var(--dark); }
+.values-label { margin-top: 8mm; }
+.values-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4mm; margin-top: 3mm; }
+.value-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm; }
+.value-num { font-size: 16pt; font-weight: 800; color: var(--primary); }
+.value-card:nth-child(even) .value-num { color: var(--accent); }
+.value-title { font-size: 8.8pt; font-weight: 700; color: var(--dark); margin-top: 9mm; line-height: 1.25; }
+.value-desc { font-size: 7.4pt; color: var(--muted); margin-top: 1.5mm; line-height: 1.4; }
+/* ================= PAGE 4 : SERVICES ================= */
+.sv-positioning { font-size: 9.2pt; color: var(--dark); }
+.sv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
+.sv-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; overflow: hidden; }
+.sv-head { color: var(--white); font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5pt; padding: 2.5mm 4mm; }
+.sv-card:nth-child(odd) .sv-head { background: var(--primary); }
+.sv-card:nth-child(even) .sv-head { background: var(--accent); }
+.sv-items { padding: 3.5mm 4mm; }
+.sv-item { font-size: 8.4pt; color: var(--dark); margin-bottom: 1.6mm; padding-left: 4mm; position: relative; }
+.sv-item::before { content: ''; position: absolute; left: 0; top: 1.1mm; width: 1.3mm; height: 1.3mm; border-radius: 50%; background: var(--primary); }
+.additional-label { margin-top: 14mm; }
+.chips { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 3mm; margin-top: 3mm; }
+.chip { background: var(--light); border-radius: 2mm; text-align: center; font-size: 7pt; font-weight: 700; text-transform: uppercase; color: var(--dark); padding: 2mm 1mm; letter-spacing: 0.3pt; }
+/* ================= PAGE 5 : PROCESS ================= */
+.pr-intro { font-size: 9.2pt; }
+.pr-track { font-size: 8.5pt; font-weight: 800; color: var(--primary); margin-top: 6mm; }
+.pr-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 3mm; margin-top: 3mm; }
+.step-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 3mm; text-align: center; }
+.step-num { width: 9mm; height: 9mm; border-radius: 50%; background: var(--primary); color: var(--white); font-size: 8.5pt; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 2mm auto 3mm auto; }
+.step-card:nth-child(even) .step-num { background: var(--accent); }
+.step-title { font-size: 8.6pt; font-weight: 700; color: var(--dark); min-height: 9mm; }
+.step-desc { font-size: 7.2pt; color: var(--muted); margin-top: 1.5mm; line-height: 1.4; }
+/* ================= PAGE 6 : TERMS ================= */
+.terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
+.term-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm; }
+.term-head { display: flex; align-items: center; gap: 3mm; margin-bottom: 2.5mm; }
+.term-num { color: var(--primary); font-weight: 800; font-size: 9pt; }
+.term-card:nth-child(even) .term-num { color: var(--accent); }
+.term-title { font-size: 10pt; font-weight: 700; color: var(--dark); }
+.term-item { font-size: 8.2pt; color: var(--dark); margin-top: 1.6mm; padding-left: 4mm; position: relative; }
+.term-item::before { content: ''; position: absolute; left: 0; top: 1.2mm; width: 1.2mm; height: 1.2mm; border-radius: 50%; background: var(--primary); }
+/* ================= PAGES 7-8 : CLIENTS ================= */
+.client-label { margin-top: 2mm; }
+.clients-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4mm; margin-top: 4mm; }
+.client-cell { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; height: 30mm; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3mm; }
+.client-cell .logo-wrap { max-width: 18mm; max-height: 14mm; display: flex; align-items: center; justify-content: center; }
+.client-cell img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.client-name-text { font-size: 8.5pt; font-weight: 800; color: var(--dark); text-align: center; text-transform: uppercase; letter-spacing: 0.3pt; }
+.client-name-sub { font-size: 6.4pt; color: var(--muted); text-align: center; margin-top: 1mm; }
+/* ================= PAGE 9 : PRICING ================= */
+.pricing-table { width: 100%; border-collapse: collapse; margin-top: 6mm; }
+.pricing-table th { background: var(--primary); color: var(--white); font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5pt; text-align: left; padding: 3mm 4mm; }
+.pricing-table th:first-child { border-top-left-radius: 2mm; border-bottom-left-radius: 2mm; }
+.pricing-table th:last-child { border-top-right-radius: 2mm; border-bottom-right-radius: 2mm; }
+.pricing-table td { padding: 3.5mm 4mm; border-bottom: 0.3mm solid var(--line); font-size: 8.4pt; vertical-align: top; }
+.pricing-table tr:nth-child(even) td { background: var(--light); }
+.pricing-name { font-weight: 700; }
+.pricing-desc { font-size: 7.8pt; color: var(--dark); margin-top: 1.2mm; }
+.pricing-price { font-weight: 800; white-space: nowrap; }
+.pricing-unit { font-weight: 400; color: var(--muted); font-size: 7.6pt; }
+.commercial-card { background: #EEF2FF; border: 0.35mm solid #C7D2FE; border-radius: 2.5mm; padding: 4.5mm 5mm; margin-top: 7mm; }
+.commercial-card .eyebrow { color: var(--primary); }
+.commercial-card p { font-size: 8.4pt; margin-top: 1.5mm; }
+/* ================= PAGE 10 : PAYMENT ================= */
+.pay-qr-card { border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 5mm; }
+.pay-qr-card img { width: 26mm; height: 26mm; margin: 3mm auto 0 auto; display: block; }
+.pay-qr-card .scan { text-align: center; font-size: 7.4pt; color: var(--muted); margin-top: 2mm; }
+.pay-upi-card { border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 5mm; }
+.pay-upi-value { font-size: 13pt; font-weight: 800; color: var(--dark); margin-top: 2mm; }
+.pay-upi-note { font-size: 7.6pt; color: var(--muted); margin-top: 2mm; }
+.bank-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4.5mm 5mm; margin-top: 5mm; }
+.bank-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 6mm; font-size: 8.4pt; margin-top: 2mm; }
+.bank-row span b { font-weight: 700; }
+.pay-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 5mm; margin-top: 6mm; }
+/* ================= PAGE 11 : ACCEPTANCE ================= */
+.accept-confirm { background: #F0FDF4; border: 0.35mm solid #BBF7D0; border-radius: 2.5mm; padding: 5mm; }
+.accept-confirm .eyebrow { color: #16A34A; }
+.accept-confirm p { font-size: 8.8pt; margin-top: 2mm; }
+.accept-extra { background: #FFFBEB; border: 0.35mm solid #FDE68A; border-radius: 2.5mm; padding: 4.5mm 5mm; margin-top: 4mm; }
+.accept-extra .eyebrow { color: #B45309; }
+.accept-extra p { font-size: 8.3pt; margin-top: 1.5mm; }
+.sig-label { margin-top: 8mm; }
+.sig-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; margin-top: 3mm; }
+.sig-box { border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm; height: 42mm; }
+.sig-box .eyebrow { color: var(--primary); }
+.sig-line { border-top: 0.5mm solid var(--muted); margin-top: 16mm; }
+/* ================= PAGE 12 : BRANCHES / CLOSING ================= */
+.branch-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4.5mm; }
+.branch-num { color: var(--primary); font-weight: 800; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.5pt; }
+.branch-card:nth-child(2) .branch-num { color: var(--accent); }
+.branch-card:nth-child(3) .branch-num { color: var(--accent); }
+.branch-name { font-size: 10pt; font-weight: 800; color: var(--dark); margin-top: 2mm; line-height: 1.25; }
+.branch-detail { font-size: 8.2pt; color: var(--dark); margin-top: 2mm; line-height: 1.55; }
+.branch-muted { font-size: 7.6pt; color: var(--muted); margin-top: 1.5mm; }
+.closing-banner { position: absolute; left: 14mm; right: 14mm; bottom: 18mm; background: var(--dark); border-radius: 3mm; padding: 6mm 6mm; }
+.closing-banner p { color: var(--white); font-size: 13pt; font-weight: 800; line-height: 1.35; }
+</style>
+</head>
+<body>
+
+<!-- ==================== PAGE 1 : COVER ==================== -->
+<section class="page page-cover">
+  <div class="cover-band">
+    <div class="cover-band-brand">
+      <div>
+        <div class="cover-brand">PRAVYA TECH</div>
+      </div>
+      <div class="cover-meta">
+        <div>PROJECT PROPOSAL&nbsp;&nbsp;/&nbsp;&nbsp;01</div>
+        <div>DESIGNED FOR DIGITAL GROWTH</div>
+      </div>
+    </div>
+  </div>
+  <div class="pad">
+    <div class="cover-title">{{ cover.project_title | default('PRAVYA TECH', true) }}</div>
+    <div class="cover-tagline">{{ cover.cover_tagline | default('', true) }}</div>
+    <div class="cover-underline"></div>
+
+    <div class="cover-info-grid">
+      <div class="info-card">
+        <div class="ic-head">Prepared For</div>
+        <div class="ic-body">
+          <div class="ic-line b">{{ cover.client_name | default('', true) }}</div>
+          <div class="ic-sub">{{ cover.client_designation | default('', true) }}</div>
+          <div class="ic-sub">{{ cover.client_website | default('', true) }}</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="ic-head">Prepared By</div>
+        <div class="ic-body">
+          <div class="ic-line b">{{ cover.prepared_by_name | default('', true) }}</div>
+          <div class="ic-sub">{{ cover.prepared_by_designation | default('', true) }}</div>
+          <div class="ic-sub">{{ cover.office_name | default('', true) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-dates">
+      <div class="date-card">
+        <div class="eyebrow">Issued Date</div>
+        <div class="date-value">{{ cover.issued_date | default('', true) }}</div>
+      </div>
+      <div class="date-card">
+        <div class="eyebrow">Valid Till</div>
+        <div class="date-value">{{ cover.valid_till | default('', true) }}</div>
+      </div>
+    </div>
+
+    <div class="cover-contact">
+      <div class="b up" style="font-size:8.5pt; letter-spacing:0.5pt;">{{ cover.office_name | default('PRAVYA TECH', true) }}</div>
+      <div class="cover-address">{{ cover.office_address | default('', true) | nl2br }}</div>
+      <div class="cover-contact-line">{{ cover.phone | default('', true) }}&nbsp;&nbsp;|&nbsp;&nbsp;{{ cover.email | default('', true) }}</div>
+    </div>
+  </div>
+  <div class="cover-closing">
+    <p>{{ cover.closing_tagline | default('', true) | nl2br }}</p>
+  </div>
+</section>
+
+<!-- ==================== PAGE 2 : COVER LETTER ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>COVER LETTER</b>&nbsp;&nbsp;/&nbsp;&nbsp;02</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Proposal Coverletter</div>
+
+    <div class="letter-recipient">
+      <div class="date">Date : {{ cover_letter.letter_date | default('', true) }}</div>
+      <div class="eyebrow">Recipient</div>
+      <div class="ic-line b" style="margin-top:2mm;">{{ cover_letter.recipient_name | default('', true) }}</div>
+      <div class="ic-sub">{{ cover_letter.recipient_designation | default('', true) }}</div>
+    </div>
+
+    <div class="letter-body">
+      {% for para in cover_letter.letter_body %}
+      <p>{{ para }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="letter-sign-block">
+      <div class="ic-sub">Warm regards,</div>
+      <div class="b" style="font-size:12pt; margin-top:5mm;">{{ cover_letter.signer_name | default('', true) }}</div>
+      <div class="ic-sub">{{ cover_letter.signer_designation | default('', true) }}</div>
+    </div>
+
+    <div style="position:absolute; left:14mm; right:14mm; bottom:14mm;">
+      <div class="letter-intro-card">
+        <div class="eyebrow">Project Proposal</div>
+        <p>{{ cover_letter.proposal_introduction | default('', true) }}</p>
+      </div>
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>02 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 3 : COMPANY PROFILE ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>COMPANY PROFILE</b>&nbsp;&nbsp;/&nbsp;&nbsp;03</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="cp-positioning">{{ company_profile.positioning | default('', true) }}</div>
+
+    <div class="vm-grid">
+      <div class="vm-card">
+        <div class="eyebrow">Our Vision</div>
+        <div class="vm-body">{{ company_profile.vision | default('', true) }}</div>
+      </div>
+      <div class="vm-card">
+        <div class="eyebrow" style="color:var(--accent);">Our Mission</div>
+        <div class="vm-body">{{ company_profile.mission | default('', true) }}</div>
+      </div>
+    </div>
+
+    <div class="values-label">
+      <div class="eyebrow">Strong core values of our company &raquo;</div>
+      <div class="values-grid">
+        {% for value in company_profile.core_values[:4] %}
+        <div class="value-card">
+          <div class="value-num">{{ '%02d' % (loop.index) }}</div>
+          <div class="value-title">{{ value.get('title', '') }}</div>
+          {% if value.get('description') %}
+          <div class="value-desc">{{ value.get('description') }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>03 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 4 : SERVICES ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>SERVICES</b>&nbsp;&nbsp;/&nbsp;&nbsp;04</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">What we offer and how we create values.</div>
+    <div class="sv-positioning">{{ services.positioning | default('', true) }}</div>
+
+    <div class="sv-grid">
+      {% for category in services.categories[:4] %}
+      <div class="sv-card">
+        <div class="sv-head">{{ category.get('name', '') }}</div>
+        <div class="sv-items">
+          {% for item in category.get('items', []) %}
+          <div class="sv-item">{{ item }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="additional-label">
+      <div class="eyebrow">Additional capabilities</div>
+      <div class="chips">
+        {% for label in services.additional_labels[:4] %}
+        <div class="chip">{{ label }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>04 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 5 : PROCESS ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>WORK PROCESS</b>&nbsp;&nbsp;/&nbsp;&nbsp;05</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">{{ process.heading | default('Our work process - From very first touch point to launch and beyond.', true) }}</div>
+    <div class="pr-intro">{{ process.intro | default('', true) }}</div>
+
+    <div class="pr-track">01&nbsp;&nbsp;&rarr;&nbsp;&nbsp;02&nbsp;&nbsp;&rarr;&nbsp;&nbsp;03&nbsp;&nbsp;&rarr;&nbsp;&nbsp;04&nbsp;&nbsp;&rarr;&nbsp;&nbsp;05</div>
+
+    <div class="pr-grid">
+      {% for step in process.steps[:5] %}
+      <div class="step-card">
+        <div class="step-num">{{ step.get('number', '%02d' % loop.index) }}</div>
+        <div class="step-title">{{ step.get('title', '') }}</div>
+        <div class="step-desc">{{ step.get('description', '') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>05 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 6 : TERMS ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>TERMS</b>&nbsp;&nbsp;/&nbsp;&nbsp;06</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Statement of work and Contract Terms.</div>
+
+    <div class="terms-grid">
+      {% set tn = namespace(n=0) %}
+      {% for title, items in terms_sections %}
+      {% set tn.n = tn.n + 1 %}
+      <div class="term-card">
+        <div class="term-head">
+          <span class="term-num b">{{ '%02d' % tn.n }}</span>
+          <span class="term-title">{{ title }}</span>
+        </div>
+        {% for item in items %}
+        <div class="term-item">{{ item }}</div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>06 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 7 : BNI CLIENTS ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>CLIENT SHOWCASE</b>&nbsp;&nbsp;/&nbsp;&nbsp;07</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Our Top Clients</div>
+    <div class="eyebrow" style="color:var(--accent);">2025-2026 (BNI MEMBERS)</div>
+
+    <div class="clients-grid">
+      {% for client in clients.bni[:12] %}
+      <div class="client-cell">
+        {% if client.get('logo') %}
+        <div class="logo-wrap"><img src="{{ client.logo }}" alt="logo"/></div>
+        {% else %}
+        <div class="client-name-text">{{ client.name }}</div>
+        {% endif %}
+        <div class="client-name-sub">{{ client.name }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>07 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 8 : INTERNATIONAL CLIENTS ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>CLIENT SHOWCASE</b>&nbsp;&nbsp;/&nbsp;&nbsp;08</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Our Top Clients</div>
+    <div class="eyebrow" style="color:var(--accent);">2025-2026 (INTERNATIONAL)</div>
+
+    <div class="clients-grid">
+      {% for client in clients.international[:12] %}
+      <div class="client-cell">
+        {% if client.get('logo') %}
+        <div class="logo-wrap"><img src="{{ client.logo }}" alt="logo"/></div>
+        {% else %}
+        <div class="client-name-text">{{ client.name }}</div>
+        {% endif %}
+        <div class="client-name-sub">{{ client.name }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>08 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 9 : PRICING ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>PRICING</b>&nbsp;&nbsp;/&nbsp;&nbsp;09</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Project Rate Estimations</div>
+
+    <table class="pricing-table">
+      <thead>
+        <tr><th>Particulars</th><th>Est. Price</th></tr>
+      </thead>
+      <tbody>
+        {% for item in pricing['items'] %}
+        <tr>
+          <td>
+            <div class="pricing-name">{{ item.get('name', '') }}</div>
+            {% for desc in item.get('description', []) %}
+            <div class="pricing-desc">&bull; {{ desc }}</div>
+            {% endfor %}
+          </td>
+          <td>
+            <span class="pricing-price">{{ item.get('price', '') }}</span>
+            {% if item.get('unit') %}<div class="pricing-unit">{{ item.get('unit') }}</div>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="commercial-card">
+      <div class="eyebrow">Commercial Note</div>
+      <p>{{ pricing.note | default('The amount is excluding applicable taxes.', true) }}</p>
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>09 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 10 : PAYMENT METHODS ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>PAYMENT</b>&nbsp;&nbsp;/&nbsp;&nbsp;10</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Payment Methods</div>
+
+    <div class="pay-layout">
+      <div class="pay-qr-card">
+        <div class="eyebrow">Via QR Code</div>
+        {% if payment.qr_src %}
+        <img src="{{ payment.qr_src }}" alt="QR"/>
+        {% else %}
+        <div style="height:26mm;"></div>
+        {% endif %}
+        <div class="scan">Scan to pay</div>
+      </div>
+      <div class="pay-upi-card">
+        <div class="eyebrow" style="color:var(--accent);">Via UPI-ID</div>
+        <div class="pay-upi-value">{{ payment.upi_id | default('', true) }}</div>
+        <div class="pay-upi-note">Fast, secure, and directly linked to PRAVYA TECH.</div>
+      </div>
+    </div>
+
+    <div class="bank-card">
+      <div class="eyebrow">Bank Information</div>
+      <div class="bank-row">
+        <span><b>Bank Name :</b>&nbsp;{{ payment.bank_name | default('', true) }}</span>
+        <span><b>Account No. :</b>&nbsp;{{ payment.account_number | default('', true) }}</span>
+        <span><b>Branch :</b>&nbsp;{{ payment.branch_name | default('', true) }}</span>
+        <span><b>IFSC :</b>&nbsp;{{ payment.ifsc | default('', true) }}</span>
+        <span><b>UPI ID :</b>&nbsp;{{ payment.upi_id | default('', true) }}</span>
+        <span><b>SWIFT / IBAN :</b>&nbsp;{{ payment.swift_iban | default('-', true) }}</span>
+      </div>
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>10 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 11 : ACCEPTANCE ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>ACCEPTANCE</b>&nbsp;&nbsp;/&nbsp;&nbsp;11</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Acceptance of Quote / Sign off</div>
+
+    <div class="accept-confirm">
+      <div class="eyebrow">Client Confirmation</div>
+      <p>{{ acceptance.text | default('', true) }}</p>
+    </div>
+
+    <div class="accept-extra">
+      <div class="eyebrow">Additional Work</div>
+      <p>{{ acceptance.additional_work_clause | default('', true) }}</p>
+    </div>
+
+    <div class="sig-label">
+      <div class="eyebrow">Signature</div>
+      <div class="sig-grid">
+        {% for key, label in acceptance.signature_fields.items() %}
+        <div class="sig-box">
+          <div class="eyebrow" style="color:var(--primary);">{{ label }}</div>
+          <div class="sig-line"></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>11 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PAGE 12 : BRANCHES / CLOSING ==================== -->
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>CONTACT</b>&nbsp;&nbsp;/&nbsp;&nbsp;12</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Company Branches / Contact / Closing Page</div>
+
+    <div class="grid-3 section-top">
+      {% for branch in branches[:3] %}
+      <div class="branch-card">
+        <div class="branch-num">Branch {{ '%02d' % loop.index }}</div>
+        <div class="branch-name">{{ branch.get('branch_name', '') }}</div>
+        <div class="branch-detail">{{ branch.get('address', '') | nl2br }}</div>
+        {% if branch.get('phone') %}<div class="branch-muted">{{ branch.get('phone') }}</div>{% endif %}
+        {% if branch.get('email') %}<div class="branch-muted">{{ branch.get('email') }}</div>{% endif %}
+        {% if branch.get('website') %}<div class="branch-muted">{{ branch.get('website') }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="closing-banner">
+      <p>{{ closing_statement | default('Take your business to the next level.', true) }}</p>
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>12 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

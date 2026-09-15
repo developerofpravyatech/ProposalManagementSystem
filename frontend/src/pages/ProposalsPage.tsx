@@ -101,7 +101,7 @@ export function ProposalsPage() {
       </div>
 
       {/* Main Table */}
-       <ProposalTable
+      <ProposalTable
           proposals={proposals}
           onOpenWhatsApp={(p) => setActiveWhatsAppProposal(p)}
           onOpenAnalytics={(p) => setActiveAnalyticsProposal(p)}

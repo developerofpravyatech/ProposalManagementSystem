@@ -19,6 +19,7 @@ class ProposalBase(BaseModel):
     renewal_date: Optional[date] = None
     terms: Optional[str] = None
     line_items: Optional[list[Any]] = None
+    content: Optional[dict[str, Any]] = None
 
 
 class ProposalCreate(ProposalBase):
@@ -40,6 +41,7 @@ class ProposalUpdate(BaseModel):
     renewal_date: Optional[date] = None
     terms: Optional[str] = None
     line_items: Optional[list[Any]] = None
+    content: Optional[dict[str, Any]] = None
     accepted_by: Optional[str] = Field(None, max_length=255)
     accepted_at: Optional[datetime] = None
     signature_data: Optional[str] = None

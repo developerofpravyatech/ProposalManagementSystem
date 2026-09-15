@@ -37,6 +37,7 @@ class Proposal(Base):
     renewal_date: Mapped[datetime | None] = mapped_column(Date, nullable=True)
     terms: Mapped[str | None] = mapped_column(Text, nullable=True)
     line_items: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    content: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     pdf_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     unique_token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

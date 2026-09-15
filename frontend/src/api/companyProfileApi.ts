@@ -39,10 +39,11 @@ const DEFAULT_PROFILE = {
   ],
   logo_data: null,
   logo_url: null,
+  qr_code: null,
   primary_color: '#4F46E5',
   secondary_color: '#0F172A',
   accent_color: '#10B981',
-  theme_config: [],
+  theme_config: {},
   terms: 'All proposals are valid for 30 days from the date of issuance.\n50% advance, 30% on milestone completion, 20% on final delivery.\nChanges to scope must be documented in writing.\nIP rights transfer upon full payment.\nConfidentiality required.\nGoverning Law: India.',
 };
 
@@ -91,5 +92,18 @@ export const companyProfileApi = {
     } catch {
       return getLocalProfile();
     }
+  },
+
+  async generatePdf() {
+    try {
+      return await apiRequest('/company-profile/pdf', { method: 'POST' });
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  async downloadCompanyProfilePdf(filename: string) {
+    const backendHost = window.location.hostname;
+    window.open(`http://${backendHost}:8000/generated_pdfs/${filename}`, '_blank');
   },
 };

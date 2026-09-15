@@ -82,6 +82,82 @@ export function CreateProposalPage() {
     return taxable + tax;
   };
 
+  const buildProposalContent = () => ({
+    cover: {
+      project_title: projectTitle,
+      cover_tagline: projectSubtitle || (proposalType === 'profile_only' ? 'PRAVYA TECH Company Profile & Digital Capabilities' : ''),
+      client_name: clientName,
+      client_designation: 'Executive Director',
+      client_website: companyName,
+      prepared_by_name: 'PRAVYA TECH Team',
+      prepared_by_designation: 'Sales & Delivery',
+      issued_date: new Date().toISOString(),
+      valid_till: renewalDate,
+    },
+    cover_letter: {
+      recipient_name: clientName,
+      recipient_designation: 'Director',
+      letter_date: new Date().toISOString(),
+      proposal_introduction: `Thank you for considering PRAVYA TECH for ${projectTitle}. We look forward to building a lasting partnership.`,
+    },
+    company_profile: {
+      positioning: 'A Creative, Strategic & Accountable Design Agency.',
+      vision: 'To become a global leader in mobile-first technology by empowering businesses and individuals with innovative, intuitive, and impactful digital solutions.',
+      mission: 'At PRAVYA Tech, our mission is to design and develop smart, scalable, and user-centric mobile and web applications that solve real-world problems. We strive to deliver high-quality tech solutions with a focus on simplicity, speed, and seamless user experience—enabling our clients to grow, connect, and thrive in the digital age.',
+      core_values: [
+        { title: 'Customers First', description: 'Client outcomes guide every decision.' },
+        { title: 'Act with Integrity', description: 'We earn trust through transparent work.' },
+        { title: 'Great Teamwork', description: 'Shared ownership produces better outcomes.' },
+        { title: 'Focus on Solutions', description: 'We turn constraints into practical progress.' },
+      ],
+    },
+    services: {
+      positioning: 'We help ambitious teams turn ideas into reliable digital products.',
+    },
+    process: {
+      intro: 'We work with clients to develop the right strategy from the very first stage to the last stage.',
+    },
+    terms_sections: {
+      payment_terms: ['50% Advanced', '50% Immediately After Deployment', '18% GST will be applicable as per government regulations.'],
+      annual_maintenance_contract: ['25% of project value as per bill.', 'AMC applies when existing features are not working or technical bugs occur.', 'New features and requirements are not included in AMC.'],
+      services_limitations: ['PRAVYA TECH is not liable for issues occurring in integrated third-party services.'],
+      exclusions: ['Anything not specified in the approved specification and demo system.', 'Third-party software and API integrations not specifically mentioned.', 'Cloud hosting charges.', 'Future updates in App, Web, or Software.'],
+      client_side_support: ['One decision-maker is required from the client side.'],
+      project_cancellation: ['Payment is non-refundable once work has started from PRAVYA TECH side.'],
+    },
+    clients: {
+      bni: ['Shree Cement', 'Adani Group', 'Reliance Industries', 'Tata Consultancy Services', 'Infosys', 'Wipro'],
+      international: ['TechFlow Inc. (USA)', 'EuroTech Solutions (Germany)', 'Asia Pacific Digital (Singapore)', 'UK Digital Labs (London)', 'Canada Tech Ventures (Toronto)'],
+    },
+    pricing: {
+      items: lineItems.map((item) => ({
+        name: item.title,
+        description: [item.description || ''],
+        price: `${currencySymbols[currency] || ''}${Number(item.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        unit: contractDuration,
+      })),
+      currency,
+      note: `Total investment: ${currencySymbols[currency] || ''}${calculateTotal().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`,
+    },
+    payment_methods: {
+      upi_id: 'PRAVYA2618@OKSBI',
+      bank_name: 'STATE BANK OF INDIA',
+      account_number: '40410281486',
+      branch_name: 'Rajkot',
+      ifsc: 'SBIN0001851',
+    },
+    acceptance: {
+      text: 'By signing this document, the client confirms acceptance of the quote and authorizes PRAVYA TECH to commence the project.',
+      additional_work_clause: 'Additional work outside the agreed scope may require a separate quotation and written approval.',
+    },
+    branches: [
+      { branch_name: 'PRAVYA TECH (MAIN BRANCH)', address: '618 Level 6, 150 Feet Ring Road, Opp. Imperial Heights, Rajkot 360005.', phone: '+91 898 0000 196', email: 'talk@pravyatech.com', website: 'www.pravyatech.com' },
+      { branch_name: 'PRAVYA TECH (SECOND BRANCH)', address: 'Rajkot, Gujarat, India', phone: '+91 898 0000 196', email: 'talk@pravyatech.com', website: 'www.pravyatech.com' },
+      { branch_name: 'PRAVYA TECH (CALIFORNIA)', address: 'Fremont, California, USA', phone: '+1 408 507 6353', email: 'talk@pravyatech.com', website: 'www.pravyatech.com' },
+    ],
+    closing_statement: 'Take your business to the next level.',
+  });
+
   const handleSubmit = async (e) => {
     e?.preventDefault();
     if (!clientName.trim() || !companyName.trim()) {
@@ -110,18 +186,19 @@ export function CreateProposalPage() {
         renewal_date: proposalType === 'quotation_proposal' ? renewalDate : null,
         line_items: proposalType === 'quotation_proposal' ? lineItems : [],
         terms: proposalType === 'quotation_proposal' ? terms : null,
+        content: buildProposalContent(),
       };
 
-       const created = await proposalApi.createProposal(payload);
-       addToast(`Proposal #${created.proposal_no} generated!`, 'success');
-       addToast('Generating official PDF package...', 'info');
-       try {
-         await proposalApi.generatePdf(created.id);
-         addToast(`PDF ready for Proposal #${created.proposal_no}`, 'success');
-       } catch {
-         addToast('Proposal created (PDF can be regenerated)', 'success');
-       }
-       navigate('/admin/proposals');
+      const created = await proposalApi.createProposal(payload);
+      addToast(`Proposal #${created.proposal_no} generated!`, 'success');
+      addToast('Generating official PDF package...', 'info');
+      try {
+        await proposalApi.generatePdf(created.id);
+        addToast(`PDF ready for Proposal #${created.proposal_no}`, 'success');
+      } catch {
+        addToast('Proposal created (PDF can be regenerated)', 'success');
+      }
+      navigate('/admin/proposals');
     } catch (err) {
       addToast(err.message || 'Failed to create proposal', 'error');
     } finally {
