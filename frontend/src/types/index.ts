@@ -111,6 +111,14 @@ export interface DashboardStats {
   recentActivity: any[];
 }
 
+export interface CoreValueRead {
+  id: number;
+  title: string;
+  description?: string;
+  logo?: string;
+  sort_order: number;
+}
+
 export interface CompanyProfile {
   id: number;
   company_name: string;
@@ -118,12 +126,10 @@ export interface CompanyProfile {
   email?: string;
   phone?: string;
   website?: string;
-  address?: string;
   sales_head_name?: string;
   sales_head_title?: string;
   mission?: string;
   vision?: string;
-  core_values?: any[];
   services?: any[];
   bni_clients?: any[];
   international_clients?: any[];
@@ -136,8 +142,10 @@ export interface CompanyProfile {
   accent_color?: string;
   theme_config?: Record<string, string>;
   terms?: string;
+  contract_terms?: Array<{ title: string; bullets: string[] }>;
   created_at: string;
   updated_at: string;
+  core_values_rel?: CoreValueRead[];
 }
 
 export interface LoginRequest {

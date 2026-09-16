@@ -33,22 +33,36 @@ export const authApi = {
 
   async refresh() {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
-    if (!refreshToken) return null;
-    const res = await fetch('/api/auth/refresh?token=' + encodeURIComponent(refreshToken), {
-      method: 'POST',
-    });
-    if (!res.ok) {
+    if (!refreshToken) {
+      console.log('[Auth] No refresh token available');
+      return null;
+    }
+    try {
+      console.log('[Auth] Attempting token refresh...');
+      const res = await fetch('/api/auth/refresh?token=' + encodeURIComponent(refreshToken), {
+        method: 'POST',
+      });
+      console.log('[Auth] Refresh response status:', res.status);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error('[Auth] Refresh failed:', errorData);
+        localStorage.removeItem(REFRESH_KEY);
+        return null;
+      }
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem('pravya_admin_token', data.access_token);
+        console.log('[Auth] Token refreshed successfully');
+      }
+      if (data.refresh_token) {
+        localStorage.setItem(REFRESH_KEY, data.refresh_token);
+      }
+      return data.access_token || null;
+    } catch (err) {
+      console.error('[Auth] Refresh error:', err);
       localStorage.removeItem(REFRESH_KEY);
       return null;
     }
-    const data = await res.json();
-    if (data.access_token) {
-      localStorage.setItem('pravya_admin_token', data.access_token);
-    }
-    if (data.refresh_token) {
-      localStorage.setItem(REFRESH_KEY, data.refresh_token);
-    }
-    return data.access_token || null;
   },
 
   logout() {

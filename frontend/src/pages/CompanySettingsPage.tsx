@@ -22,6 +22,7 @@ interface CompanyProfile {
   bni_clients?: Array<string | { name: string; logo?: string }>;
   international_clients?: Array<string | { name: string; logo?: string }>;
   branch_offices?: Array<string | { name: string; logo?: string }>;
+  work_process_steps?: Array<{ icon?: string; title: string; description?: string }>;
   logo_data?: string;
   logo_url?: string;
   qr_code?: string;
@@ -30,6 +31,7 @@ interface CompanyProfile {
   accent_color?: string;
   theme_config?: Record<string, string>;
   terms?: string;
+  contract_terms?: Array<{ title: string; bullets: string[] }>;
   bank_name?: string;
   bank_account_name?: string;
   bank_account_number?: string;
@@ -50,13 +52,14 @@ function LabeledField({ label, value, onChange, type = 'text', rows, placeholder
 
 function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, size = 'sm' }: { currentLogo?: string; onLogoChange: (logo: string) => void; onLogoRemove: () => void; size?: 'sm' | 'lg' }) {
   const [preview, setPreview] = useState<string | null>(currentLogo || null);
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setPreview(currentLogo || null);
   }, [currentLogo]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -65,13 +68,33 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, size = 'sm'
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      setPreview(result);
-      onLogoChange(result);
-    };
-    reader.readAsDataURL(file);
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type. Allowed: PNG, JPG, SVG, WebP');
+      return;
+    }
+
+    // Create a temporary preview using object URL for immediate feedback
+    const tempPreview = URL.createObjectURL(file);
+    setPreview(tempPreview);
+    setUploading(true);
+
+    try {
+      const result = await companyProfileApi.uploadLogo(file);
+      // Revoke the temporary object URL
+      URL.revokeObjectURL(tempPreview);
+      // Backend now returns base64 data URL in result.url
+      setPreview(result.url);
+      onLogoChange(result.url);
+    } catch (error) {
+      console.error('Logo upload failed:', error);
+      alert('Failed to upload logo. Please try again.');
+      URL.revokeObjectURL(tempPreview);
+      setPreview(currentLogo || null);
+    } finally {
+      setUploading(false);
+    }
+
     // Clear the input so the same file can be selected again if needed
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -93,10 +116,16 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, size = 'sm'
         {preview ? (
           <>
             <img src={preview} alt="Logo preview" className="w-full h-full object-contain p-1" />
+            {uploading && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              </div>
+            )}
             <button
               type="button"
               onClick={handleRemove}
-              className="absolute top-1 right-1 p-1 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors"
+              disabled={uploading}
+              className="absolute top-1 right-1 p-1 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Remove logo"
             >
               <X className="w-3 h-3" />
@@ -107,18 +136,19 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, size = 'sm'
         )}
       </div>
       <div className="space-y-1">
-        <label className={`flex items-center gap-1.5 ${buttonSize} bg-slate-100 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors`}>
+        <label className={`flex items-center gap-1.5 ${buttonSize} bg-slate-100 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
           <Upload className="w-3 h-3" />
-          <span>{preview ? 'Change Logo' : 'Add Logo'}</span>
+          <span>{uploading ? 'Uploading...' : preview ? 'Change Logo' : 'Add Logo'}</span>
           <input
             type="file"
             ref={fileInputRef}
             accept="image/*"
             onChange={handleFileSelect}
             className="hidden"
+            disabled={uploading}
           />
         </label>
-        <p className="text-[10px] text-slate-500">PNG, JPG, SVG (max 2MB)</p>
+        <p className="text-[10px] text-slate-500">PNG, JPG, SVG, WebP (max 2MB)</p>
       </div>
     </div>
   );
@@ -223,6 +253,69 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
   );
 }
 
+function WorkProcessField({ label, items, onChange }: { label: string; items: Array<{ icon?: string; title: string; description?: string }>; onChange: (items: Array<{ icon?: string; title: string; description?: string }>) => void }) {
+  const addItem = () => {
+    const stepNum = items.length + 1;
+    onChange([...items, { title: `Step ${stepNum}`, description: '', icon: undefined }]);
+  };
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (index: number, field: string, value: any) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    onChange(newItems);
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
+      <Button type="button" variant="outline" size="sm" icon={Plus} onClick={addItem} className="flex items-center gap-1">
+        Add Step
+      </Button>
+      {items.length > 0 && (
+        <div className="space-y-2 mt-2">
+          {items.map((item, idx) => (
+            <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <IconSelector
+                    value={item.icon}
+                    onChange={(icon) => updateItem(idx, 'icon', icon)}
+                    showLabel={false}
+                  />
+                  <Input
+                    value={item.title || ''}
+                    onChange={(e) => updateItem(idx, 'title', e.target.value)}
+                    placeholder={`Step ${idx + 1}`}
+                    className="flex-1 min-w-0"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeItem(idx)}
+                  className="text-rose-500 hover:text-rose-700 p-1 flex-shrink-0"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+              <Textarea
+                value={item.description || ''}
+                onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                placeholder="Short description (1-2 lines)"
+                rows={2}
+                className="text-sm"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ArrayField({ label, items, onChange, placeholder = 'Enter item...', showLogo = false }: { label: string; items: Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean }) {
   const [inputValue, setInputValue] = useState('');
   const [logoValue, setLogoValue] = useState('');
@@ -315,6 +408,107 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
               </div>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ContractTermsField({ label, items, onChange }: { label: string; items: Array<{ title: string; bullets: string[] }>; onChange: (items: Array<{ title: string; bullets: string[] }>) => void }) {
+  const addItem = () => {
+    onChange([...items, { title: '', bullets: ['', '', '', '', ''] }]);
+  };
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (index: number, field: string, value: any) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    onChange(newItems);
+  };
+
+  const addBullet = (index: number) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], bullets: [...newItems[index].bullets, ''] };
+    onChange(newItems);
+  };
+
+  const removeBullet = (itemIndex: number, bulletIndex: number) => {
+    const newItems = [...items];
+    newItems[itemIndex] = {
+      ...newItems[itemIndex],
+      bullets: newItems[itemIndex].bullets.filter((_, i) => i !== bulletIndex),
+    };
+    onChange(newItems);
+  };
+
+  const updateBullet = (itemIndex: number, bulletIndex: number, value: string) => {
+    const newItems = [...items];
+    const newBullets = [...newItems[itemIndex].bullets];
+    newBullets[bulletIndex] = value;
+    newItems[itemIndex] = { ...newItems[itemIndex], bullets: newBullets };
+    onChange(newItems);
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
+      <Button type="button" variant="outline" size="sm" icon={Plus} onClick={addItem} className="flex items-center gap-1">
+        Add Term
+      </Button>
+      {items.length > 0 && (
+        <div className="space-y-3 mt-2">
+          {items.map((item, idx) => (
+            <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {idx + 1}
+                </div>
+                <Input
+                  value={item.title || ''}
+                  onChange={(e) => updateItem(idx, 'title', e.target.value)}
+                  placeholder={`Term ${idx + 1} title`}
+                  className="flex-1 min-w-0"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeItem(idx)}
+                  className="text-rose-500 hover:text-rose-700 p-1 flex-shrink-0"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="space-y-1.5 pl-9">
+                {item.bullets.map((bullet, bIdx) => (
+                  <div key={bIdx} className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 font-mono w-4 text-right flex-shrink-0">•</span>
+                    <Input
+                      value={bullet || ''}
+                      onChange={(e) => updateBullet(idx, bIdx, e.target.value)}
+                      placeholder={`Bullet point ${bIdx + 1}`}
+                      className="flex-1 min-w-0 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeBullet(idx, bIdx)}
+                      className="text-rose-400 hover:text-rose-600 p-0.5 flex-shrink-0"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => addBullet(idx)}
+                  className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 ml-4"
+                >
+                  <Plus className="w-3 h-3" /> Add bullet
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -481,47 +675,29 @@ export function CompanySettingsPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors">
-                    <Upload className="w-4 h-4" />
-                    Upload Logo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          handleInputChange('logo_data', ev.target.result);
-                          handleInputChange('logo_url', '');
-                        };
-                        reader.readAsDataURL(file);
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                  <p className="text-[11px] text-slate-500">PNG, JPG, SVG (max 2MB)</p>
-                </div>
-              </div>
-            </div>
-
-            <Input
-              label="Or enter logo URL"
-              placeholder="https://example.com/logo.png"
-              value={profile.logo_url || ''}
-              onChange={(e) => handleInputChange('logo_url', e.target.value)}
-            />
-            <div className="border-t border-slate-200 pt-4">
-              <div className="flex items-start gap-4">
-                <LogoUploadButton
-                  currentLogo={profile.qr_code || ''}
-                  onLogoChange={(qrCode) => handleInputChange('qr_code', qrCode)}
-                  onLogoRemove={() => handleInputChange('qr_code', '')}
-                  size="lg"
-                />
-                <div className="flex-1 space-y-2 pt-1">
-                  <h3 className="text-sm font-bold text-slate-900">Payment QR Code</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">Upload the QR image clients scan for UPI or bank payments. PNG, JPG, or SVG up to 2 MB.</p>
+<label className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors">
+                      <Upload className="w-4 h-4" />
+                      Upload Logo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const result = await companyProfileApi.uploadLogo(file);
+                            // Backend now returns base64 data URL in result.url
+                            handleInputChange('logo_data', result.url);
+                            handleInputChange('logo_url', '');
+                          } catch (error) {
+                            console.error('Logo upload failed:', error);
+                            alert('Failed to upload logo. Please try again.');
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  <p className="text-[11px] text-slate-500">PNG, JPG, SVG, WebP (max 2MB)</p>
                 </div>
               </div>
             </div>
@@ -671,6 +847,36 @@ export function CompanySettingsPage() {
             items={profile.branch_offices || []}
             onChange={(val) => handleInputChange('branch_offices', val)}
             placeholder="e.g. Rajkot - 150ft Rd, Gujarat, India"
+          />
+        </Card>
+
+        {/* Work Process */}
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-brand-600" />
+              Our work process - From very first touch point to launch and beyond.
+            </h2>
+          </div>
+          <WorkProcessField
+            label="Work Process Steps"
+            items={profile.work_process_steps || []}
+            onChange={(val) => handleInputChange('work_process_steps', val)}
+          />
+        </Card>
+
+        {/* Statement of work and Contract Terms */}
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
+              <IconSelector value={getIcon('contract_terms')} onChange={(icon) => setIcon('contract_terms', icon)} />
+              Statement of work and Contract Terms
+            </h2>
+          </div>
+          <ContractTermsField
+            label="Contract Terms"
+            items={profile.contract_terms || []}
+            onChange={(val) => handleInputChange('contract_terms', val)}
           />
         </Card>
 

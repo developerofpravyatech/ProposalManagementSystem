@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
@@ -13,9 +14,10 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
     PDF_OUTPUT_DIR: str = "./generated_pdfs"
+    UPLOAD_DIR: str = "./uploads"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=os.path.join(os.path.dirname(__file__), '..', '..', '.env'),
         extra="ignore",
         case_sensitive=False
     )

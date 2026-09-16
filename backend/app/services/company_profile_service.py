@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.models.company_profile import CompanyProfile
-from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, ThemeConfig
+from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, ThemeConfig, WorkProcessStep, PaymentMethod
 
 
 DEFAULT_COMPANY_PROFILE = {
@@ -12,7 +12,6 @@ DEFAULT_COMPANY_PROFILE = {
     "email": "contact@pravyatech.com",
     "phone": "+91 98765 43210",
     "website": "www.pravyatech.com",
-    "address": "Office: Rajkot, Gujarat, India",
     "sales_head_name": "Rahul Mehta",
     "sales_head_title": "Founder & CEO",
     "mission": (
@@ -47,6 +46,7 @@ DEFAULT_COMPANY_PROFILE = {
         "Rajkot - 150ft Rd, Gondal Rd, Gujarat, India",
         "California, USA",
     ],
+    "work_process_steps": [],
     "logo_data": None,
     "logo_url": None,
     "qr_code": None,
@@ -62,6 +62,13 @@ DEFAULT_COMPANY_PROFILE = {
         "Confidentiality: Both parties agree to protect sensitive information shared during the engagement.\n"
         "Governing Law: This agreement shall be governed by the laws of India."
     ),
+    "contract_terms": [
+        {"title": "Project Scope Definition", "bullets": ["Detailed project scope document with deliverables", "Timeline with milestone schedule", "Acceptance criteria and sign-off process", "Change request and approval workflow", "Scope exclusion list"]},
+        {"title": "Payment Terms and Conditions", "bullets": ["50% advance payment before project commencement", "30% payment at mid-project milestone", "20% payment upon final delivery and acceptance", "Payment method: Bank transfer or UPI", "Late payment penalty: 1.5% per month"]},
+        {"title": "Intellectual Property Rights", "bullets": ["All deliverables IP transfers upon full payment", "Pre-existing tools and frameworks remain owned by vendor", "Client provided materials remain their property", "Source code ownership upon final payment", "License grants for third-party components"]},
+        {"title": "Confidentiality and NDA", "bullets": ["Both parties maintain strict confidentiality", "Non-compete clause for project duration", "Employee and contractor confidentiality obligations", "Duration: 3 years post-project completion", "Exceptions for public domain information"]},
+        {"title": "Warranty and Support", "bullets": ["30-day warranty period from delivery date", "Bug fixes provided free of charge", "Support via email and phone during business hours", "Warranty excludes client-requested changes", "Extended support available via separate agreement"]},
+    ],
     # Bank Details
     "bank_name": "HDFC Bank",
     "bank_account_name": "PRAVYA TECH Solutions",
@@ -216,6 +223,66 @@ async def _sync_theme_config(db: AsyncSession, profile: CompanyProfile, config: 
         await db.delete(existing_config)
 
 
+async def _sync_work_process_steps(db: AsyncSession, profile: CompanyProfile, steps: list[dict]) -> None:
+    """Sync work process steps from JSON to relational table"""
+    await db.execute(
+        WorkProcessStep.__table__.delete().where(WorkProcessStep.company_profile_id == profile.id)
+    )
+    await db.flush()
+    
+    for i, step in enumerate(steps or []):
+        if isinstance(step, dict):
+            icon = step.get("icon", "")
+            title = step.get("title", "")
+            description = step.get("description", "")
+        else:
+            icon = ""
+            title = str(step)
+            description = ""
+        if title:
+            db.add(WorkProcessStep(
+                company_profile_id=profile.id,
+                icon=icon,
+                title=title,
+                description=description,
+                sort_order=i,
+            ))
+
+
+async def _sync_payment_method(db: AsyncSession, profile: CompanyProfile, data: dict | None) -> None:
+    """Sync payment method from JSON to relational table"""
+    if data is None:
+        return
+        
+    result = await db.execute(select(PaymentMethod).where(PaymentMethod.company_profile_id == profile.id))
+    existing = result.scalar_one_or_none()
+    
+    if existing:
+        existing.bank_name = data.get("bank_name")
+        existing.account_name = data.get("bank_account_name")  # backward compat
+        existing.account_number = data.get("bank_account_number")  # backward compat
+        existing.ifsc = data.get("bank_ifsc")  # backward compat
+        existing.branch = data.get("bank_branch")  # backward compat
+        existing.upi_id = data.get("upi_id")
+        existing.qr_code = data.get("qr_code")
+        existing.swift_code = data.get("swift_code")
+        existing.iban = data.get("iban")
+        existing.updated_at = datetime.now(timezone.utc)
+    else:
+        db.add(PaymentMethod(
+            company_profile_id=profile.id,
+            bank_name=data.get("bank_name"),
+            account_name=data.get("bank_account_name"),
+            account_number=data.get("bank_account_number"),
+            ifsc=data.get("bank_ifsc"),
+            branch=data.get("bank_branch"),
+            upi_id=data.get("upi_id"),
+            qr_code=data.get("qr_code"),
+            swift_code=data.get("swift_code"),
+            iban=data.get("iban"),
+        ))
+
+
 async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
     result = await db.execute(
         select(CompanyProfile)
@@ -226,6 +293,8 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.theme_config_rel),
+            selectinload(CompanyProfile.work_process_steps_rel),
+            selectinload(CompanyProfile.payment_method_rel),
         )
         .limit(1)
     )
@@ -241,6 +310,7 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
         await _sync_international_clients(db, profile, DEFAULT_COMPANY_PROFILE["international_clients"])
         await _sync_branch_offices(db, profile, DEFAULT_COMPANY_PROFILE["branch_offices"])
         await _sync_theme_config(db, profile, DEFAULT_COMPANY_PROFILE["theme_config"])
+        await _sync_work_process_steps(db, profile, DEFAULT_COMPANY_PROFILE["work_process_steps"])
         await db.commit()
         await db.refresh(profile)
     else:
@@ -261,6 +331,24 @@ async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
         await _sync_branch_offices(db, profile, profile.branch_offices)
         await _sync_theme_config(db, profile, profile.theme_config)
         await db.commit()
+    
+    # Sync payment method from legacy columns if payment_method_rel doesn't exist
+    result = await db.execute(select(PaymentMethod).where(PaymentMethod.company_profile_id == profile.id))
+    if not result.scalar():
+        legacy_data = {
+            "bank_name": profile.bank_name,
+            "bank_account_name": profile.bank_account_name,
+            "bank_account_number": profile.bank_account_number,
+            "bank_ifsc": profile.bank_ifsc,
+            "bank_branch": profile.bank_branch,
+            "upi_id": profile.upi_id,
+            "qr_code": profile.qr_code,
+            "swift_code": profile.swift_code,
+            "iban": profile.iban,
+        }
+        if any(legacy_data.values()):
+            await _sync_payment_method(db, profile, legacy_data)
+            await db.commit()
 
 
 async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
@@ -273,6 +361,8 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.theme_config_rel),
+            selectinload(CompanyProfile.work_process_steps_rel),
+            selectinload(CompanyProfile.payment_method_rel),
         )
         .limit(1)
     )
@@ -291,6 +381,8 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
         "international_clients": _sync_international_clients,
         "branch_offices": _sync_branch_offices,
         "theme_config": _sync_theme_config,
+        "work_process_steps": _sync_work_process_steps,
+        "payment_method": _sync_payment_method,
     }
     
     for key, value in update_data.items():
@@ -309,9 +401,6 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
         profile.updated_at = datetime.now(timezone.utc)
     profile_id = profile.id
     await db.commit()
-    # Expire all objects to force reload from database
-    db.expire_all()
-    # Reload with relationships
     result = await db.execute(
         select(CompanyProfile)
         .options(
@@ -321,6 +410,8 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.theme_config_rel),
+            selectinload(CompanyProfile.work_process_steps_rel),
+            selectinload(CompanyProfile.payment_method_rel),
         )
         .where(CompanyProfile.id == profile_id)
     )

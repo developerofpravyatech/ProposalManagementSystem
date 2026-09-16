@@ -5,7 +5,7 @@ from app.database import Base
 
 
 class CoreValue(Base):
-    __tablename__ = "company_core_values"
+    __tablename__ = "core_values"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True)
@@ -95,3 +95,41 @@ class ThemeConfig(Base):
     icon_name: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     company_profile: Mapped["CompanyProfile"] = relationship(back_populates="theme_config_rel")
+
+
+class WorkProcessStep(Base):
+    __tablename__ = "company_work_process_steps"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True)
+    icon: Mapped[str | None] = mapped_column(Text, nullable=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="work_process_steps_rel")
+
+    __table_args__ = (
+        UniqueConstraint("company_profile_id", "sort_order", name="uq_work_process_profile_order"),
+    )
+
+
+class PaymentMethod(Base):
+    __tablename__ = "company_payment_methods"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True, unique=True)
+    bank_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    account_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    account_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    ifsc: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    branch: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    upi_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    swift_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    iban: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    is_default: Mapped[bool] = mapped_column(default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="payment_method_rel")

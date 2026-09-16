@@ -15,13 +15,15 @@
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 html, body { margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(--dark); font-size: 9.2pt; line-height: 1.45; }
+body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(--dark); font-size: 9.2pt; line-height: 1.5; }
 @page { size: A4; margin: 0; }
 .page { width: 210mm; height: 297mm; position: relative; page-break-after: always; background: var(--white); overflow: hidden; }
 .page:last-child { page-break-after: auto; }
 .pad { position: absolute; top: 17mm; left: 14mm; right: 14mm; bottom: 12mm; }
 .b { font-weight: 700; }
 .up { text-transform: uppercase; }
+
+/* ===== SHARED HEADER & FOOTER ===== */
 .topbar { position: absolute; top: 0; left: 0; right: 0; height: 3mm; background: var(--primary); }
 .hdr { display: flex; justify-content: space-between; align-items: center; }
 .hdr-brand { font-size: 10pt; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 3mm; }
@@ -33,31 +35,46 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .section-top { margin-top: 4mm; }
 .eyebrow { font-size: 7pt; font-weight: 800; letter-spacing: 1pt; text-transform: uppercase; color: var(--primary); }
 .card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 5mm; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
 .footer { position: absolute; left: 14mm; right: 14mm; bottom: 5mm; }
 .footer div { border-top: 0.35mm solid var(--line); padding-top: 1.5mm; display: flex; justify-content: space-between; font-size: 6.8pt; color: var(--muted); }
-/* COVER */
-.cover-band { position: absolute; top: 0; left: 0; right: 0; height: 44mm; background: var(--primary); }
-.cover-band-brand { display: flex; justify-content: space-between; align-items: center; padding: 10mm 14mm 0 14mm; color: var(--white); }
-.cover-brand { font-size: 17pt; font-weight: 800; display: flex; align-items: center; gap: 4mm; }
-.cover-logo { max-height: 12mm; max-width: 32mm; object-fit: contain; filter: brightness(0) invert(1); }
-.cover-meta { text-align: right; font-size: 8pt; }
-.cover-meta div:first-child { font-weight: 700; letter-spacing: 0.5pt; }
-.cover-meta div:last-child { opacity: 0.85; margin-top: 1mm; }
-.cover-body { position: absolute; top: 48mm; left: 14mm; right: 14mm; }
-.cover-tagline-large { font-size: 22pt; font-weight: 800; letter-spacing: -0.5pt; line-height: 1.1; color: var(--dark); }
+.footer-page { color: var(--primary); font-weight: 700; }
+
+/* ===== COVER PAGE ===== */
+.cover-hero { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.cover-top { position: absolute; top: 18mm; left: 14mm; right: 14mm; display: flex; justify-content: space-between; align-items: flex-start; }
+.cover-brand { display: flex; align-items: center; gap: 3mm; }
+.cover-brand-name { font-size: 14pt; font-weight: 800; color: var(--dark); }
+.cover-logo { max-height: 14mm; max-width: 36mm; object-fit: contain; }
+.cover-meta { text-align: right; font-size: 8pt; font-weight: 700; color: var(--muted); letter-spacing: 0.5pt; }
+.cover-meta-sub { font-size: 7.5pt; font-weight: 400; color: var(--muted); margin-top: 1mm; opacity: 0.85; }
+
+.cover-title-block { position: absolute; top: 42mm; left: 14mm; right: 14mm; }
+.cover-title { font-size: 28pt; font-weight: 900; letter-spacing: -0.8pt; line-height: 1.05; color: var(--dark); }
 .cover-tagline { font-size: 11pt; font-weight: 500; color: var(--muted); margin-top: 3mm; }
-.cover-underline { width: 18mm; height: 1.2mm; background: var(--accent); margin-top: 4mm; }
+.cover-underline { width: 20mm; height: 1.2mm; background: var(--accent); margin-top: 4mm; }
+
 .cover-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 8mm; }
 .info-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; overflow: hidden; }
 .info-card .ic-head { background: var(--primary); color: var(--white); font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8pt; padding: 2.5mm 4mm; }
 .info-card .ic-body { padding: 3.5mm 4mm; }
 .ic-line { font-size: 9pt; color: var(--dark); margin-bottom: 1mm; }
 .ic-sub { font-size: 7.8pt; color: var(--muted); margin-top: 0.5mm; }
-.cover-closing { position: absolute; left: 14mm; right: 14mm; bottom: 15mm; background: var(--dark); border-radius: 2.5mm; padding: 4mm 5mm; }
-.cover-closing p { color: var(--white); font-size: 10pt; font-weight: 700; line-height: 1.4; }
-/* PROFILE */
+
+.cover-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
+.date-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm 5mm; }
+.date-label { font-size: 7pt; font-weight: 800; letter-spacing: 1pt; text-transform: uppercase; color: var(--primary); }
+.date-value { font-size: 10pt; font-weight: 700; margin-top: 1.5mm; }
+
+.cover-prepared { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 5mm; }
+.prep-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm 5mm; }
+.prep-label { font-size: 7pt; font-weight: 800; letter-spacing: 1pt; text-transform: uppercase; color: var(--primary); }
+.prep-name { font-size: 10pt; font-weight: 800; margin-top: 2mm; color: var(--dark); }
+.prep-title { font-size: 7.8pt; color: var(--muted); margin-top: 1mm; }
+
+.cover-closing { position: absolute; left: 14mm; right: 14mm; bottom: 14mm; background: var(--dark); border-radius: 2.5mm; padding: 5mm 6mm; }
+.cover-closing p { color: var(--white); font-size: 10pt; font-weight: 700; line-height: 1.45; }
+
+/* ===== PROFILE PAGE (VISION / MISSION / VALUES) ===== */
 .cp-positioning { font-size: 16pt; font-weight: 800; letter-spacing: -0.3pt; color: var(--dark); line-height: 1.15; }
 .vm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 6mm; }
 .vm-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 5mm; }
@@ -72,7 +89,8 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .value-title { font-size: 8.8pt; font-weight: 700; color: var(--dark); margin-top: 9mm; line-height: 1.25; }
 .value-title-with-icon { font-size: 8.8pt; font-weight: 700; color: var(--dark); margin-top: 2mm; line-height: 1.25; }
 .value-desc { font-size: 7.4pt; color: var(--muted); margin-top: 1.5mm; line-height: 1.4; }
-/* SERVICES */
+
+/* ===== SERVICES ===== */
 .sv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
 .sv-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; overflow: hidden; }
 .sv-head { color: var(--white); font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5pt; padding: 2.5mm 4mm; display: flex; align-items: center; gap: 2mm; }
@@ -81,8 +99,13 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .sv-card:nth-child(even) .sv-head { background: var(--accent); }
 .sv-items { padding: 3.5mm 4mm; }
 .sv-desc { font-size: 8pt; color: var(--muted); line-height: 1.45; }
-/* TERMS */
-.terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
+
+/* ===== TERMS ===== */
+.terms-dark-header { background: var(--dark); margin: -17mm -14mm 0 -14mm; padding: 10mm 14mm 8mm 14mm; }
+.terms-dark-title { font-size: 22pt; font-weight: 900; color: var(--white); letter-spacing: -0.5pt; line-height: 1.15; }
+.terms-dark-sub { font-size: 9pt; font-weight: 500; color: var(--muted); margin-top: 3mm; }
+.terms-divider { border: none; border-top: 0.4mm solid var(--line); margin: 5mm 0; }
+.terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 2mm; }
 .term-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm; }
 .term-head { display: flex; align-items: center; gap: 3mm; margin-bottom: 2.5mm; }
 .term-num { color: var(--primary); font-weight: 800; font-size: 9pt; }
@@ -90,14 +113,16 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .term-title { font-size: 10pt; font-weight: 700; color: var(--dark); }
 .term-item { font-size: 8.2pt; color: var(--dark); margin-top: 1.6mm; padding-left: 4mm; position: relative; }
 .term-item::before { content: ''; position: absolute; left: 0; top: 1.2mm; width: 1.2mm; height: 1.2mm; border-radius: 50%; background: var(--primary); }
-/* CLIENTS */
+
+/* ===== CLIENTS ===== */
 .clients-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4mm; margin-top: 4mm; }
 .client-cell { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; height: 30mm; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3mm; }
 .client-cell .logo-wrap { max-width: 18mm; max-height: 14mm; display: flex; align-items: center; justify-content: center; }
 .client-cell img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .client-name-text { font-size: 8.5pt; font-weight: 800; color: var(--dark); text-align: center; text-transform: uppercase; letter-spacing: 0.3pt; }
 .client-name-sub { font-size: 6.4pt; color: var(--muted); text-align: center; margin-top: 1mm; }
-/* PAYMENT */
+
+/* ===== PAYMENT ===== */
 .pay-qr-card { border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 5mm; }
 .pay-qr-card img { width: 26mm; height: 26mm; margin: 3mm auto 0 auto; display: block; }
 .pay-qr-card .scan { text-align: center; font-size: 7.4pt; color: var(--muted); margin-top: 2mm; }
@@ -107,7 +132,8 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .bank-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4.5mm 5mm; margin-top: 5mm; }
 .bank-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 6mm; font-size: 8.4pt; margin-top: 2mm; }
 .pay-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 5mm; margin-top: 6mm; }
-/* BRANCHES */
+
+/* ===== BRANCHES ===== */
 .branch-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4.5mm; }
 .branch-num { color: var(--primary); font-weight: 800; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.5pt; }
 .branch-card:nth-child(2) .branch-num { color: var(--accent); }
@@ -115,62 +141,89 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .branch-name { font-size: 10pt; font-weight: 800; color: var(--dark); margin-top: 2mm; line-height: 1.25; }
 .branch-detail { font-size: 8.2pt; color: var(--dark); margin-top: 2mm; line-height: 1.55; }
 .branch-muted { font-size: 7.6pt; color: var(--muted); margin-top: 1.5mm; }
-.closing-banner { position: absolute; left: 14mm; right: 14mm; bottom: 18mm; background: var(--dark); border-radius: 3mm; padding: 6mm 6mm; }
+.closing-banner { position: absolute; left: 14mm; right: 14mm; bottom: 16mm; background: var(--dark); border-radius: 3mm; padding: 6mm 6mm; }
 .closing-banner p { color: var(--white); font-size: 13pt; font-weight: 800; line-height: 1.35; }
+
+/* ===== GRID HELPERS ===== */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
 </style>
 </head>
 <body>
 
 <!-- ==================== PAGE 1 : COVER ==================== -->
 <section class="page">
-  <div class="cover-band">
-    <div class="cover-band-brand">
+  <div class="cover-hero">
+    <div class="cover-top">
       <div class="cover-brand">
         {% if logo_src %}
         <img class="cover-logo" src="{{ logo_src }}" alt="{{ company_name }} logo"/>
         {% endif %}
-        {{ company_name }}
+        <span class="cover-brand-name">{{ company_name }}</span>
       </div>
       <div class="cover-meta">
         <div>COMPANY PROFILE&nbsp;&nbsp;/&nbsp;&nbsp;{{ current_year }}</div>
-        <div>{{ tagline }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="cover-body">
-    <div class="cover-tagline-large">{{ company_name }}</div>
-    <div class="cover-tagline">{{ tagline }}</div>
-    <div class="cover-underline"></div>
-
-    <div class="cover-info-grid">
-      <div class="info-card">
-        <div class="ic-head">Head Office</div>
-        <div class="ic-body">
-          <div class="ic-line b">{{ company_name }}</div>
-          {% if address %}
-          <div class="ic-sub">{{ address | nl2br }}</div>
-          {% endif %}
-        </div>
-      </div>
-      <div class="info-card">
-        <div class="ic-head">Contact Us</div>
-        <div class="ic-body">
-          {% if phone %}<div class="ic-line">{{ phone }}</div>{% endif %}
-          {% if email %}<div class="ic-sub">{{ email }}</div>{% endif %}
-          {% if website %}<div class="ic-sub">{{ website }}</div>{% endif %}
-        </div>
+        {% if tagline %}<div class="cover-meta-sub">{{ tagline }}</div>{% endif %}
       </div>
     </div>
 
-    {% if sales_head_name %}
-    <div style="margin-top:5mm;">
-      <div class="b up" style="font-size:8.5pt; letter-spacing:0.5pt;">{{ sales_head_name }}</div>
-      {% if sales_head_title %}<div class="ic-sub" style="margin-top:1mm;">{{ sales_head_title }}</div>{% endif %}
+    <div class="cover-title-block">
+      <div class="cover-title">{{ company_name }}</div>
+      {% if tagline %}<div class="cover-tagline">{{ tagline }}</div>{% endif %}
+      <div class="cover-underline"></div>
+
+      {% if sales_head_name %}
+      <div class="cover-prepared">
+        <div class="prep-card">
+          <div class="prep-label">Prepared By</div>
+          <div class="prep-name">{{ sales_head_name }}</div>
+          {% if sales_head_title %}<div class="prep-title">{{ sales_head_title }}</div>{% endif %}
+        </div>
+        <div class="prep-card">
+          <div class="prep-label">Prepared For</div>
+          <div class="prep-name">Valued Client</div>
+          <div class="prep-title">Prospective Partner</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="cover-info-grid">
+        <div class="info-card">
+          <div class="ic-head">Head Office</div>
+          <div class="ic-body">
+            <div class="ic-line b">{{ company_name }}</div>
+            {% if branches %}
+            <div class="ic-sub">{{ branches[0].get('branch_name', '') }}</div>
+            {% endif %}
+            {% if phone %}<div class="ic-sub">P: {{ phone }}</div>{% endif %}
+            {% if email %}<div class="ic-sub">E: {{ email }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="ic-head">Contact Us</div>
+          <div class="ic-body">
+            {% if phone %}<div class="ic-line">{{ phone }}</div>{% endif %}
+            {% if email %}<div class="ic-sub">{{ email }}</div>{% endif %}
+            {% if website %}<div class="ic-sub">{{ website }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="cover-dates">
+        <div class="date-card">
+          <div class="date-label">Issued Date</div>
+          <div class="date-value">{{ current_date | default(current_year|string + '-01-01') }}</div>
+        </div>
+        <div class="date-card">
+          <div class="date-label">Valid Till</div>
+          <div class="date-value">{{ valid_till | default('') }}</div>
+        </div>
+      </div>
     </div>
-    {% endif %}
-  </div>
-  <div class="cover-closing">
-    <p>{{ closing_statement | nl2br }}</p>
+
+    <div class="cover-closing">
+      <p>{{ closing_statement | nl2br }}</p>
+    </div>
   </div>
 </section>
 
@@ -268,7 +321,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 
     <div style="position:absolute; left:0; right:0; bottom:5mm;">
       <div class="footer">
-        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;COMPANY PROFILE</span><span>03 / {{ total_pages }}</span></div>
+        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;SERVICES</span><span>03 / {{ total_pages }}</span></div>
       </div>
     </div>
   </div>
@@ -280,15 +333,10 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 <section class="page">
   <div class="topbar"></div>
   <div class="pad">
-    <div class="hdr">
-      <div class="hdr-brand">
-        {% if logo_src %}<img class="hdr-logo" src="{{ logo_src }}" alt="logo"/>{% endif %}
-        {{ company_name }}
-      </div>
-      <div class="hdr-meta"><b>TERMS</b>&nbsp;&nbsp;/&nbsp;&nbsp;04</div>
+    <div class="terms-dark-header">
+      <div class="terms-dark-title">Statement of Work<br/>and Contract Terms.</div>
+      <div class="terms-dark-sub">Please read the project terms and conditions carefully.</div>
     </div>
-    <hr class="hdr-line"/>
-    <div class="page-title">Statement of Work and Contract Terms.</div>
 
     <div class="terms-grid">
       {% set tn = namespace(n=0) %}
@@ -308,7 +356,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 
     <div style="position:absolute; left:0; right:0; bottom:5mm;">
       <div class="footer">
-        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;COMPANY PROFILE</span><span>04 / {{ total_pages }}</span></div>
+        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;TERMS</span><span>04 / {{ total_pages }}</span></div>
       </div>
     </div>
   </div>
@@ -346,7 +394,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 
     <div style="position:absolute; left:0; right:0; bottom:5mm;">
       <div class="footer">
-        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;COMPANY PROFILE</span><span>05 / {{ total_pages }}</span></div>
+        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;CLIENTS</span><span>05 / {{ total_pages }}</span></div>
       </div>
     </div>
   </div>
@@ -384,7 +432,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 
     <div style="position:absolute; left:0; right:0; bottom:5mm;">
       <div class="footer">
-        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;COMPANY PROFILE</span><span>06 / {{ total_pages }}</span></div>
+        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;CLIENTS</span><span>06 / {{ total_pages }}</span></div>
       </div>
     </div>
   </div>
@@ -437,7 +485,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 
     <div style="position:absolute; left:0; right:0; bottom:5mm;">
       <div class="footer">
-        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;COMPANY PROFILE</span><span>07 / {{ total_pages }}</span></div>
+        <div><span>{{ company_name }}&nbsp;&nbsp;|&nbsp;&nbsp;PAYMENT</span><span>07 / {{ total_pages }}</span></div>
       </div>
     </div>
   </div>
@@ -479,7 +527,6 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
           {% if phone %}<div>{{ phone }}</div>{% endif %}
           {% if email %}<div style="margin-top:1mm;">{{ email }}</div>{% endif %}
           {% if website %}<div style="margin-top:1mm;">{{ website }}</div>{% endif %}
-          {% if address %}<div style="margin-top:2mm; color:var(--muted); font-size:8.5pt;">{{ address | nl2br }}</div>{% endif %}
         </div>
       </div>
     </div>

@@ -45,7 +45,7 @@ function AdminLayout() {
         case '/admin/renewals':
           return { title: 'Contract Renewals Pipeline', subtitle: 'Track approaching anniversaries & 1-click renew' };
         case '/admin/company-settings':
-          return { title: 'Company Settings', subtitle: 'Configure company profile, values, services, and clients' };
+          return { title: 'Company Settings', subtitle: 'Configure company profile, values, services, clients, and contract terms' };
       default:
         return { title: 'Admin Command Center', subtitle: 'PRAVYA TECH PMS' };
     }

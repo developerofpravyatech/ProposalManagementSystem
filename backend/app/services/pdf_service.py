@@ -23,7 +23,42 @@ from app.utils.security import settings
 OUTPUT_DIR = Path(settings.PDF_OUTPUT_DIR or "./generated_pdfs")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+UPLOAD_DIR = Path(settings.UPLOAD_DIR or "./uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
+
+
+def _logo_path_to_base64(logo_path: str | None) -> str:
+    """Convert a logo path (e.g., '/uploads/abc.png') to a base64 data URL for PDF rendering."""
+    if not logo_path:
+        return ""
+    # If it's already a data URL, return as-is
+    if logo_path.startswith("data:"):
+        return logo_path
+    # If it's an HTTP/HTTPS URL, return as-is (browser can fetch it)
+    if logo_path.startswith("http://") or logo_path.startswith("https://"):
+        return logo_path
+    # If it's a /uploads/ path, convert to base64
+    if logo_path.startswith("/uploads/"):
+        filename = logo_path.split("/uploads/")[-1]
+        file_path = UPLOAD_DIR / filename
+        if file_path.exists():
+            try:
+                with open(file_path, "rb") as f:
+                    data = f.read()
+                mime_type = "image/png"
+                if filename.lower().endswith((".jpg", ".jpeg")):
+                    mime_type = "image/jpeg"
+                elif filename.lower().endswith(".svg"):
+                    mime_type = "image/svg+xml"
+                elif filename.lower().endswith(".webp"):
+                    mime_type = "image/webp"
+                b64 = base64.b64encode(data).decode("utf-8")
+                return f"data:{mime_type};base64,{b64}"
+            except Exception:
+                pass
+    return logo_path
 
 REFERENCE_CONTENT = {
     "cover": {
@@ -211,6 +246,36 @@ def _service_categories(company_profile: CompanyProfile | None) -> list[dict[str
     return [{"name": name, "items": items or ["Custom digital solutions"]} for name, items in groups.items()]
 
 
+def _service_categories_with_logos(company_profile: CompanyProfile | None, services: list[dict]) -> list[dict[str, Any]]:
+    """Like _service_categories but preserves logos from the services list."""
+    # Build a map of title -> logo for quick lookup
+    logo_map = {}
+    for s in services:
+        if isinstance(s, dict) and s.get("title") and s.get("logo"):
+            logo_map[s["title"]] = s["logo"]
+    
+    names = [s.get("title") for s in services if isinstance(s, dict) and s.get("title")]
+    if not names:
+        return copy.deepcopy(REFERENCE_CONTENT["services"]["categories"])
+    groups = {
+        "DESIGN": [],
+        "DEVELOPMENT": [],
+        "MARKETING / COMMUNICATION": [],
+        "ANALYTICS": [],
+    }
+    for name in names:
+        lowered = name.lower()
+        if any(word in lowered for word in ["design", "ui / ux", "illustration"]):
+            groups["DESIGN"].append({"name": name, "logo": logo_map.get(name)})
+        elif any(word in lowered for word in ["development", "wordpress", "mobile", "ecommerce", "application"]):
+            groups["DEVELOPMENT"].append({"name": name, "logo": logo_map.get(name)})
+        elif any(word in lowered for word in ["marketing", "social", "email", "whatsapp"]):
+            groups["MARKETING / COMMUNICATION"].append({"name": name, "logo": logo_map.get(name)})
+        else:
+            groups["ANALYTICS"].append({"name": name, "logo": logo_map.get(name)})
+    return [{"name": name, "items": items or [{"name": "Custom digital solutions", "logo": None}]} for name, items in groups.items()]
+
+
 def _terms_from_text(text: str) -> dict[str, list[str]]:
     lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
     if not lines:
@@ -229,9 +294,23 @@ def _normalize_clients(value: Any) -> list[dict[str, Any]]:
     result = []
     for item in _as_list(value):
         if isinstance(item, dict):
-            result.append({"name": str(item.get("name") or item.get("title") or "Client"), "logo": item.get("logo") or item.get("logo_url")})
+            logo = item.get("logo") or item.get("logo_url")
+            if logo:
+                logo = _logo_path_to_base64(logo)
+            result.append({"name": str(item.get("name") or item.get("title") or "Client"), "logo": logo})
         else:
             result.append({"name": str(item), "logo": None})
+    return result
+
+
+def _normalize_clients_rel(clients_rel: list) -> list[dict[str, Any]]:
+    """Normalize clients from relational data (BNIClient or InternationalClient objects)"""
+    result = []
+    for client in clients_rel:
+        result.append({
+            "name": client.name,
+            "logo": _logo_path_to_base64(client.logo) if client.logo else None
+        })
     return result
 
 
@@ -266,7 +345,6 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
     email = str(getattr(company_profile, "email", None) or "talk@pravyatech.com")
     phone = str(getattr(company_profile, "phone", None) or "+(91) 898 0000 196")
     website = str(getattr(company_profile, "website", None) or "www.pravyatech.com")
-    address = str(getattr(company_profile, "address", None) or "Rajkot, Gujarat, India")
     sales_head = str(getattr(company_profile, "sales_head_name", None) or "Pratikbharathi Goswami")
     sales_head_title = str(getattr(company_profile, "sales_head_title", None) or "Founder & CEO")
 
@@ -279,7 +357,6 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
     cover.setdefault("prepared_by_name", sales_head)
     cover.setdefault("prepared_by_designation", sales_head_title)
     cover.setdefault("office_name", company)
-    cover.setdefault("office_address", address)
     cover.setdefault("phone", phone)
     cover.setdefault("email", email)
     created = getattr(proposal, "created_at", None)
@@ -301,12 +378,28 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
         profile_data["vision"] = company_profile.vision
     if not raw_profile.get("mission") and getattr(company_profile, "mission", None):
         profile_data["mission"] = company_profile.mission
-    if not raw_profile.get("core_values") and getattr(company_profile, "core_values", None):
-        profile_data["core_values"] = company_profile.core_values
+    if not raw_profile.get("core_values") and getattr(company_profile, "core_values_rel", None):
+        # Convert logos to base64 for PDF rendering
+        core_values = []
+        for v in company_profile.core_values_rel:
+            core_values.append({
+                "title": v.title,
+                "description": v.description or "",
+                "logo": _logo_path_to_base64(v.logo) if v.logo else ""
+            })
+        profile_data["core_values"] = core_values
 
     services_data = content.setdefault("services", {})
-    if not raw.get("services") and company_profile and getattr(company_profile, "services", None):
-        services_data["categories"] = _service_categories(company_profile)
+    if not raw.get("services") and company_profile and getattr(company_profile, "services_rel", None):
+        # Convert service logos to base64 for PDF rendering
+        services = []
+        for s in company_profile.services_rel:
+            services.append({
+                "title": s.title,
+                "description": s.description or "",
+                "logo": _logo_path_to_base64(s.logo) if s.logo else ""
+            })
+        services_data["categories"] = _service_categories_with_logos(company_profile, services)
 
     process_data = content.setdefault("process", {})
     process_data.setdefault("steps", copy.deepcopy(REFERENCE_CONTENT["process"]["steps"]))
@@ -320,10 +413,10 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
 
     clients_data = content.setdefault("clients", {})
     if not raw.get("clients"):
-        if getattr(company_profile, "bni_clients", None):
-            clients_data["bni"] = _normalize_clients(company_profile.bni_clients)
-        if getattr(company_profile, "international_clients", None):
-            clients_data["international"] = _normalize_clients(company_profile.international_clients)
+        if getattr(company_profile, "bni_clients_rel", None):
+            clients_data["bni"] = _normalize_clients_rel(company_profile.bni_clients_rel)
+        if getattr(company_profile, "international_clients_rel", None):
+            clients_data["international"] = _normalize_clients_rel(company_profile.international_clients_rel)
 
     pricing_data = content.setdefault("pricing", {})
     line_items = _as_list(getattr(proposal, "line_items", None))
@@ -495,39 +588,57 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
     email = str(getattr(cp, "email", None) or "")
     phone = str(getattr(cp, "phone", None) or "")
     website = str(getattr(cp, "website", None) or "")
-    address = str(getattr(cp, "address", None) or "")
     sales_head_name = str(getattr(cp, "sales_head_name", None) or "")
     sales_head_title = str(getattr(cp, "sales_head_title", None) or "")
 
-    # Logo src: prefer logo_data (base64), fall back to logo_url
+    # Logo src: prefer logo_data (base64), fall back to logo_url, then convert /uploads/ paths to base64
     logo_data = getattr(cp, "logo_data", None)
     logo_url = getattr(cp, "logo_url", None)
-    logo_src = logo_data if logo_data else (logo_url if logo_url else "")
+    logo_src = _logo_path_to_base64(logo_data if logo_data else (logo_url if logo_url else ""))
 
-    # Core values – normalise
-    raw_core_values = _as_list(getattr(cp, "core_values", None))
+    # Core values – use relational data and convert logos to base64
     core_values = []
-    for v in raw_core_values:
-        if isinstance(v, dict):
-            core_values.append(v)
-        else:
-            core_values.append({"title": str(v), "description": ""})
+    for v in getattr(cp, "core_values_rel", []):
+        core_values.append({
+            "title": v.title,
+            "description": v.description or "",
+            "logo": _logo_path_to_base64(v.logo) if v.logo else ""
+        })
 
-    # Services
-    raw_services = _as_list(getattr(cp, "services", None))
+    # Services – use relational data and convert logos to base64
     services = []
-    for s in raw_services:
-        if isinstance(s, dict):
-            services.append(s)
-        else:
-            services.append({"title": str(s), "description": ""})
+    for s in getattr(cp, "services_rel", []):
+        services.append({
+            "title": s.title,
+            "description": s.description or "",
+            "logo": _logo_path_to_base64(s.logo) if s.logo else ""
+        })
 
-    # Clients
-    bni_clients = _normalize_clients(getattr(cp, "bni_clients", None))
-    international_clients = _normalize_clients(getattr(cp, "international_clients", None))
+    # Clients – use relational data and convert logos to base64
+    bni_clients = []
+    for c in getattr(cp, "bni_clients_rel", []):
+        bni_clients.append({
+            "name": c.name,
+            "logo": _logo_path_to_base64(c.logo) if c.logo else None
+        })
 
-    # Branches
-    branches = _normalize_branches(getattr(cp, "branch_offices", None))
+    international_clients = []
+    for c in getattr(cp, "international_clients_rel", []):
+        international_clients.append({
+            "name": c.name,
+            "logo": _logo_path_to_base64(c.logo) if c.logo else None
+        })
+
+    # Branches – use relational data
+    branches = []
+    for o in getattr(cp, "branch_offices_rel", []):
+        branches.append({
+            "branch_name": o.name,
+            "address": "",
+            "phone": "",
+            "email": "",
+            "website": ""
+        })
 
     # Terms
     terms_text = str(getattr(cp, "terms", None) or "")
@@ -574,6 +685,10 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
     positioning = getattr(cp, "tagline", None) or tagline
     closing_statement = "Take your business to the next level."
 
+    now = datetime.now()
+    current_date = now.strftime("%d/%m/%Y")
+    valid_till = (now + timedelta(days=7)).strftime("%d/%m/%Y")
+
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
         autoescape=select_autoescape(["html", "htm", "xml"]),
@@ -594,7 +709,6 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         email=email,
         phone=phone,
         website=website,
-        address=address,
         sales_head_name=sales_head_name,
         sales_head_title=sales_head_title,
         logo_src=logo_src,
@@ -610,7 +724,9 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         branches=branches,
         closing_statement=closing_statement,
         total_pages=total_pages,
-        current_year=datetime.now().year,
+        current_year=now.year,
+        current_date=current_date,
+        valid_till=valid_till,
     )
     _render_html_to_pdf(html, filepath)
 

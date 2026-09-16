@@ -10,7 +10,6 @@ import {
   Clock, 
   Mail, 
   Phone, 
-  MapPin,
   Zap,
   Lock,
   Compass,
@@ -31,7 +30,6 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
   const email = cp.email || 'contact@pravyatech.com';
   const phone = cp.phone || '+91 98765 43210';
   const website = cp.website || 'www.pravyatech.com';
-  const address = cp.address || 'Office: Rajkot, Gujarat, India';
   const salesHead = cp.sales_head_name || 'Rahul Mehta';
   const salesHeadTitle = cp.sales_head_title || 'Founder & CEO';
   const mission = proposal.content?.company_profile?.mission || cp.mission || '';
