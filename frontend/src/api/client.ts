@@ -1,26 +1,41 @@
-// Central API client with seamless fallback to localStorage mock engine
+import { authApi } from './authApi';
 
 const API_BASE_URL = '/api';
 
-export async function apiRequest(endpoint, options = {}) {
+export async function apiRequest(endpoint: string, options: any = {}) {
   const token = localStorage.getItem('pravya_admin_token');
-  const headers: Record<string, string> = {
+  const headers = {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    ...options.headers,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers || {}),
+  };
+
+  const doFetch = async (tokenToUse) => {
+    return fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...headers,
+        ...(tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {}),
+      },
+    });
   };
 
   try {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let res = await doFetch(token);
+
+    if (!res.ok && res.status === 401) {
+      const newToken = await authApi.refresh();
+      if (newToken) {
+        res = await doFetch(newToken);
+      }
+    }
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({ detail: res.statusText }));
       if (res.status === 401) {
         localStorage.removeItem('pravya_admin_token');
         localStorage.removeItem('pravya_admin_user');
+        localStorage.removeItem('pravya_admin_refresh_token');
         if (window.location.pathname !== '/admin/login') {
           window.location.href = '/admin/login';
         }

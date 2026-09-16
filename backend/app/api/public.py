@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.proposal import Proposal, ProposalStatus
 from app.models.company_profile import CompanyProfile
 from app.schemas.proposal import ProposalRead
-from app.schemas.company_profile import CompanyProfileRead
+from app.schemas.company_profile import CompanyProfileRead, CompanyProfileWithRelations
 from app.services.proposal_service import get_proposal_by_token, record_view
 from app.services.company_profile_service import get_or_create_company_profile
 
@@ -15,6 +15,13 @@ router = APIRouter(prefix="/public/proposals", tags=["public"])
 
 @router.get("/company-profile", response_model=CompanyProfileRead)
 async def get_public_company_profile(request: Request, db: AsyncSession = Depends(get_db)):
+    profile = await get_or_create_company_profile(db)
+    return profile
+
+
+@router.get("/company-profile/full", response_model=CompanyProfileWithRelations)
+async def get_public_company_profile_full(request: Request, db: AsyncSession = Depends(get_db)):
+    """Get full company profile with all normalized relations for PDF generation"""
     profile = await get_or_create_company_profile(db)
     return profile
 

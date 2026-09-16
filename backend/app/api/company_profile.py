@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.schemas.company_profile import CompanyProfileRead, CompanyProfileUpdate
+from app.schemas.company_profile import CompanyProfileRead, CompanyProfileUpdate, CompanyProfileWithRelations
 from app.services.company_profile_service import (
     get_or_create_company_profile,
     get_company_profile,
@@ -18,6 +18,17 @@ router = APIRouter(prefix="/company-profile", tags=["company-profile"])
 async def get_company(
     db: AsyncSession = Depends(get_db),
 ):
+    profile = await get_company_profile(db)
+    if not profile:
+        profile = await get_or_create_company_profile(db)
+    return profile
+
+
+@router.get("/full", response_model=CompanyProfileWithRelations)
+async def get_company_full(
+    db: AsyncSession = Depends(get_db),
+):
+    """Get company profile with all normalized relations loaded"""
     profile = await get_company_profile(db)
     if not profile:
         profile = await get_or_create_company_profile(db)

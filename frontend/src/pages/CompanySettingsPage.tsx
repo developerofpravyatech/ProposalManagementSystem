@@ -188,12 +188,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
             return (
               <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    {showLogo && itemObj.logo && (
-                      <div className="w-12 h-12 rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden bg-white flex-shrink-0">
-                        <img src={itemObj.logo} alt={`${itemObj.title} logo`} className="w-full h-full object-contain p-1" />
-                      </div>
-                    )}
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
                     <div className="min-w-0">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-900 truncate">{itemObj.title}</span>
@@ -294,12 +289,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
             return (
               <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    {showLogo && itemObj.logo && (
-                      <div className="w-12 h-12 rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden bg-white flex-shrink-0">
-                        <img src={itemObj.logo} alt={`${itemObj.name} logo`} className="w-full h-full object-contain p-1" />
-                      </div>
-                    )}
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
                     <div className="min-w-0">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-900 truncate">{String(itemObj.name || item)}</span>

@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from app.models.company_profile import CompanyProfile
+from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, ThemeConfig
 
 
 DEFAULT_COMPANY_PROFILE = {
@@ -72,33 +74,254 @@ DEFAULT_COMPANY_PROFILE = {
 }
 
 
+async def _sync_core_values(db: AsyncSession, profile: CompanyProfile, values: list[dict]) -> None:
+    """Sync core values from JSON to relational table"""
+    # Delete existing
+    await db.execute(
+        CoreValue.__table__.delete().where(CoreValue.company_profile_id == profile.id)
+    )
+    await db.flush()
+    
+    # Insert new
+    for i, val in enumerate(values or []):
+        if isinstance(val, dict):
+            title = val.get("title", "")
+            description = val.get("description", "")
+            logo = val.get("logo", "")
+        else:
+            title = str(val)
+            description = ""
+            logo = ""
+        if title:
+            db.add(CoreValue(
+                company_profile_id=profile.id,
+                title=title,
+                description=description,
+                logo=logo,
+                sort_order=i,
+            ))
+
+
+async def _sync_services(db: AsyncSession, profile: CompanyProfile, services: list[dict]) -> None:
+    """Sync services from JSON to relational table"""
+    await db.execute(
+        Service.__table__.delete().where(Service.company_profile_id == profile.id)
+    )
+    await db.flush()
+    
+    for i, svc in enumerate(services or []):
+        if isinstance(svc, dict):
+            title = svc.get("title", "")
+            description = svc.get("description", "")
+            logo = svc.get("logo", "")
+        else:
+            title = str(svc)
+            description = ""
+            logo = ""
+        if title:
+            db.add(Service(
+                company_profile_id=profile.id,
+                title=title,
+                description=description,
+                logo=logo,
+                sort_order=i,
+            ))
+
+
+async def _sync_bni_clients(db: AsyncSession, profile: CompanyProfile, clients: list) -> None:
+    """Sync BNI clients from JSON to relational table"""
+    await db.execute(
+        BNIClient.__table__.delete().where(BNIClient.company_profile_id == profile.id)
+    )
+    await db.flush()
+    
+    for i, client in enumerate(clients or []):
+        if isinstance(client, dict):
+            name = client.get("name", "")
+            logo = client.get("logo", "")
+        else:
+            name = str(client)
+            logo = ""
+        if name:
+            db.add(BNIClient(
+                company_profile_id=profile.id,
+                name=name,
+                logo=logo,
+                sort_order=i,
+            ))
+
+
+async def _sync_international_clients(db: AsyncSession, profile: CompanyProfile, clients: list) -> None:
+    """Sync international clients from JSON to relational table"""
+    await db.execute(
+        InternationalClient.__table__.delete().where(InternationalClient.company_profile_id == profile.id)
+    )
+    await db.flush()
+    
+    for i, client in enumerate(clients or []):
+        if isinstance(client, dict):
+            name = client.get("name", "")
+            logo = client.get("logo", "")
+        else:
+            name = str(client)
+            logo = ""
+        if name:
+            db.add(InternationalClient(
+                company_profile_id=profile.id,
+                name=name,
+                logo=logo,
+                sort_order=i,
+            ))
+
+
+async def _sync_branch_offices(db: AsyncSession, profile: CompanyProfile, offices: list) -> None:
+    """Sync branch offices from JSON to relational table"""
+    await db.execute(
+        BranchOffice.__table__.delete().where(BranchOffice.company_profile_id == profile.id)
+    )
+    await db.flush()
+    
+    for i, office in enumerate(offices or []):
+        if isinstance(office, dict):
+            name = office.get("name", "")
+            logo = office.get("logo", "")
+        else:
+            name = str(office)
+            logo = ""
+        if name:
+            db.add(BranchOffice(
+                company_profile_id=profile.id,
+                name=name,
+                logo=logo,
+                sort_order=i,
+            ))
+
+
+async def _sync_theme_config(db: AsyncSession, profile: CompanyProfile, config: dict) -> None:
+    """Sync theme config from JSON to relational table"""
+    existing = await db.execute(select(ThemeConfig).where(ThemeConfig.company_profile_id == profile.id))
+    existing_config = existing.scalar_one_or_none()
+    
+    if config:
+        if existing_config:
+            existing_config.section = "icons"
+            existing_config.icon_name = str(config)  # Store as JSON string for flexibility
+        else:
+            db.add(ThemeConfig(
+                company_profile_id=profile.id,
+                section="icons",
+                icon_name=str(config),
+            ))
+    elif existing_config:
+        await db.delete(existing_config)
+
+
 async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
-    result = await db.execute(select(CompanyProfile).limit(1))
+    result = await db.execute(
+        select(CompanyProfile)
+        .options(
+            selectinload(CompanyProfile.core_values_rel),
+            selectinload(CompanyProfile.services_rel),
+            selectinload(CompanyProfile.bni_clients_rel),
+            selectinload(CompanyProfile.international_clients_rel),
+            selectinload(CompanyProfile.branch_offices_rel),
+            selectinload(CompanyProfile.theme_config_rel),
+        )
+        .limit(1)
+    )
     profile = result.scalar_one_or_none()
     if profile is None:
         profile = CompanyProfile(**DEFAULT_COMPANY_PROFILE)
         db.add(profile)
+        await db.flush()
+        # Create default normalized data
+        await _sync_core_values(db, profile, DEFAULT_COMPANY_PROFILE["core_values"])
+        await _sync_services(db, profile, DEFAULT_COMPANY_PROFILE["services"])
+        await _sync_bni_clients(db, profile, DEFAULT_COMPANY_PROFILE["bni_clients"])
+        await _sync_international_clients(db, profile, DEFAULT_COMPANY_PROFILE["international_clients"])
+        await _sync_branch_offices(db, profile, DEFAULT_COMPANY_PROFILE["branch_offices"])
+        await _sync_theme_config(db, profile, DEFAULT_COMPANY_PROFILE["theme_config"])
         await db.commit()
         await db.refresh(profile)
+    else:
+        # Sync JSON data to relational tables if they're empty
+        await _sync_if_empty(db, profile)
     return profile
 
 
+async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
+    """Sync JSON columns to relational tables if they're empty"""
+    # Check if core_values_rel is empty
+    result = await db.execute(select(CoreValue).where(CoreValue.company_profile_id == profile.id))
+    if not result.scalar():
+        await _sync_core_values(db, profile, profile.core_values)
+        await _sync_services(db, profile, profile.services)
+        await _sync_bni_clients(db, profile, profile.bni_clients)
+        await _sync_international_clients(db, profile, profile.international_clients)
+        await _sync_branch_offices(db, profile, profile.branch_offices)
+        await _sync_theme_config(db, profile, profile.theme_config)
+        await db.commit()
+
+
 async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
-    result = await db.execute(select(CompanyProfile).limit(1))
+    result = await db.execute(
+        select(CompanyProfile)
+        .options(
+            selectinload(CompanyProfile.core_values_rel),
+            selectinload(CompanyProfile.services_rel),
+            selectinload(CompanyProfile.bni_clients_rel),
+            selectinload(CompanyProfile.international_clients_rel),
+            selectinload(CompanyProfile.branch_offices_rel),
+            selectinload(CompanyProfile.theme_config_rel),
+        )
+        .limit(1)
+    )
     return result.scalar_one_or_none()
 
 
 async def update_company_profile(db: AsyncSession, update_data: dict) -> CompanyProfile:
     profile = await get_or_create_company_profile(db)
     updated = False
+    
+    # Handle relational fields
+    relational_fields = {
+        "core_values": _sync_core_values,
+        "services": _sync_services,
+        "bni_clients": _sync_bni_clients,
+        "international_clients": _sync_international_clients,
+        "branch_offices": _sync_branch_offices,
+        "theme_config": _sync_theme_config,
+    }
+    
     for key, value in update_data.items():
         if key in {"id", "created_at", "updated_at"}:
             continue
-        if value is not None and hasattr(profile, key):
+        if key in relational_fields:
+            await relational_fields[key](db, profile, value)
+            updated = True
+            # Also update JSON column for backward compatibility
+            setattr(profile, key, value)
+        elif value is not None and hasattr(profile, key):
             setattr(profile, key, value)
             updated = True
+    
     if updated:
         profile.updated_at = datetime.now(timezone.utc)
+    profile_id = profile.id
     await db.commit()
-    await db.refresh(profile)
-    return profile
+    # Expire all objects to force reload from database
+    db.expire_all()
+    # Reload with relationships
+    result = await db.execute(
+        select(CompanyProfile)
+        .options(
+            selectinload(CompanyProfile.core_values_rel),
+            selectinload(CompanyProfile.services_rel),
+            selectinload(CompanyProfile.bni_clients_rel),
+            selectinload(CompanyProfile.international_clients_rel),
+            selectinload(CompanyProfile.branch_offices_rel),
+            selectinload(CompanyProfile.theme_config_rel),
+        )
+        .where(CompanyProfile.id == profile_id)
+    )
+    return result.scalar_one()

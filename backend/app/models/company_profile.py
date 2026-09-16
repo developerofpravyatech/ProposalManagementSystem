@@ -1,5 +1,5 @@
-from sqlalchemy import String, Text, JSON, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Text, JSON, DateTime, func, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.database import Base
 
@@ -44,3 +44,23 @@ class CompanyProfile(Base):
     
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Normalized relationships
+    core_values_rel: Mapped[list["CoreValue"]] = relationship(
+        "CoreValue", back_populates="company_profile", cascade="all, delete-orphan", order_by="CoreValue.sort_order"
+    )
+    services_rel: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="company_profile", cascade="all, delete-orphan", order_by="Service.sort_order"
+    )
+    bni_clients_rel: Mapped[list["BNIClient"]] = relationship(
+        "BNIClient", back_populates="company_profile", cascade="all, delete-orphan", order_by="BNIClient.sort_order"
+    )
+    international_clients_rel: Mapped[list["InternationalClient"]] = relationship(
+        "InternationalClient", back_populates="company_profile", cascade="all, delete-orphan", order_by="InternationalClient.sort_order"
+    )
+    branch_offices_rel: Mapped[list["BranchOffice"]] = relationship(
+        "BranchOffice", back_populates="company_profile", cascade="all, delete-orphan", order_by="BranchOffice.sort_order"
+    )
+    theme_config_rel: Mapped["ThemeConfig | None"] = relationship(
+        "ThemeConfig", back_populates="company_profile", cascade="all, delete-orphan", uselist=False
+    )

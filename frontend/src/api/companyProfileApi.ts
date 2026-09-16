@@ -62,10 +62,72 @@ function saveLocalProfile(profile) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(profile));
 }
 
+function normalizeRelationalData(profile: any) {
+  // Convert relational data to the format expected by the frontend
+  if (profile.core_values_rel && profile.core_values_rel.length > 0) {
+    profile.core_values = profile.core_values_rel.map((v: any) => ({
+      title: v.title,
+      description: v.description,
+      logo: v.logo,
+    }));
+  }
+  if (profile.services_rel && profile.services_rel.length > 0) {
+    profile.services = profile.services_rel.map((s: any) => ({
+      title: s.title,
+      description: s.description,
+      logo: s.logo,
+    }));
+  }
+  if (profile.bni_clients_rel && profile.bni_clients_rel.length > 0) {
+    profile.bni_clients = profile.bni_clients_rel.map((c: any) => ({
+      name: c.name,
+      logo: c.logo,
+    }));
+  }
+  if (profile.international_clients_rel && profile.international_clients_rel.length > 0) {
+    profile.international_clients = profile.international_clients_rel.map((c: any) => ({
+      name: c.name,
+      logo: c.logo,
+    }));
+  }
+  if (profile.branch_offices_rel && profile.branch_offices_rel.length > 0) {
+    profile.branch_offices = profile.branch_offices_rel.map((o: any) => ({
+      name: o.name,
+      logo: o.logo,
+    }));
+  }
+  if (profile.theme_config_rel) {
+    // theme_config_rel stores icon mappings
+    try {
+      const icons = JSON.parse(profile.theme_config_rel.icon_name || '{}');
+      profile.theme_config = icons;
+    } catch {
+      profile.theme_config = {};
+    }
+  }
+  return profile;
+}
+
 export const companyProfileApi = {
   async getCompanyProfile() {
     try {
-      return await apiRequest('/company-profile');
+      // Try to get full profile with relations first
+      const profile = await apiRequest('/company-profile/full');
+      return normalizeRelationalData(profile);
+    } catch {
+      // Fallback to basic profile
+      try {
+        return await apiRequest('/company-profile');
+      } catch {
+        return getLocalProfile();
+      }
+    }
+  },
+
+  async getCompanyProfileFull() {
+    try {
+      const profile = await apiRequest('/company-profile/full');
+      return normalizeRelationalData(profile);
     } catch {
       return getLocalProfile();
     }
@@ -82,9 +144,13 @@ export const companyProfileApi = {
 
   async getPublicCompanyProfile() {
     try {
-      return await apiRequest('/public/proposals/company-profile');
+      return await apiRequest('/public/proposals/company-profile/full');
     } catch {
-      return getLocalProfile();
+      try {
+        return await apiRequest('/public/proposals/company-profile');
+      } catch {
+        return getLocalProfile();
+      }
     }
   },
 
