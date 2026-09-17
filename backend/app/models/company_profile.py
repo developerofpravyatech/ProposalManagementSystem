@@ -13,6 +13,8 @@ if TYPE_CHECKING:
         BranchOffice,
         WorkProcessStep,
         PaymentMethod,
+        Signature,
+        ContractTerm,
     )
 
 
@@ -29,10 +31,6 @@ class CompanyProfile(Base):
     sales_head_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     mission: Mapped[str | None] = mapped_column(Text, nullable=True)
     vision: Mapped[str | None] = mapped_column(Text, nullable=True)
-    services: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    bni_clients: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    international_clients: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    branch_offices: Mapped[list | None] = mapped_column(JSON, nullable=True)
     logo_data: Mapped[str | None] = mapped_column(Text, nullable=True)
     logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -64,6 +62,12 @@ class CompanyProfile(Base):
     work_process_steps_rel: Mapped[list["WorkProcessStep"]] = relationship(
         "WorkProcessStep", back_populates="company_profile", cascade="all, delete-orphan", order_by="WorkProcessStep.sort_order"
     )
+    signatures_rel: Mapped[list["Signature"]] = relationship(
+        "Signature", back_populates="company_profile", cascade="all, delete-orphan", order_by="Signature.sort_order"
+    )
     payment_method_rel: Mapped["PaymentMethod | None"] = relationship(
         "PaymentMethod", back_populates="company_profile", cascade="all, delete-orphan", uselist=False
+    )
+    contract_terms_rel: Mapped[list["ContractTerm"]] = relationship(
+        "ContractTerm", back_populates="company_profile", cascade="all, delete-orphan", order_by="ContractTerm.sort_order"
     )

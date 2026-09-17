@@ -80,6 +80,21 @@ class BranchOfficeRead(BranchOfficeBase):
     id: int
 
 
+class ContractTermBase(BaseModel):
+    title: str = Field(..., max_length=255)
+    bullets: list[str] = Field(default_factory=list)
+    sort_order: int = 0
+
+
+class ContractTermCreate(ContractTermBase):
+    pass
+
+
+class ContractTermRead(ContractTermBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
+
 class WorkProcessStepBase(BaseModel):
     icon: Optional[str] = None
     title: str = Field(..., max_length=255)
@@ -119,6 +134,20 @@ class PaymentMethodRead(PaymentMethodBase):
     updated_at: datetime
 
 
+class SignatureBase(BaseModel):
+    image_data: Optional[str] = None
+    sort_order: int = 0
+
+
+class SignatureCreate(SignatureBase):
+    pass
+
+
+class SignatureRead(SignatureBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
+
 class CompanyProfileBase(BaseModel):
     company_name: str = Field(..., max_length=255)
     tagline: Optional[str] = Field(None, max_length=500)
@@ -130,16 +159,13 @@ class CompanyProfileBase(BaseModel):
     mission: Optional[str] = None
     vision: Optional[str] = None
     core_values: Optional[list[Any]] = None
-    services: Optional[list[Any]] = None
-    bni_clients: Optional[list[Any]] = None
-    international_clients: Optional[list[Any]] = None
-    branch_offices: Optional[list[Any]] = None
     logo_data: Optional[str] = None
     logo_url: Optional[str] = None
     qr_code: Optional[str] = None
     work_process_steps: Optional[list[Any]] = None
     terms: Optional[str] = None
     contract_terms: Optional[list[Any]] = None
+    signatures: Optional[list[Any]] = None
 
     # Bank Details - deprecated, use payment_method_rel instead
     bank_name: Optional[str] = Field(None, max_length=255)
@@ -164,16 +190,13 @@ class CompanyProfileUpdate(BaseModel):
     mission: Optional[str] = None
     vision: Optional[str] = None
     core_values: Optional[list[Any]] = None
-    services: Optional[list[Any]] = None
-    bni_clients: Optional[list[Any]] = None
-    international_clients: Optional[list[Any]] = None
-    branch_offices: Optional[list[Any]] = None
     logo_data: Optional[str] = None
     logo_url: Optional[str] = None
     qr_code: Optional[str] = None
     work_process_steps: Optional[list[Any]] = None
     terms: Optional[str] = None
     contract_terms: Optional[list[Any]] = None
+    signatures: Optional[list[Any]] = None
     
     # Bank Details - deprecated, use payment_method instead
     bank_name: Optional[str] = Field(None, max_length=255)
@@ -201,7 +224,9 @@ class CompanyProfileRead(CompanyProfileBase):
     international_clients_rel: list[InternationalClientRead] = []
     branch_offices_rel: list[BranchOfficeRead] = []
     work_process_steps_rel: list[WorkProcessStepRead] = []
+    signatures_rel: list[SignatureRead] = []
     payment_method_rel: Optional[PaymentMethodRead] = None
+    contract_terms_rel: list[ContractTermRead] = []
 
 
 class CompanyProfileWithRelations(CompanyProfileRead):
@@ -212,4 +237,6 @@ class CompanyProfileWithRelations(CompanyProfileRead):
     international_clients_rel: list[InternationalClientRead]
     branch_offices_rel: list[BranchOfficeRead]
     work_process_steps_rel: list[WorkProcessStepRead]
+    signatures_rel: list[SignatureRead]
     payment_method_rel: Optional[PaymentMethodRead] = None
+    contract_terms_rel: list[ContractTermRead]

@@ -70,6 +70,30 @@ async def lifespan(app: FastAPI):
                 END $$;
             """)))
 
+            print("[STARTUP] Creating company_signatures table if missing...")
+            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS company_signatures (
+                    id SERIAL PRIMARY KEY,
+                    company_profile_id INTEGER NOT NULL REFERENCES company_profile(id) ON DELETE CASCADE,
+                    image_data TEXT,
+                    sort_order INTEGER DEFAULT 0,
+                    UNIQUE(company_profile_id, sort_order)
+                );
+            """)))
+
+            print("[STARTUP] Creating company_services table if missing...")
+            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS company_services (
+                    id SERIAL PRIMARY KEY,
+                    company_profile_id INTEGER NOT NULL REFERENCES company_profile(id) ON DELETE CASCADE,
+                    title VARCHAR(255) NOT NULL,
+                    description TEXT,
+                    image_data TEXT,
+                    sort_order INTEGER DEFAULT 0,
+                    UNIQUE(company_profile_id, sort_order)
+                );
+            """)))
+
             print("[STARTUP] Creating company_payment_methods table if missing...")
             await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS company_payment_methods (

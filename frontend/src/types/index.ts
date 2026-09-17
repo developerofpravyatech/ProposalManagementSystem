@@ -137,6 +137,7 @@ sales_head_title?: string;
    branch_offices?: any[];
    logo_data?: string;
    logo_url?: string;
+   signature_data?: string;
    qr_code?: string;
    work_process_steps?: Array<{ icon?: string; title: string; description?: string }>;
    terms?: string;

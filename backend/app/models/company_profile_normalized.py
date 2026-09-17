@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, func, UniqueConstraint
+from sqlalchemy import String, Text, ForeignKey, Integer, DateTime, func, UniqueConstraint, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.database import Base
@@ -103,6 +103,21 @@ class WorkProcessStep(Base):
     )
 
 
+class Signature(Base):
+    __tablename__ = "company_signatures"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True)
+    image_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="signatures_rel")
+
+    __table_args__ = (
+        UniqueConstraint("company_profile_id", "sort_order", name="uq_signature_profile_order"),
+    )
+
+
 class PaymentMethod(Base):
     __tablename__ = "company_payment_methods"
 
@@ -122,3 +137,19 @@ class PaymentMethod(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     company_profile: Mapped["CompanyProfile"] = relationship(back_populates="payment_method_rel")
+
+
+class ContractTerm(Base):
+    __tablename__ = "company_contract_terms"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    bullets: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="contract_terms_rel")
+
+    __table_args__ = (
+        UniqueConstraint("company_profile_id", "sort_order", name="uq_contract_term_profile_order"),
+    )

@@ -144,6 +144,11 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .closing-banner { position: absolute; left: 14mm; right: 14mm; bottom: 16mm; background: var(--dark); border-radius: 3mm; padding: 6mm 6mm; }
 .closing-banner p { color: var(--white); font-size: 13pt; font-weight: 800; line-height: 1.35; }
 
+/* ===== SIGNATURE ===== */
+.cover-signature { position: absolute; left: 14mm; bottom: 31mm; }
+.cover-signature .eyebrow { font-size: 6.8pt; color: var(--muted); margin-bottom: 1mm; }
+.signature-image { max-width: 38mm; max-height: 14mm; object-fit: contain; object-position: left bottom; }
+
 /* ===== GRID HELPERS ===== */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
@@ -220,6 +225,13 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
         </div>
       </div>
     </div>
+
+    {% if signature_src %}
+    <div class="cover-signature">
+      <div class="eyebrow">Authorized Signature</div>
+      <img class="signature-image" src="{{ signature_src }}" alt="Authorized signature"/>
+    </div>
+    {% endif %}
 
     <div class="cover-closing">
       <p>{{ closing_statement | nl2br }}</p>

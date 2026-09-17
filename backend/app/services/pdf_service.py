@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.models.company_profile import CompanyProfile
+from app.models.company_profile_normalized import ContractTerm
 from app.models.proposal import Proposal
 from app.utils.security import settings
 
@@ -276,18 +277,38 @@ def _service_categories_with_logos(company_profile: CompanyProfile | None, servi
     return [{"name": name, "items": items or [{"name": "Custom digital solutions", "logo": None}]} for name, items in groups.items()]
 
 
-def _terms_from_text(text: str) -> dict[str, list[str]]:
-    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
-    if not lines:
-        return copy.deepcopy(REFERENCE_CONTENT["terms"])
-    return {
-        "payment_terms": lines[:2],
-        "annual_maintenance_contract": lines[2:4],
-        "services_limitations": lines[4:5],
-        "exclusions": lines[5:7],
-        "client_side_support": lines[7:8],
-        "project_cancellation": lines[8:],
-    }
+def _normalize_branches_rel(branches_rel: list) -> list[dict[str, Any]]:
+    """Normalize branches from relational data (BranchOffice objects)"""
+    result = []
+    for index, office in enumerate(branches_rel, 1):
+        result.append({
+            "branch_name": str(getattr(office, "name", f"BRANCH {index:02d}")),
+            "address": "",
+            "phone": "",
+            "email": "",
+            "website": "",
+        })
+    return result
+
+
+def _normalize_contract_terms(terms: Any) -> list[dict[str, Any]]:
+    """Normalize contract terms from either JSON or relational data."""
+    result = []
+    for item in _as_list(terms):
+        if isinstance(item, dict):
+            result.append({
+                "title": str(item.get("title") or "Section"),
+                "bullets": _as_list(item.get("bullets")),
+            })
+        elif hasattr(item, "title"):
+            # Relational ContractTerm object
+            result.append({
+                "title": str(getattr(item, "title", "Section")),
+                "bullets": _as_list(getattr(item, "bullets", [])),
+            })
+        else:
+            result.append({"title": str(item), "bullets": []})
+    return result
 
 
 def _normalize_clients(value: Any) -> list[dict[str, Any]]:
@@ -411,6 +432,10 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
     elif not raw.get("terms") and getattr(company_profile, "terms", None):
         terms_data.update(_terms_from_text(company_profile.terms))
 
+    # Contract terms from relational table
+    if getattr(company_profile, "contract_terms_rel", None):
+        content["contract_terms"] = _normalize_contract_terms(company_profile.contract_terms_rel)
+
     clients_data = content.setdefault("clients", {})
     if not raw.get("clients"):
         if getattr(company_profile, "bni_clients_rel", None):
@@ -445,8 +470,8 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
         payment_data.setdefault("swift_code", getattr(company_profile, "swift_code", None) or "")
         payment_data.setdefault("iban", getattr(company_profile, "iban", None) or "")
 
-    if not raw.get("branches") and getattr(company_profile, "branch_offices", None):
-        content["branches"] = _normalize_branches(company_profile.branch_offices)
+    if not raw.get("branches") and getattr(company_profile, "branch_offices_rel", None):
+        content["branches"] = _normalize_branches_rel(company_profile.branch_offices_rel)
 
     return content
 
@@ -504,6 +529,7 @@ def _template_context(content: dict[str, Any], company_profile: CompanyProfile |
         "services": content.get("services", {}),
         "process": content.get("process", {}),
         "terms_sections": terms_sections,
+        "contract_terms": content.get("contract_terms", []),
         "clients": content.get("clients", {}),
         "pricing": content.get("pricing", {}),
         "payment": payment,
@@ -597,6 +623,10 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
     logo_data = getattr(cp, "logo_data", None)
     logo_url = getattr(cp, "logo_url", None)
     logo_src = _logo_path_to_base64(logo_data if logo_data else (logo_url if logo_url else ""))
+    signature_data = None
+    if getattr(cp, "signatures_rel", None) and len(cp.signatures_rel) > 0:
+        signature_data = cp.signatures_rel[0].image_data
+    signature_src = _logo_path_to_base64(signature_data) if signature_data else ""
 
     # Core values – use relational data and convert logos to base64
     core_values = []
@@ -642,7 +672,15 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
             "website": ""
         })
 
-    # Terms
+    # Contract Terms – use relational data
+    contract_terms = []
+    for t in getattr(cp, "contract_terms_rel", []):
+        contract_terms.append({
+            "title": t.title,
+            "bullets": t.bullets or []
+        })
+
+    # Terms (legacy)
     terms_text = str(getattr(cp, "terms", None) or "")
     terms_dict = _terms_from_text(terms_text) if terms_text else {}
     terms_sections = [
@@ -714,12 +752,14 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         sales_head_name=sales_head_name,
         sales_head_title=sales_head_title,
         logo_src=logo_src,
+        signature_src=signature_src,
         positioning=positioning,
         vision=str(getattr(cp, "vision", None) or ""),
         mission=str(getattr(cp, "mission", None) or ""),
         core_values=core_values,
         services=services,
         terms_sections=terms_sections,
+        contract_terms=contract_terms,
         bni_clients=bni_clients,
         international_clients=international_clients,
         payment=payment,

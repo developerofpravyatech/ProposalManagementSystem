@@ -41,6 +41,13 @@ function normalizeRelationalData(profile: any) {
       description: s.description,
     }));
   }
+  if (profile.signatures_rel && profile.signatures_rel.length > 0) {
+    // Take the first signature for backward compatibility
+    profile.signature_data = profile.signatures_rel[0].image_data;
+    profile.signatures = profile.signatures_rel.map((s: any) => ({
+      image_data: s.image_data,
+    }));
+  }
   return profile;
 }
 
@@ -82,6 +89,17 @@ export const companyProfileApi = {
     const formData = new FormData();
     formData.append('file', file);
     const response = await apiRequest('/company-profile/upload-logo', {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+    return response.url;
+  },
+
+  async uploadSignature(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiRequest('/company-profile/upload-signature', {
       method: 'POST',
       body: formData,
       headers: {},

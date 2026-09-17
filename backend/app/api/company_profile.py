@@ -12,6 +12,7 @@ from app.services.pdf_service import build_company_profile_pdf
 from app.api.auth import get_current_admin
 from app.utils.security import settings
 from app.models.company_profile import CompanyProfile
+from app.models.company_profile_normalized import Signature
 import os
 import logging
 import uuid
@@ -23,17 +24,18 @@ router = APIRouter(prefix="/company-profile", tags=["company-profile"])
 logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
+SIGNATURE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
 
 
-def validate_file(file: UploadFile) -> None:
+def validate_file(file: UploadFile, allowed_extensions: set[str] = ALLOWED_EXTENSIONS) -> None:
     """Validate uploaded file"""
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
     
     ext = os.path.splitext(file.filename.lower())[1]
-    if ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
+    if ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: {', '.join(sorted(allowed_extensions))}")
     
     # Check file size
     file.file.seek(0, 2)  # Seek to end
@@ -128,6 +130,37 @@ async def upload_logo(
     await db.commit()
     await db.refresh(profile)
     
+    return {"url": data_url, "filename": file.filename, "stored_in_db": True}
+
+
+@router.post("/upload-signature")
+async def upload_signature(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_admin=Depends(get_current_admin),
+):
+    """Upload the company signature and store it as base64 in the database"""
+    validate_file(file, SIGNATURE_EXTENSIONS)
+
+    content = await file.read()
+    data_url = encode_image(file, content)
+
+    profile = await get_or_create_company_profile(db)
+    
+    # Delete existing signatures
+    result = await db.execute(select(Signature).where(Signature.company_profile_id == profile.id))
+    existing_signatures = result.scalars().all()
+    for sig in existing_signatures:
+        await db.delete(sig)
+    
+    # Add new signature
+    db.add(Signature(
+        company_profile_id=profile.id,
+        image_data=data_url,
+        sort_order=0,
+    ))
+    await db.commit()
+
     return {"url": data_url, "filename": file.filename, "stored_in_db": True}
 
 

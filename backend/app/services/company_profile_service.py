@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.models.company_profile import CompanyProfile
-from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, WorkProcessStep, PaymentMethod
+from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, WorkProcessStep, PaymentMethod, Signature, ContractTerm
 
 
 DEFAULT_COMPANY_PROFILE = {
@@ -28,24 +28,6 @@ DEFAULT_COMPANY_PROFILE = {
         {"title": "Innovation", "description": "We embrace change and continuously seek better ways to solve problems."},
         {"title": "Excellence", "description": "We are committed to delivering quality work that stands the test of time."},
         {"title": "Collaboration", "description": "We believe in the power of teamwork and long-term partnerships."},
-    ],
-    "services": [
-        {"title": "Design & Illustration", "description": "Creative visual assets, branding, and illustration services that communicate your brand story effectively."},
-        {"title": "Website Designing", "description": "Responsive, user-centric website designs that deliver exceptional user experiences across all devices."},
-        {"title": "Research & Analysis", "description": "In-depth market research and data-driven analysis to inform strategic business decisions."},
-        {"title": "Content Marketing", "description": "Engaging content strategies that drive traffic, generate leads, and build brand authority."},
-    ],
-    "bni_clients": ["Shree Cement", "Adani Group", "Reliance Industries", "Tata Consultancy Services", "Infosys", "Wipro"],
-    "international_clients": [
-        "TechFlow Inc. (USA)",
-        "EuroTech Solutions (Germany)",
-        "Asia Pacific Digital (Singapore)",
-        "UK Digital Labs (London)",
-        "Canada Tech Ventures (Toronto)",
-    ],
-    "branch_offices": [
-        "Rajkot - 150ft Rd, Gondal Rd, Gujarat, India",
-        "California, USA",
     ],
     "work_process_steps": [],
     "logo_data": None,
@@ -227,6 +209,26 @@ async def _sync_work_process_steps(db: AsyncSession, profile: CompanyProfile, st
             ))
 
 
+async def _sync_signatures(db: AsyncSession, profile: CompanyProfile, signatures: list[dict]) -> None:
+    """Sync signatures from JSON to relational table"""
+    await db.execute(
+        Signature.__table__.delete().where(Signature.company_profile_id == profile.id)
+    )
+    await db.flush()
+    
+    for i, sig in enumerate(signatures or []):
+        if isinstance(sig, dict):
+            image_data = sig.get("image_data", "")
+        else:
+            image_data = str(sig)
+        if image_data:
+            db.add(Signature(
+                company_profile_id=profile.id,
+                image_data=image_data,
+                sort_order=i,
+            ))
+
+
 async def _sync_payment_method(db: AsyncSession, profile: CompanyProfile, data: dict | None) -> None:
     """Sync payment method from JSON to relational table"""
     if data is None:
@@ -261,6 +263,29 @@ async def _sync_payment_method(db: AsyncSession, profile: CompanyProfile, data: 
         ))
 
 
+async def _sync_contract_terms(db: AsyncSession, profile: CompanyProfile, terms: list) -> None:
+    """Sync contract terms from JSON to relational table"""
+    await db.execute(
+        ContractTerm.__table__.delete().where(ContractTerm.company_profile_id == profile.id)
+    )
+    await db.flush()
+    
+    for i, term in enumerate(terms or []):
+        if isinstance(term, dict):
+            title = term.get("title", "")
+            bullets = term.get("bullets", [])
+        else:
+            title = str(term)
+            bullets = []
+        if title:
+            db.add(ContractTerm(
+                company_profile_id=profile.id,
+                title=title,
+                bullets=bullets,
+                sort_order=i,
+            ))
+
+
 async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
     result = await db.execute(
         select(CompanyProfile)
@@ -271,7 +296,9 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
+            selectinload(CompanyProfile.signatures_rel),
             selectinload(CompanyProfile.payment_method_rel),
+            selectinload(CompanyProfile.contract_terms_rel),
         )
         .limit(1)
     )
@@ -281,16 +308,19 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
         profile_data = DEFAULT_COMPANY_PROFILE.copy()
         # core_values is not a column on the model; use it only for relational sync
         default_core_values = profile_data.pop("core_values", [])
+        default_contract_terms = profile_data.pop("contract_terms", [])
         profile = CompanyProfile(**profile_data)
         db.add(profile)
         await db.flush()
         # Create default normalized data
         await _sync_core_values(db, profile, default_core_values)
-        await _sync_services(db, profile, DEFAULT_COMPANY_PROFILE["services"])
-        await _sync_bni_clients(db, profile, DEFAULT_COMPANY_PROFILE["bni_clients"])
-        await _sync_international_clients(db, profile, DEFAULT_COMPANY_PROFILE["international_clients"])
-        await _sync_branch_offices(db, profile, DEFAULT_COMPANY_PROFILE["branch_offices"])
-        await _sync_work_process_steps(db, profile, DEFAULT_COMPANY_PROFILE["work_process_steps"])
+        await _sync_services(db, profile, [
+            {"title": "Design & Illustration", "description": "Creative visual assets, branding, and illustration services that communicate your brand story effectively."},
+            {"title": "Website Designing", "description": "Responsive, user-centric website designs that deliver exceptional user experiences across all devices."},
+            {"title": "Research & Analysis", "description": "In-depth market research and data-driven analysis to inform strategic business decisions."},
+            {"title": "Content Marketing", "description": "Engaging content strategies that drive traffic, generate leads, and build brand authority."},
+        ])
+        await _sync_contract_terms(db, profile, default_contract_terms)
         await db.commit()
         await db.refresh(profile)
     else:
@@ -303,11 +333,8 @@ async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
     """Populate normalized tables from legacy JSON fields when needed."""
     relation_sources = (
         (CoreValue, "core_values_rel", getattr(profile, "core_values", None) or [], _sync_core_values),
-        (Service, "services_rel", profile.services or [], _sync_services),
-        (BNIClient, "bni_clients_rel", profile.bni_clients or [], _sync_bni_clients),
-        (InternationalClient, "international_clients_rel", profile.international_clients or [], _sync_international_clients),
-        (BranchOffice, "branch_offices_rel", profile.branch_offices or [], _sync_branch_offices),
         (WorkProcessStep, "work_process_steps_rel", getattr(profile, "work_process_steps", None) or [], _sync_work_process_steps),
+        (ContractTerm, "contract_terms_rel", profile.contract_terms or [], _sync_contract_terms),
     )
     updated = False
 
@@ -350,7 +377,9 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
+            selectinload(CompanyProfile.signatures_rel),
             selectinload(CompanyProfile.payment_method_rel),
+            selectinload(CompanyProfile.contract_terms_rel),
         )
         .limit(1)
     )
@@ -366,7 +395,9 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
                 selectinload(CompanyProfile.international_clients_rel),
                 selectinload(CompanyProfile.branch_offices_rel),
                 selectinload(CompanyProfile.work_process_steps_rel),
+                selectinload(CompanyProfile.signatures_rel),
                 selectinload(CompanyProfile.payment_method_rel),
+                selectinload(CompanyProfile.contract_terms_rel),
             )
             .where(CompanyProfile.id == profile.id)
         )
@@ -381,13 +412,20 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
     # Handle relational fields
     relational_fields = {
         "core_values": _sync_core_values,
-        "services": _sync_services,
         "bni_clients": _sync_bni_clients,
         "international_clients": _sync_international_clients,
         "branch_offices": _sync_branch_offices,
         "work_process_steps": _sync_work_process_steps,
+        "signatures": _sync_signatures,
         "payment_method": _sync_payment_method,
+        "contract_terms": _sync_contract_terms,
     }
+    
+    # Handle backward compatibility for signature_data
+    if "signature_data" in update_data:
+        signature_data = update_data.pop("signature_data")
+        if signature_data:
+            update_data["signatures"] = [{"image_data": signature_data}]
     
     for key, value in update_data.items():
         if key in {"id", "created_at", "updated_at"}:
@@ -414,7 +452,9 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
+            selectinload(CompanyProfile.signatures_rel),
             selectinload(CompanyProfile.payment_method_rel),
+            selectinload(CompanyProfile.contract_terms_rel),
         )
         .where(CompanyProfile.id == profile_id)
     )

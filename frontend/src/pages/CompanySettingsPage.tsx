@@ -35,6 +35,8 @@ interface CompanyProfile {
   upi_id?: string;
   swift_code?: string;
   iban?: string;
+  signatures?: Array<{ image_data: string }>;
+  signature_data?: string;
 }
 
 function LabeledField({ label, value, onChange, type = 'text', rows, placeholder }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; type?: string; rows?: number; placeholder?: string }) {
@@ -45,7 +47,7 @@ function LabeledField({ label, value, onChange, type = 'text', rows, placeholder
   );
 }
 
-function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = companyProfileApi.uploadLogo, size = 'sm' }: { currentLogo?: string; onLogoChange: (logo: string) => void; onLogoRemove: () => void; upload?: (file: File) => Promise<string>; size?: 'sm' | 'lg' }) {
+function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = companyProfileApi.uploadLogo, size = 'sm', label = 'Logo', allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'], accept = 'image/*', helpText = 'PNG, JPG, SVG, WebP (max 2MB)', previewAlt = 'Logo preview' }: { currentLogo?: string; onLogoChange: (logo: string) => void; onLogoRemove: () => void; upload?: (file: File) => Promise<string>; size?: 'sm' | 'lg'; label?: string; allowedTypes?: string[]; accept?: string; helpText?: string; previewAlt?: string }) {
   const [preview, setPreview] = useState<string | null>(currentLogo || null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,9 +65,9 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = co
       return;
     }
 
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Invalid file type. Allowed: PNG, JPG, SVG, WebP');
+    const allowedTypesToCheck = allowedTypes;
+    if (!allowedTypesToCheck.includes(file.type)) {
+      alert(`Invalid file type. Allowed: ${helpText.replace(' (max 2MB)', '')}`);
       return;
     }
 
@@ -110,7 +112,7 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = co
       <div className={`relative ${previewSize} rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden bg-slate-50 flex-shrink-0`}>
         {preview ? (
           <>
-            <img src={preview} alt="Logo preview" className="w-full h-full object-contain p-1" />
+            <img src={preview} alt={previewAlt} className="w-full h-full object-contain p-1" />
             {uploading && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -121,7 +123,7 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = co
               onClick={handleRemove}
               disabled={uploading}
               className="absolute top-1 right-1 p-1 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Remove logo"
+              aria-label={`Remove ${label.toLowerCase()}`}
             >
               <X className="w-3 h-3" />
             </button>
@@ -133,17 +135,17 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = co
       <div className="space-y-1">
         <label className={`flex items-center gap-1.5 ${buttonSize} bg-slate-100 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
           <Upload className="w-3 h-3" />
-          <span>{uploading ? 'Uploading...' : preview ? 'Change Logo' : 'Add Logo'}</span>
+          <span>{uploading ? 'Uploading...' : preview ? `Change ${label}` : `Add ${label}`}</span>
           <input
             type="file"
             ref={fileInputRef}
-            accept="image/*"
+            accept={accept}
             onChange={handleFileSelect}
             className="hidden"
             disabled={uploading}
           />
         </label>
-        <p className="text-[10px] text-slate-500">PNG, JPG, SVG, WebP (max 2MB)</p>
+        <p className="text-[10px] text-slate-500">{helpText}</p>
       </div>
     </div>
   );
@@ -196,7 +198,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
         <Input placeholder="Description" value={descValue} onChange={(e) => setDescValue(e.target.value)} className="sm:col-span-2" />
         {showLogo && (
           <div className="flex items-center">
-            <LogoUploadButton
+            <ImageUploadButton
               currentLogo={logoValue}
               onLogoChange={setLogoValue}
               onLogoRemove={() => setLogoValue('')}
@@ -232,7 +234,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
                     </div>
                   </div>
                   {showLogo && (
-                    <LogoUploadButton
+                    <ImageUploadButton
                       currentLogo={itemObj.logo || ''}
                       onLogoChange={(logo) => handleLogoChange(idx, logo)}
                       onLogoRemove={() => handleLogoRemove(idx)}
@@ -358,7 +360,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
         />
         {showLogo && (
           <div className="flex items-center">
-            <LogoUploadButton
+            <ImageUploadButton
               currentLogo={logoValue}
               onLogoChange={setLogoValue}
               onLogoRemove={() => setLogoValue('')}
@@ -391,7 +393,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
                     </div>
                   </div>
                   {showLogo && (
-                    <LogoUploadButton
+                    <ImageUploadButton
                       currentLogo={itemObj.logo || ''}
                       onLogoChange={(logo) => handleLogoChange(idx, logo)}
                       onLogoRemove={() => handleLogoRemove(idx)}
@@ -612,6 +614,21 @@ export function CompanySettingsPage() {
             <Input label="Website" value={profile.website || ''} onChange={(e) => handleInputChange('website', e.target.value)} />
             <Input label="Sales Head Name" value={profile.sales_head_name || ''} onChange={(e) => handleInputChange('sales_head_name', e.target.value)} />
             <Input label="Sales Head Title" value={profile.sales_head_title || ''} onChange={(e) => handleInputChange('sales_head_title', e.target.value)} />
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Signature</label>
+              <ImageUploadButton
+                currentLogo={profile.signature_data}
+                onLogoChange={(signature) => handleInputChange('signature_data', signature)}
+                onLogoRemove={() => handleInputChange('signature_data', '')}
+                upload={companyProfileApi.uploadSignature}
+                size="lg"
+                label="Signature"
+                allowedTypes={['image/png', 'image/jpeg', 'image/jpg']}
+                accept="image/png,image/jpeg"
+                helpText="PNG or JPEG (max 2MB)"
+                previewAlt="Signature preview"
+              />
+            </div>
           </div>
         </Card>
 
