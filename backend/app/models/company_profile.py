@@ -36,6 +36,14 @@ class CompanyProfile(Base):
     qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     terms: Mapped[str | None] = mapped_column(Text, nullable=True)
     contract_terms: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    profile_paragraphs: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    cover_letter_salutation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cover_letter_paragraphs: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    cover_letter_signoff: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cover_letter_signature_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    cover_letter_signature_designation: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    cover_letter_signature_date: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    cover_letter_signature_image: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Bank Details - moved to company_payment_methods table
     # bank_name, bank_account_name, bank_account_number, bank_ifsc, bank_branch, upi_id, swift_code, iban kept for backward compatibility

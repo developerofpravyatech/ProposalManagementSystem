@@ -1,8 +1,8 @@
-"""add company signature
+"""add cover letter signature image
 
-Revision ID: b3d7e9a1c2f4
-Revises: 82aaef6d6477
-Create Date: 2026-09-17 08:45:00.000000
+Revision ID: 1a65c62d5e9e
+Revises: a56c561fb407
+Create Date: 2026-09-17 17:13:47.828107
 
 """
 from typing import Sequence, Union
@@ -11,8 +11,9 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = "b3d7e9a1c2f4"
-down_revision: Union[str, Sequence[str], None] = "82aaef6d6477"
+# revision identifiers, used by Alembic.
+revision: str = '1a65c62d5e9e'
+down_revision: Union[str, Sequence[str], None] = 'a56c561fb407'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -26,9 +27,9 @@ def upgrade() -> None:
             .bindparams(t=t, c=c)
         ).scalar())
 
-    # Add signature_data column
-    if not column_exists("company_profile", "signature_data"):
-        op.add_column("company_profile", sa.Column("signature_data", sa.Text(), nullable=True))
+    # Add cover_letter_signature_image column
+    if not column_exists("company_profile", "cover_letter_signature_image"):
+        op.add_column("company_profile", sa.Column("cover_letter_signature_image", sa.Text(), nullable=True))
 
 
 def downgrade() -> None:
@@ -41,5 +42,5 @@ def downgrade() -> None:
         ).scalar())
 
     # Drop the column
-    if column_exists("company_profile", "signature_data"):
-        op.drop_column("company_profile", "signature_data")
+    if column_exists("company_profile", "cover_letter_signature_image"):
+        op.drop_column("company_profile", "cover_letter_signature_image")

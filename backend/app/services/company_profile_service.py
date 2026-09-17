@@ -48,6 +48,19 @@ DEFAULT_COMPANY_PROFILE = {
         {"title": "Confidentiality and NDA", "bullets": ["Both parties maintain strict confidentiality", "Non-compete clause for project duration", "Employee and contractor confidentiality obligations", "Duration: 3 years post-project completion", "Exceptions for public domain information"]},
         {"title": "Warranty and Support", "bullets": ["30-day warranty period from delivery date", "Bug fixes provided free of charge", "Support via email and phone during business hours", "Warranty excludes client-requested changes", "Extended support available via separate agreement"]},
     ],
+    # Profile & Cover Letter fields
+    "profile_paragraphs": [
+        "PRAVYA TECH is a leading technology partner specializing in digital transformation, custom software development, and creative design solutions. We empower businesses across industries to embrace innovation and achieve sustainable growth through technology.",
+        "Our team combines deep technical expertise with strategic thinking to deliver solutions that are not just functional but transformative. From startups to enterprises, we tailor our approach to each client's unique challenges and opportunities.",
+        "We believe in building long-term partnerships based on trust, transparency, and measurable results. Every project we undertake is backed by our commitment to excellence and our passion for creating digital experiences that matter."
+    ],
+    "cover_letter_salutation": "Dear {recipient_name},",
+    "cover_letter_paragraphs": [
+        "Thank you for considering PRAVYA TECH as your technology partner. We understand the importance of choosing the right team to bring your vision to life, and we are honored by the opportunity to present our capabilities.",
+        "Our approach combines creative strategy, technical excellence, and a deep understanding of your business objectives. We don't just build software—we craft digital solutions that drive real business outcomes and create lasting value for your organization.",
+        "The enclosed proposal outlines our understanding of your requirements, our recommended approach, and a transparent breakdown of investment and timeline. We are committed to open communication, collaborative execution, and delivering results that exceed expectations."
+    ],
+    "cover_letter_signoff": "Warm regards,",
     # Bank Details
     "bank_name": "HDFC Bank",
     "bank_account_name": "PRAVYA TECH Solutions",

@@ -393,6 +393,15 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
     letter.setdefault("signer_designation", sales_head_title.upper())
     letter.setdefault("proposal_introduction", "Thank you for considering PRAVYA TECH. We look forward to building a lasting partnership.")
 
+    # Use saved cover letter content from company profile if available
+    if company_profile:
+        if getattr(company_profile, "cover_letter_salutation", None):
+            letter["salutation"] = company_profile.cover_letter_salutation
+        if getattr(company_profile, "cover_letter_paragraphs", None):
+            letter["letter_body"] = company_profile.cover_letter_paragraphs
+        if getattr(company_profile, "cover_letter_signoff", None):
+            letter["signoff"] = company_profile.cover_letter_signoff
+
     profile_data = content.setdefault("company_profile", {})
     raw_profile = _as_dict(raw.get("company_profile"))
     if not raw_profile.get("vision") and getattr(company_profile, "vision", None):
@@ -409,6 +418,9 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
                 "logo": _logo_path_to_base64(v.logo) if v.logo else ""
             })
         profile_data["core_values"] = core_values
+    # Use saved profile paragraphs from company profile if available
+    if company_profile and getattr(company_profile, "profile_paragraphs", None):
+        profile_data["profile_paragraphs"] = company_profile.profile_paragraphs
 
     services_data = content.setdefault("services", {})
     if not raw.get("services") and company_profile and getattr(company_profile, "services_rel", None):
@@ -680,6 +692,14 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
             "bullets": t.bullets or []
         })
 
+    # Profile paragraphs - use saved content
+    profile_paragraphs = getattr(cp, "profile_paragraphs", None) or []
+
+    # Cover letter content - use saved content
+    cover_letter_salutation = getattr(cp, "cover_letter_salutation", None) or "Dear Valued Client,"
+    cover_letter_paragraphs = getattr(cp, "cover_letter_paragraphs", None) or []
+    cover_letter_signoff = getattr(cp, "cover_letter_signoff", None) or "Warm regards,"
+
     # Terms (legacy)
     terms_text = str(getattr(cp, "terms", None) or "")
     terms_dict = _terms_from_text(terms_text) if terms_text else {}
@@ -708,8 +728,8 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         payment["swift_iban"] = payment["swift_code"] or payment["iban"] or "-"
         payment["qr_src"] = _qr_src(payment["qr_code"] or payment["upi_id"] or website or "")
 
-    # Calculate total pages: Cover + Profile + Services? + Terms? + BNI? + Intl? + Payment? + Branches
-    total_pages = 2  # cover + profile always
+    # Calculate total pages: Cover + Cover Letter + Profile + Services? + Terms? + BNI? + Intl? + Payment? + Branches
+    total_pages = 3  # cover + cover letter + profile always
     if services:
         total_pages += 1
     if terms_sections:
@@ -769,6 +789,11 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         current_year=now.year,
         current_date=current_date,
         valid_till=valid_till,
+        # New cover letter and profile content
+        cover_letter_salutation=cover_letter_salutation,
+        cover_letter_paragraphs=cover_letter_paragraphs,
+        cover_letter_signoff=cover_letter_signoff,
+        profile_paragraphs=profile_paragraphs,
     )
     _render_html_to_pdf(html, filepath)
 

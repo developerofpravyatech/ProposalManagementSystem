@@ -166,6 +166,14 @@ class CompanyProfileBase(BaseModel):
     terms: Optional[str] = None
     contract_terms: Optional[list[Any]] = None
     signatures: Optional[list[Any]] = None
+    profile_paragraphs: Optional[list[str]] = None
+    cover_letter_salutation: Optional[str] = None
+    cover_letter_paragraphs: Optional[list[str]] = None
+    cover_letter_signoff: Optional[str] = None
+    cover_letter_signature_name: Optional[str] = Field(None, max_length=255)
+    cover_letter_signature_designation: Optional[str] = Field(None, max_length=255)
+    cover_letter_signature_date: Optional[str] = Field(None, max_length=50)
+    cover_letter_signature_image: Optional[str] = None
 
     # Bank Details - deprecated, use payment_method_rel instead
     bank_name: Optional[str] = Field(None, max_length=255)
@@ -197,6 +205,14 @@ class CompanyProfileUpdate(BaseModel):
     terms: Optional[str] = None
     contract_terms: Optional[list[Any]] = None
     signatures: Optional[list[Any]] = None
+    profile_paragraphs: Optional[list[str]] = None
+    cover_letter_salutation: Optional[str] = None
+    cover_letter_paragraphs: Optional[list[str]] = None
+    cover_letter_signoff: Optional[str] = None
+    cover_letter_signature_name: Optional[str] = Field(None, max_length=255)
+    cover_letter_signature_designation: Optional[str] = Field(None, max_length=255)
+    cover_letter_signature_date: Optional[str] = Field(None, max_length=50)
+    cover_letter_signature_image: Optional[str] = None
     
     # Bank Details - deprecated, use payment_method instead
     bank_name: Optional[str] = Field(None, max_length=255)

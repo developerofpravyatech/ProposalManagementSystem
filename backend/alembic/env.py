@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.database import Base
-from app.models import Admin, Proposal, ProposalView, CompanyProfile, Client, CoreValue, Service, BNIClient, InternationalClient, BranchOffice, ThemeConfig, WorkProcessStep
+from app.models import Admin, Proposal, ProposalView, CompanyProfile, Client, CoreValue, Service, BNIClient, InternationalClient, BranchOffice, WorkProcessStep
 
 config = context.config
 
