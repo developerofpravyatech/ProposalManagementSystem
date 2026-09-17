@@ -8,8 +8,8 @@
   }
   
   body {
-    background-color: #F8FAFC;
-    color: #0F172A;
+    background-color: #FFFFFF;
+    color: #2A2C35;
     overflow-x: hidden;
   }
 
@@ -56,22 +56,22 @@
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #0F172A 0%, #334155 100%);
+    background: linear-gradient(135deg, #2A2C35 0%, #2A2C35 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .text-gradient-brand {
-    background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+    background: linear-gradient(135deg, #C81D31 0%, #C81D31 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .mesh-bg {
-    background-color: #F8FAFC;
+    background-color: #FFFFFF;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(220, 38, 38, 0.04) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(15, 23, 42, 0.03) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(220, 38, 38, 0.03) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(200, 29, 49, 0.04) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(42, 44, 53, 0.03) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(200, 29, 49, 0.03) 0px, transparent 50%);
   }
 }

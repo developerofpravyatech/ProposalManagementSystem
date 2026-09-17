@@ -86,17 +86,6 @@ class BranchOffice(Base):
     )
 
 
-class ThemeConfig(Base):
-    __tablename__ = "company_theme_config"
-
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True, unique=True)
-    section: Mapped[str] = mapped_column(String(50), nullable=False)
-    icon_name: Mapped[str | None] = mapped_column(Text, nullable=True)
-
-    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="theme_config_rel")
-
-
 class WorkProcessStep(Base):
     __tablename__ = "company_work_process_steps"
 

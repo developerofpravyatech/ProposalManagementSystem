@@ -43,6 +43,19 @@ def validate_file(file: UploadFile) -> None:
         raise HTTPException(status_code=400, detail="File size must be less than 2MB")
 
 
+def encode_image(file: UploadFile, content: bytes) -> str:
+    ext = os.path.splitext(file.filename.lower())[1]
+    mime_type = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".svg": "image/svg+xml",
+        ".webp": "image/webp",
+    }.get(ext, "application/octet-stream")
+    base64_data = base64.b64encode(content).decode("utf-8")
+    return f"data:{mime_type};base64,{base64_data}"
+
+
 @router.get("/", response_model=CompanyProfileRead)
 async def get_company(
     db: AsyncSession = Depends(get_db),
@@ -103,32 +116,34 @@ async def upload_logo(
     db: AsyncSession = Depends(get_db),
     current_admin=Depends(get_current_admin),
 ):
-    """Upload a logo file and store as base64 in database"""
+    """Upload the main company logo and store it as base64 in the database"""
     validate_file(file)
     
     content = await file.read()
+    data_url = encode_image(file, content)
     
-    # Convert to base64 data URL
-    ext = os.path.splitext(file.filename.lower())[1]
-    mime_type = {
-        ".png": "image/png",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".svg": "image/svg+xml",
-        ".webp": "image/webp",
-    }.get(ext, "application/octet-stream")
-    
-    base64_data = base64.b64encode(content).decode("utf-8")
-    data_url = f"data:{mime_type};base64,{base64_data}"
-    
-    # Update company profile with base64 logo
     profile = await get_or_create_company_profile(db)
     profile.logo_data = data_url
-    profile.logo_url = None  # Clear file URL since we're storing in DB
+    profile.logo_url = None
     await db.commit()
     await db.refresh(profile)
     
     return {"url": data_url, "filename": file.filename, "stored_in_db": True}
+
+
+@router.post("/upload-item-logo")
+async def upload_item_logo(
+    file: UploadFile = File(...),
+    current_admin=Depends(get_current_admin),
+):
+    """Return an uploaded item logo as a base64 data URL without changing the company logo"""
+    validate_file(file)
+    content = await file.read()
+    return {
+        "url": encode_image(file, content),
+        "filename": file.filename,
+        "stored_in_db": False,
+    }
 
 
 @router.get("/logo")

@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Building2, Sparkles, Plus, Trash2, Upload, Image, Palette, X, FileDown } from 'lucide-react';
+import { Save, Building2, Sparkles, Plus, Trash2, Upload, Image, X, FileDown } from 'lucide-react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input, Textarea } from '../components/common/Input';
 import { companyProfileApi } from '../api/companyProfileApi';
 import { useToast } from '../context/ToastContext';
-import { IconSelector } from '../components/common/IconSelector';
 
 interface CompanyProfile {
   company_name?: string;
@@ -26,10 +25,6 @@ interface CompanyProfile {
   logo_data?: string;
   logo_url?: string;
   qr_code?: string;
-  primary_color?: string;
-  secondary_color?: string;
-  accent_color?: string;
-  theme_config?: Record<string, string>;
   terms?: string;
   contract_terms?: Array<{ title: string; bullets: string[] }>;
   bank_name?: string;
@@ -50,7 +45,7 @@ function LabeledField({ label, value, onChange, type = 'text', rows, placeholder
   );
 }
 
-function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, size = 'sm' }: { currentLogo?: string; onLogoChange: (logo: string) => void; onLogoRemove: () => void; size?: 'sm' | 'lg' }) {
+function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = companyProfileApi.uploadLogo, size = 'sm' }: { currentLogo?: string; onLogoChange: (logo: string) => void; onLogoRemove: () => void; upload?: (file: File) => Promise<string>; size?: 'sm' | 'lg' }) {
   const [preview, setPreview] = useState<string | null>(currentLogo || null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,12 +75,12 @@ function LogoUploadButton({ currentLogo, onLogoChange, onLogoRemove, size = 'sm'
     setUploading(true);
 
     try {
-      const result = await companyProfileApi.uploadLogo(file);
+      const result = await upload(file);
       // Revoke the temporary object URL
       URL.revokeObjectURL(tempPreview);
       // Backend now returns base64 data URL in result.url
-      setPreview(result.url);
-      onLogoChange(result.url);
+      setPreview(result);
+      onLogoChange(result);
     } catch (error) {
       console.error('Logo upload failed:', error);
       alert('Failed to upload logo. Please try again.');
@@ -205,6 +200,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
               currentLogo={logoValue}
               onLogoChange={setLogoValue}
               onLogoRemove={() => setLogoValue('')}
+              upload={companyProfileApi.uploadItemLogo}
               size="sm"
             />
           </div>
@@ -240,8 +236,10 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
                       currentLogo={itemObj.logo || ''}
                       onLogoChange={(logo) => handleLogoChange(idx, logo)}
                       onLogoRemove={() => handleLogoRemove(idx)}
+                      upload={companyProfileApi.uploadItemLogo}
                       size="sm"
                     />
+
                   )}
                 </div>
               </div>
@@ -281,11 +279,6 @@ function WorkProcessField({ label, items, onChange }: { label: string; items: Ar
             <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <IconSelector
-                    value={item.icon}
-                    onChange={(icon) => updateItem(idx, 'icon', icon)}
-                    showLabel={false}
-                  />
                   <Input
                     value={item.title || ''}
                     onChange={(e) => updateItem(idx, 'title', e.target.value)}
@@ -369,6 +362,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
               currentLogo={logoValue}
               onLogoChange={setLogoValue}
               onLogoRemove={() => setLogoValue('')}
+              upload={companyProfileApi.uploadItemLogo}
               size="sm"
             />
           </div>
@@ -401,8 +395,10 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
                       currentLogo={itemObj.logo || ''}
                       onLogoChange={(logo) => handleLogoChange(idx, logo)}
                       onLogoRemove={() => handleLogoRemove(idx)}
+                      upload={companyProfileApi.uploadItemLogo}
                       size="sm"
                     />
+
                   )}
                 </div>
               </div>
@@ -571,40 +567,6 @@ export function CompanySettingsPage() {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
-  const getIcon = (section: string): string | undefined => {
-    const config = profile.theme_config;
-    if (!config) return undefined;
-    if (typeof config === 'object' && !Array.isArray(config)) {
-      return config[section];
-    }
-    if (Array.isArray(config)) {
-      const entry = config.find((item: string) => typeof item === 'string' && item.startsWith(section + ':'));
-      return entry ? (entry as string).split(':')[1] : undefined;
-    }
-    return undefined;
-  };
-
-  const setIcon = (section: string, iconName: string | undefined) => {
-    const config = profile.theme_config;
-    let newConfig: Record<string, string> = {};
-    if (typeof config === 'object' && !Array.isArray(config)) {
-      newConfig = { ...config };
-    } else if (Array.isArray(config)) {
-      config.forEach((item: string) => {
-        if (typeof item === 'string' && item.includes(':')) {
-          const [key, val] = item.split(':');
-          if (key && val) newConfig[key] = val;
-        }
-      });
-    }
-    if (iconName === undefined) {
-      delete newConfig[section];
-    } else {
-      newConfig[section] = iconName;
-    }
-    handleInputChange('theme_config', newConfig);
-  };
-
   if (loading) {
     return (
       <div className="p-4 sm:p-8 max-w-7xl mx-auto">
@@ -675,90 +637,30 @@ export function CompanySettingsPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-<label className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      Upload Logo
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          try {
-                            const result = await companyProfileApi.uploadLogo(file);
-                            // Backend now returns base64 data URL in result.url
-                            handleInputChange('logo_data', result.url);
-                            handleInputChange('logo_url', '');
-                          } catch (error) {
-                            console.error('Logo upload failed:', error);
-                            alert('Failed to upload logo. Please try again.');
-                          }
-                        }}
-                        className="hidden"
-                      />
-                    </label>
+                  <label className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors">
+                    <Upload className="w-4 h-4" />
+                    Upload Logo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const result = await companyProfileApi.uploadLogo(file);
+                          // Backend now returns base64 data URL in result.url
+                          handleInputChange('logo_data', result.url);
+                          handleInputChange('logo_url', '');
+                        } catch (error) {
+                          console.error('Logo upload failed:', error);
+                          alert('Failed to upload logo. Please try again.');
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
                   <p className="text-[11px] text-slate-500">PNG, JPG, SVG, WebP (max 2MB)</p>
                 </div>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Theme Customizer */}
-        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
-          <div className="border-b border-slate-200 pb-4">
-            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <Palette className="w-5 h-5 text-brand-600" />
-              Theme Colors
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Primary Color</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={profile.primary_color || '#4F46E5'}
-                  onChange={(e) => handleInputChange('primary_color', e.target.value)}
-                  className="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-1"
-                />
-                <Input
-                  value={profile.primary_color || ''}
-                  onChange={(e) => handleInputChange('primary_color', e.target.value)}
-                  placeholder="#4F46E5"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Secondary Color</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={profile.secondary_color || '#0F172A'}
-                  onChange={(e) => handleInputChange('secondary_color', e.target.value)}
-                  className="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-1"
-                />
-                <Input
-                  value={profile.secondary_color || ''}
-                  onChange={(e) => handleInputChange('secondary_color', e.target.value)}
-                  placeholder="#0F172A"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Accent Color</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={profile.accent_color || '#10B981'}
-                  onChange={(e) => handleInputChange('accent_color', e.target.value)}
-                  className="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-1"
-                />
-                <Input
-                  value={profile.accent_color || ''}
-                  onChange={(e) => handleInputChange('accent_color', e.target.value)}
-                  placeholder="#10B981"
-                />
               </div>
             </div>
           </div>
@@ -768,7 +670,7 @@ export function CompanySettingsPage() {
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <IconSelector value={getIcon('mission')} onChange={(icon) => setIcon('mission', icon)} />
+              <Sparkles className="w-5 h-5 text-brand-600" />
               Mission & Vision
             </h2>
           </div>
@@ -780,7 +682,7 @@ export function CompanySettingsPage() {
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <IconSelector value={getIcon('core_values')} onChange={(icon) => setIcon('core_values', icon)} />
+              <Sparkles className="w-5 h-5 text-brand-600" />
               Core Values
             </h2>
           </div>
@@ -797,7 +699,7 @@ export function CompanySettingsPage() {
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <IconSelector value={getIcon('services')} onChange={(icon) => setIcon('services', icon)} />
+              <Sparkles className="w-5 h-5 text-brand-600" />
               Our Services
             </h2>
           </div>
@@ -814,7 +716,7 @@ export function CompanySettingsPage() {
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <IconSelector value={getIcon('clients')} onChange={(icon) => setIcon('clients', icon)} />
+              <Sparkles className="w-5 h-5 text-brand-600" />
               Top Clients
             </h2>
           </div>
@@ -838,7 +740,7 @@ export function CompanySettingsPage() {
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <IconSelector value={getIcon('branch_offices')} onChange={(icon) => setIcon('branch_offices', icon)} />
+              <Sparkles className="w-5 h-5 text-brand-600" />
               Branch Offices
             </h2>
           </div>
@@ -847,6 +749,7 @@ export function CompanySettingsPage() {
             items={profile.branch_offices || []}
             onChange={(val) => handleInputChange('branch_offices', val)}
             placeholder="e.g. Rajkot - 150ft Rd, Gujarat, India"
+            showLogo={true}
           />
         </Card>
 
@@ -869,7 +772,7 @@ export function CompanySettingsPage() {
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <IconSelector value={getIcon('contract_terms')} onChange={(icon) => setIcon('contract_terms', icon)} />
+              <Sparkles className="w-5 h-5 text-brand-600" />
               Statement of work and Contract Terms
             </h2>
           </div>
@@ -884,7 +787,7 @@ export function CompanySettingsPage() {
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <IconSelector value={getIcon('terms')} onChange={(icon) => setIcon('terms', icon)} />
+              <Sparkles className="w-5 h-5 text-brand-600" />
               Terms & Conditions
             </h2>
           </div>

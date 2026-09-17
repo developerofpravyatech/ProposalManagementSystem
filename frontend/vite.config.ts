@@ -30,6 +30,15 @@ export default defineConfig({
           });
         },
       },
+      '/uploads': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('[Vite Proxy] Uploads Error:', err.message);
+          });
+        },
+      },
     },
   },
 });

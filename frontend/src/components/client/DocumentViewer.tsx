@@ -290,7 +290,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
            {/* PAGE 2: Cover Letter */}
            <section id="cover-letter" className="space-y-4">
              <div className="flex items-center gap-2">
-               <Mail className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+               <Mail className="w-5 h-5" style={{ color: '#C81D31' }} />
                <h2 className="text-xl font-bold text-slate-900 font-display">Cover Letter</h2>
              </div>
             <Card className="space-y-4 text-sm text-slate-600 leading-relaxed bg-white border border-slate-200 shadow-sm">
@@ -319,7 +319,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 3: Mission, Vision & Values */}
           <section id="mission-vision" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+              <Sparkles className="w-5 h-5" style={{ color: '#C81D31' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">Mission, Vision & Core Values</h2>
             </div>
             <Card className="space-y-4 text-sm text-slate-600 leading-relaxed bg-white border border-slate-200 shadow-sm">
@@ -347,7 +347,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 4: Services */}
           <section id="services" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Cpu className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+              <Cpu className="w-5 h-5" style={{ color: '#C81D31' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">Our Services</h2>
             </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
@@ -364,7 +364,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 5: Work Process */}
           <section id="process" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+              <Clock className="w-5 h-5" style={{ color: '#C81D31' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">Our Work Process</h2>
             </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
@@ -379,7 +379,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
            {/* PAGE 6: Top Clients (BNI Members) */}
            <section id="clients-bni" className="space-y-4">
              <div className="flex items-center gap-2">
-               <Building2 className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+               <Building2 className="w-5 h-5" style={{ color: '#C81D31' }} />
                <h2 className="text-xl font-bold text-slate-900 font-display">Top Clients Showcase (BNI Members)</h2>
              </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
@@ -393,7 +393,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 7: Top Clients (International) */}
           <section id="clients-intl" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+              <Globe className="w-5 h-5" style={{ color: '#C81D31' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">Top Clients Showcase (International)</h2>
             </div>
              <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
@@ -407,7 +407,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
           {/* PAGE 8: General Terms & Conditions */}
           <section id="terms" className="space-y-4">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5" style={{ color: cp.primary_color || '#4F46E5' }} />
+              <ShieldCheck className="w-5 h-5" style={{ color: '#C81D31' }} />
               <h2 className="text-xl font-bold text-slate-900 font-display">General Terms & Conditions</h2>
             </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">

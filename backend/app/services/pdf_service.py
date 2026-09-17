@@ -470,9 +470,10 @@ def _qr_src(value: Any) -> str:
 
 
 def _template_context(content: dict[str, Any], company_profile: CompanyProfile | None) -> dict[str, Any]:
-    primary = _safe_hex(getattr(company_profile, "primary_color", None), "#4F46E5")
-    dark = _safe_hex(getattr(company_profile, "secondary_color", None), "#0F172A")
-    accent = _safe_hex(getattr(company_profile, "accent_color", None), "#10B981")
+    # Hardcoded PravyaTech brand colors (removed from company_profile)
+    primary = "#C81D31"
+    dark = "#2A2C35"
+    accent = "#C81D31"
 
     terms = content.get("terms", {})
     terms_sections = [
@@ -579,9 +580,10 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
     """Render a dedicated company profile PDF using company_profile_template.html."""
     cp = company_profile
 
-    primary = _safe_hex(getattr(cp, "primary_color", None), "#4F46E5")
-    dark = _safe_hex(getattr(cp, "secondary_color", None), "#0F172A")
-    accent = _safe_hex(getattr(cp, "accent_color", None), "#10B981")
+    # Hardcoded PravyaTech brand colors (removed from company_profile)
+    primary = "#C81D31"
+    dark = "#2A2C35"
+    accent = "#C81D31"
 
     company_name = str(getattr(cp, "company_name", None) or "PRAVYA TECH")
     tagline = str(getattr(cp, "tagline", None) or "Empowering Businesses Through Technology")

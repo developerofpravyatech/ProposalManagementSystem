@@ -41,15 +41,6 @@ function normalizeRelationalData(profile: any) {
       description: s.description,
     }));
   }
-  if (profile.theme_config_rel) {
-    // theme_config_rel stores icon mappings
-    try {
-      const icons = JSON.parse(profile.theme_config_rel.icon_name || '{}');
-      profile.theme_config = icons;
-    } catch {
-      profile.theme_config = {};
-    }
-  }
   return profile;
 }
 
@@ -93,8 +84,19 @@ export const companyProfileApi = {
     const response = await apiRequest('/company-profile/upload-logo', {
       method: 'POST',
       body: formData,
-      headers: {}, // Let browser set Content-Type with boundary
+      headers: {},
     });
-    return response.url; // Returns the URL like "/uploads/abc123.png"
+    return response.url;
+  },
+
+  async uploadItemLogo(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiRequest('/company-profile/upload-item-logo', {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+    return response.url;
   },
 };

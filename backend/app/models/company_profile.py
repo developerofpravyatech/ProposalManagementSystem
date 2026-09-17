@@ -1,7 +1,19 @@
 from sqlalchemy import String, Text, JSON, DateTime, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+from typing import TYPE_CHECKING
 from app.database import Base
+
+if TYPE_CHECKING:
+    from app.models.company_profile_normalized import (
+        CoreValue,
+        Service,
+        BNIClient,
+        InternationalClient,
+        BranchOffice,
+        WorkProcessStep,
+        PaymentMethod,
+    )
 
 
 class CompanyProfile(Base):
@@ -24,10 +36,6 @@ class CompanyProfile(Base):
     logo_data: Mapped[str | None] = mapped_column(Text, nullable=True)
     logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
-    primary_color: Mapped[str | None] = mapped_column(String(20), nullable=True, default="#4F46E5")
-    secondary_color: Mapped[str | None] = mapped_column(String(20), nullable=True, default="#0F172A")
-    accent_color: Mapped[str | None] = mapped_column(String(20), nullable=True, default="#10B981")
-    theme_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     terms: Mapped[str | None] = mapped_column(Text, nullable=True)
     contract_terms: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
@@ -52,9 +60,6 @@ class CompanyProfile(Base):
     )
     branch_offices_rel: Mapped[list["BranchOffice"]] = relationship(
         "BranchOffice", back_populates="company_profile", cascade="all, delete-orphan", order_by="BranchOffice.sort_order"
-    )
-    theme_config_rel: Mapped["ThemeConfig | None"] = relationship(
-        "ThemeConfig", back_populates="company_profile", cascade="all, delete-orphan", uselist=False
     )
     work_process_steps_rel: Mapped[list["WorkProcessStep"]] = relationship(
         "WorkProcessStep", back_populates="company_profile", cascade="all, delete-orphan", order_by="WorkProcessStep.sort_order"

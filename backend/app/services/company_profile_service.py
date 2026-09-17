@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
+import json
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.models.company_profile import CompanyProfile
-from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, ThemeConfig, WorkProcessStep, PaymentMethod
+from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, WorkProcessStep, PaymentMethod
 
 
 DEFAULT_COMPANY_PROFILE = {
@@ -50,10 +51,6 @@ DEFAULT_COMPANY_PROFILE = {
     "logo_data": None,
     "logo_url": None,
     "qr_code": None,
-    "primary_color": "#4F46E5",
-    "secondary_color": "#0F172A",
-    "accent_color": "#10B981",
-    "theme_config": {},
     "terms": (
         "All proposals are valid for 30 days from the date of issuance.\n"
         "Payment terms: 50% advance, 30% on milestone completion, 20% on final delivery.\n"
@@ -204,25 +201,6 @@ async def _sync_branch_offices(db: AsyncSession, profile: CompanyProfile, office
             ))
 
 
-async def _sync_theme_config(db: AsyncSession, profile: CompanyProfile, config: dict) -> None:
-    """Sync theme config from JSON to relational table"""
-    existing = await db.execute(select(ThemeConfig).where(ThemeConfig.company_profile_id == profile.id))
-    existing_config = existing.scalar_one_or_none()
-    
-    if config:
-        if existing_config:
-            existing_config.section = "icons"
-            existing_config.icon_name = str(config)  # Store as JSON string for flexibility
-        else:
-            db.add(ThemeConfig(
-                company_profile_id=profile.id,
-                section="icons",
-                icon_name=str(config),
-            ))
-    elif existing_config:
-        await db.delete(existing_config)
-
-
 async def _sync_work_process_steps(db: AsyncSession, profile: CompanyProfile, steps: list[dict]) -> None:
     """Sync work process steps from JSON to relational table"""
     await db.execute(
@@ -292,7 +270,6 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
             selectinload(CompanyProfile.bni_clients_rel),
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
-            selectinload(CompanyProfile.theme_config_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
             selectinload(CompanyProfile.payment_method_rel),
         )
@@ -300,16 +277,19 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
     )
     profile = result.scalar_one_or_none()
     if profile is None:
-        profile = CompanyProfile(**DEFAULT_COMPANY_PROFILE)
+        # Extract relational-only fields that don't exist as model columns
+        profile_data = DEFAULT_COMPANY_PROFILE.copy()
+        # core_values is not a column on the model; use it only for relational sync
+        default_core_values = profile_data.pop("core_values", [])
+        profile = CompanyProfile(**profile_data)
         db.add(profile)
         await db.flush()
         # Create default normalized data
-        await _sync_core_values(db, profile, DEFAULT_COMPANY_PROFILE["core_values"])
+        await _sync_core_values(db, profile, default_core_values)
         await _sync_services(db, profile, DEFAULT_COMPANY_PROFILE["services"])
         await _sync_bni_clients(db, profile, DEFAULT_COMPANY_PROFILE["bni_clients"])
         await _sync_international_clients(db, profile, DEFAULT_COMPANY_PROFILE["international_clients"])
         await _sync_branch_offices(db, profile, DEFAULT_COMPANY_PROFILE["branch_offices"])
-        await _sync_theme_config(db, profile, DEFAULT_COMPANY_PROFILE["theme_config"])
         await _sync_work_process_steps(db, profile, DEFAULT_COMPANY_PROFILE["work_process_steps"])
         await db.commit()
         await db.refresh(profile)
@@ -320,19 +300,28 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
 
 
 async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
-    """Sync JSON columns to relational tables if they're empty"""
-    # Check if core_values_rel is empty
-    result = await db.execute(select(CoreValue).where(CoreValue.company_profile_id == profile.id))
-    if not result.scalar():
-        await _sync_core_values(db, profile, profile.core_values)
-        await _sync_services(db, profile, profile.services)
-        await _sync_bni_clients(db, profile, profile.bni_clients)
-        await _sync_international_clients(db, profile, profile.international_clients)
-        await _sync_branch_offices(db, profile, profile.branch_offices)
-        await _sync_theme_config(db, profile, profile.theme_config)
+    """Populate normalized tables from legacy JSON fields when needed."""
+    relation_sources = (
+        (CoreValue, "core_values_rel", getattr(profile, "core_values", None) or [], _sync_core_values),
+        (Service, "services_rel", profile.services or [], _sync_services),
+        (BNIClient, "bni_clients_rel", profile.bni_clients or [], _sync_bni_clients),
+        (InternationalClient, "international_clients_rel", profile.international_clients or [], _sync_international_clients),
+        (BranchOffice, "branch_offices_rel", profile.branch_offices or [], _sync_branch_offices),
+        (WorkProcessStep, "work_process_steps_rel", getattr(profile, "work_process_steps", None) or [], _sync_work_process_steps),
+    )
+    updated = False
+
+    for model, relation_name, source, sync_function in relation_sources:
+        result = await db.execute(
+            select(model.id).where(model.company_profile_id == profile.id).limit(1)
+        )
+        if result.first() is None:
+            await sync_function(db, profile, source)
+            updated = True
+
+    if updated:
         await db.commit()
-    
-    # Sync payment method from legacy columns if payment_method_rel doesn't exist
+
     result = await db.execute(select(PaymentMethod).where(PaymentMethod.company_profile_id == profile.id))
     if not result.scalar():
         legacy_data = {
@@ -360,13 +349,29 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
             selectinload(CompanyProfile.bni_clients_rel),
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
-            selectinload(CompanyProfile.theme_config_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
             selectinload(CompanyProfile.payment_method_rel),
         )
         .limit(1)
     )
-    return result.scalar_one_or_none()
+    profile = result.scalar_one_or_none()
+    if profile:
+        await _sync_if_empty(db, profile)
+        result = await db.execute(
+            select(CompanyProfile)
+            .options(
+                selectinload(CompanyProfile.core_values_rel),
+                selectinload(CompanyProfile.services_rel),
+                selectinload(CompanyProfile.bni_clients_rel),
+                selectinload(CompanyProfile.international_clients_rel),
+                selectinload(CompanyProfile.branch_offices_rel),
+                selectinload(CompanyProfile.work_process_steps_rel),
+                selectinload(CompanyProfile.payment_method_rel),
+            )
+            .where(CompanyProfile.id == profile.id)
+        )
+        profile = result.scalar_one_or_none()
+    return profile
 
 
 async def update_company_profile(db: AsyncSession, update_data: dict) -> CompanyProfile:
@@ -380,7 +385,6 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
         "bni_clients": _sync_bni_clients,
         "international_clients": _sync_international_clients,
         "branch_offices": _sync_branch_offices,
-        "theme_config": _sync_theme_config,
         "work_process_steps": _sync_work_process_steps,
         "payment_method": _sync_payment_method,
     }
@@ -396,7 +400,7 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
         elif value is not None and hasattr(profile, key):
             setattr(profile, key, value)
             updated = True
-    
+
     if updated:
         profile.updated_at = datetime.now(timezone.utc)
     profile_id = profile.id
@@ -409,7 +413,6 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
             selectinload(CompanyProfile.bni_clients_rel),
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
-            selectinload(CompanyProfile.theme_config_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
             selectinload(CompanyProfile.payment_method_rel),
         )

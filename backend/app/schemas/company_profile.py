@@ -80,20 +80,6 @@ class BranchOfficeRead(BranchOfficeBase):
     id: int
 
 
-class ThemeConfigBase(BaseModel):
-    section: str = Field(..., max_length=50)
-    icon_name: Optional[str] = None
-
-
-class ThemeConfigCreate(ThemeConfigBase):
-    pass
-
-
-class ThemeConfigRead(ThemeConfigBase):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-
-
 class WorkProcessStepBase(BaseModel):
     icon: Optional[str] = None
     title: str = Field(..., max_length=255)
@@ -143,6 +129,7 @@ class CompanyProfileBase(BaseModel):
     sales_head_title: Optional[str] = Field(None, max_length=255)
     mission: Optional[str] = None
     vision: Optional[str] = None
+    core_values: Optional[list[Any]] = None
     services: Optional[list[Any]] = None
     bni_clients: Optional[list[Any]] = None
     international_clients: Optional[list[Any]] = None
@@ -150,10 +137,6 @@ class CompanyProfileBase(BaseModel):
     logo_data: Optional[str] = None
     logo_url: Optional[str] = None
     qr_code: Optional[str] = None
-    primary_color: Optional[str] = Field(None, max_length=20)
-    secondary_color: Optional[str] = Field(None, max_length=20)
-    accent_color: Optional[str] = Field(None, max_length=20)
-    theme_config: Optional[dict[str, Any]] = None
     work_process_steps: Optional[list[Any]] = None
     terms: Optional[str] = None
     contract_terms: Optional[list[Any]] = None
@@ -180,6 +163,7 @@ class CompanyProfileUpdate(BaseModel):
     sales_head_title: Optional[str] = Field(None, max_length=255)
     mission: Optional[str] = None
     vision: Optional[str] = None
+    core_values: Optional[list[Any]] = None
     services: Optional[list[Any]] = None
     bni_clients: Optional[list[Any]] = None
     international_clients: Optional[list[Any]] = None
@@ -187,10 +171,6 @@ class CompanyProfileUpdate(BaseModel):
     logo_data: Optional[str] = None
     logo_url: Optional[str] = None
     qr_code: Optional[str] = None
-    primary_color: Optional[str] = Field(None, max_length=20)
-    secondary_color: Optional[str] = Field(None, max_length=20)
-    accent_color: Optional[str] = Field(None, max_length=20)
-    theme_config: Optional[dict[str, Any]] = None
     work_process_steps: Optional[list[Any]] = None
     terms: Optional[str] = None
     contract_terms: Optional[list[Any]] = None
@@ -220,7 +200,6 @@ class CompanyProfileRead(CompanyProfileBase):
     bni_clients_rel: list[BNIClientRead] = []
     international_clients_rel: list[InternationalClientRead] = []
     branch_offices_rel: list[BranchOfficeRead] = []
-    theme_config_rel: Optional[ThemeConfigRead] = None
     work_process_steps_rel: list[WorkProcessStepRead] = []
     payment_method_rel: Optional[PaymentMethodRead] = None
 
@@ -232,6 +211,5 @@ class CompanyProfileWithRelations(CompanyProfileRead):
     bni_clients_rel: list[BNIClientRead]
     international_clients_rel: list[InternationalClientRead]
     branch_offices_rel: list[BranchOfficeRead]
-    theme_config_rel: Optional[ThemeConfigRead] = None
     work_process_steps_rel: list[WorkProcessStepRead]
     payment_method_rel: Optional[PaymentMethodRead] = None

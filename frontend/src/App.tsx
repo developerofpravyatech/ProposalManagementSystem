@@ -24,7 +24,7 @@ function AdminLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-600 font-bold">
+      <div className="min-h-screen bg-white flex items-center justify-center text-slate-600 font-bold">
         Loading admin console...
       </div>
     );
@@ -54,7 +54,7 @@ function AdminLayout() {
   const { title, subtitle } = getPageMeta();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+    <div className="min-h-screen bg-white text-slate-900 flex">
       {/* Collapsible Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 

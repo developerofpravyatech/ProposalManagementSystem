@@ -127,25 +127,23 @@ export interface CompanyProfile {
   phone?: string;
   website?: string;
   sales_head_name?: string;
-  sales_head_title?: string;
-  mission?: string;
-  vision?: string;
-  services?: any[];
-  bni_clients?: any[];
-  international_clients?: any[];
-  branch_offices?: any[];
-  logo_data?: string;
-  logo_url?: string;
-  qr_code?: string;
-  primary_color?: string;
-  secondary_color?: string;
-  accent_color?: string;
-  theme_config?: Record<string, string>;
-  terms?: string;
-  contract_terms?: Array<{ title: string; bullets: string[] }>;
-  created_at: string;
-  updated_at: string;
-  core_values_rel?: CoreValueRead[];
+sales_head_title?: string;
+   mission?: string;
+   vision?: string;
+   core_values?: Array<{ title: string; description?: string; logo?: string }>;
+   services?: any[];
+   bni_clients?: any[];
+   international_clients?: any[];
+   branch_offices?: any[];
+   logo_data?: string;
+   logo_url?: string;
+   qr_code?: string;
+   work_process_steps?: Array<{ icon?: string; title: string; description?: string }>;
+   terms?: string;
+   contract_terms?: Array<{ title: string; bullets: string[] }>;
+   created_at: string;
+   updated_at: string;
+   core_values_rel?: CoreValueRead[];
 }
 
 export interface LoginRequest {
