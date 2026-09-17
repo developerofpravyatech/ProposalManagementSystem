@@ -37,10 +37,11 @@ interface CompanyProfile {
   iban?: string;
   signatures?: Array<{ image_data: string }>;
   signature_data?: string;
-  coverletter_paragraphs?: string[];
-  coverletter_signature_name?: string;
-  coverletter_signature_designation?: string;
-  coverletter_signature_date?: string;
+  cover_letter_paragraphs?: string[];
+  cover_letter_signature_name?: string;
+  cover_letter_signature_designation?: string;
+  cover_letter_signature_date?: string;
+  cover_letter_signature_image?: string;
 }
 
 function LabeledField({ label, value, onChange, type = 'text', rows, placeholder }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; type?: string; rows?: number; placeholder?: string }) {
@@ -157,19 +158,21 @@ function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = c
 
 function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title...', showLogo = false, error }: { label: string; items: Array<{ title: string; description?: string; logo?: string }> | Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean; error?: string }) {
   const [titleValue, setTitleValue] = useState('');
-  const [descValue, setDescValue] = useState('');
   const [logoValue, setLogoValue] = useState('');
+  const [localError, setLocalError] = useState('');
 
   const addItem = () => {
     if (titleValue.trim()) {
-      const newItem: any = { title: titleValue.trim(), description: descValue.trim() };
+      const newItem: any = { title: titleValue.trim() };
       if (showLogo && logoValue) {
         newItem.logo = logoValue;
       }
       onChange([...items, newItem]);
       setTitleValue('');
-      setDescValue('');
       setLogoValue('');
+      setLocalError('');
+    } else {
+      setLocalError('Please enter a title before adding');
     }
   };
 
@@ -198,8 +201,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
     <div className="space-y-2">
       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
       <div className={`grid grid-cols-1 ${showLogo ? 'sm:grid-cols-4' : 'sm:grid-cols-[minmax(0,1fr)_auto]'} gap-2 items-stretch`}>
-        <Input placeholder={placeholder} value={titleValue} onChange={(e) => setTitleValue(e.target.value)} className="sm:col-span-2" error={error} />
-        <Input placeholder="Description" value={descValue} onChange={(e) => setDescValue(e.target.value)} className="sm:col-span-2" error={error} />
+        <Input placeholder={placeholder} value={titleValue} onChange={(e) => { setTitleValue(e.target.value); setLocalError(''); }} className="sm:col-span-2" error={localError || error} />
         {showLogo && (
           <div className="flex items-center">
             <ImageUploadButton
@@ -213,7 +215,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
         )}
         <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addItem} className="flex items-center justify-center" />
       </div>
-      {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
+      {(localError || error) && <p className="text-xs text-rose-600 font-medium">{localError || error}</p>}
       {items.length > 0 && (
         <div className="space-y-1.5 mt-2">
           {items.map((item, idx) => {
@@ -320,16 +322,24 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
 function ArrayField({ label, items, onChange, placeholder = 'Enter item...', showLogo = false, error }: { label: string; items: Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean; error?: string }) {
   const [inputValue, setInputValue] = useState('');
   const [logoValue, setLogoValue] = useState('');
+  const [localError, setLocalError] = useState('');
 
   const addItem = () => {
     if (inputValue.trim()) {
       if (showLogo) {
+        if (!logoValue) {
+          setLocalError('Please upload a logo before adding');
+          return;
+        }
         onChange([...items, { name: inputValue.trim(), logo: logoValue }]);
       } else {
         onChange([...items, inputValue.trim()]);
       }
       setInputValue('');
       setLogoValue('');
+      setLocalError('');
+    } else {
+      setLocalError('Please enter a name before adding');
     }
   };
 
@@ -361,9 +371,9 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
         <Input
           placeholder={placeholder}
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => { setInputValue(e.target.value); setLocalError(''); }}
           className={showLogo ? 'flex-1 min-w-[200px]' : 'flex-1'}
-          error={error}
+          error={error || localError}
         />
         {showLogo && (
           <div className="flex items-center">
@@ -378,7 +388,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
         )}
         <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addItem} className="flex items-center justify-center" />
       </div>
-      {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
+      {(error || localError) && <p className="text-xs text-rose-600 font-medium">{localError || error}</p>}
       {items.length > 0 && (
         <div className="space-y-1.5 mt-2">
           {items.map((item, idx) => {
@@ -421,8 +431,11 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
 }
 
 function ContractTermsField({ label, items, onChange, error }: { label: string; items: Array<{ title: string; bullets: string[] }>; onChange: (items: Array<{ title: string; bullets: string[] }>) => void; error?: string }) {
+  const [localError, setLocalError] = useState('');
+
   const addItem = () => {
     onChange([...items, { title: '', bullets: ['', '', '', '', ''] }]);
+    setLocalError('Please fill in the term title and bullets');
   };
 
   const removeItem = (index: number) => {
@@ -464,7 +477,7 @@ function ContractTermsField({ label, items, onChange, error }: { label: string; 
       <Button type="button" variant="outline" size="sm" icon={Plus} onClick={addItem} className="flex items-center gap-1">
         Add Term
       </Button>
-      {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
+      {(error || localError) && <p className="text-xs text-rose-600 font-medium">{localError || error}</p>}
       {items.length > 0 && (
         <div className="space-y-3 mt-2">
           {items.map((item, idx) => (
@@ -475,7 +488,7 @@ function ContractTermsField({ label, items, onChange, error }: { label: string; 
                 </div>
                 <Input
                   value={item.title || ''}
-                  onChange={(e) => updateItem(idx, 'title', e.target.value)}
+                  onChange={(e) => { updateItem(idx, 'title', e.target.value); setLocalError(''); }}
                   placeholder={`Term ${idx + 1} title`}
                   className="flex-1 min-w-0"
                 />
@@ -534,16 +547,21 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
   onSignatureDateChange: (date: string) => void;
   signatureImage: string;
   onSignatureImageChange: (image: string) => void;
-  errors?: { coverletter?: string; coverletter_signature_name?: string; coverletter_signature_designation?: string; coverletter_signature_date?: string };
+  errors?: { cover_letter?: string; cover_letter_signature_name?: string; cover_letter_signature_designation?: string; cover_letter_signature_date?: string };
   touched?: Set<string>;
   submitAttempted?: boolean;
 }) {
   const [newParagraph, setNewParagraph] = useState('');
 
+  const [paragraphError, setParagraphError] = useState('');
+
   const addParagraph = () => {
     if (newParagraph.trim()) {
       onParagraphsChange([...paragraphs, newParagraph.trim()]);
       setNewParagraph('');
+      setParagraphError('');
+    } else {
+      setParagraphError('Please enter paragraph content before adding');
     }
   };
 
@@ -558,8 +576,8 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
   };
 
   const getCoverletterError = () => {
-    if (!errors?.coverletter || (!touched?.has('coverletter') && !submitAttempted)) return undefined;
-    return errors.coverletter;
+    if (!errors?.cover_letter || (!touched?.has('cover_letter') && !submitAttempted)) return undefined;
+    return errors.cover_letter;
   };
 
   const getSignatureError = (field: string) => {
@@ -577,12 +595,15 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
           <Textarea
             placeholder="Enter paragraph content..."
             value={newParagraph}
-            onChange={(e) => setNewParagraph(e.target.value)}
+            onChange={(e) => { setNewParagraph(e.target.value); setParagraphError(''); }}
             rows={3}
             className="flex-1 min-w-0"
+            error={paragraphError}
           />
           <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addParagraph} className="flex items-center justify-center mt-2" />
         </div>
+        
+        {paragraphError && <p className="text-xs text-rose-600 font-medium">{paragraphError}</p>}
         
         {paragraphs.length > 0 && (
           <div className="space-y-2">
@@ -623,21 +644,21 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
             value={signatureName} 
             onChange={(e) => onSignatureNameChange(e.target.value)} 
             placeholder="Enter your full name"
-            error={getSignatureError('coverletter_signature_name')}
+            error={getSignatureError('cover_letter_signature_name')}
           />
           <Input 
             label="Designation" 
             value={signatureDesignation} 
             onChange={(e) => onSignatureDesignationChange(e.target.value)} 
             placeholder="Enter your designation (e.g., CEO, Founder)"
-            error={getSignatureError('coverletter_signature_designation')}
+            error={getSignatureError('cover_letter_signature_designation')}
           />
           <Input 
             label="Date" 
             type="date" 
             value={signatureDate} 
             onChange={(e) => onSignatureDateChange(e.target.value)} 
-            error={getSignatureError('coverletter_signature_date')}
+            error={getSignatureError('cover_letter_signature_date')}
           />
         </div>
         
@@ -675,6 +696,7 @@ export function CompanySettingsPage() {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [logoError, setLogoError] = useState('');
 
   useEffect(() => {
     loadProfile();
@@ -815,22 +837,24 @@ export function CompanySettingsPage() {
     return undefined;
   };
 
-  const validateCoverletter = (paragraphs: string[], signatureName: string, signatureDesignation: string, signatureDate: string): string | undefined => {
+  const validateCoverletter = (paragraphs: string[], signatureName: string, signatureDesignation: string, signatureDate: string, newErrors: ValidationErrors): void => {
     if (!paragraphs || paragraphs.length === 0) {
-      return 'At least one coverletter paragraph is required';
+      newErrors.cover_letter = 'At least one coverletter paragraph is required';
+      return;
     }
     for (let i = 0; i < paragraphs.length; i++) {
       if (!paragraphs[i] || !paragraphs[i].trim()) {
-        return `Coverletter paragraph ${i + 1}: Content is required`;
+        newErrors.cover_letter = `Coverletter paragraph ${i + 1}: Content is required`;
+        return;
       }
       if (paragraphs[i].length > 2000) {
-        return `Coverletter paragraph ${i + 1}: Must be less than 2000 characters`;
+        newErrors.cover_letter = `Coverletter paragraph ${i + 1}: Must be less than 2000 characters`;
+        return;
       }
     }
-    if (!signatureName.trim()) return 'Signature name is required';
-    if (!signatureDesignation.trim()) return 'Signature designation is required';
-    if (!signatureDate.trim()) return 'Signature date is required';
-    return undefined;
+    if (!signatureName.trim()) newErrors.cover_letter_signature_name = 'Signature name is required';
+    if (!signatureDesignation.trim()) newErrors.cover_letter_signature_designation = 'Signature designation is required';
+    if (!signatureDate.trim()) newErrors.cover_letter_signature_date = 'Signature date is required';
   };
 
   const validateAll = (): boolean => {
@@ -850,12 +874,12 @@ export function CompanySettingsPage() {
     });
 
     const coverletterError = validateCoverletter(
-      profile.coverletter_paragraphs || [],
-      profile.coverletter_signature_name || '',
-      profile.coverletter_signature_designation || '',
-      profile.coverletter_signature_date || ''
+      profile.cover_letter_paragraphs || [],
+      profile.cover_letter_signature_name || '',
+      profile.cover_letter_signature_designation || '',
+      profile.cover_letter_signature_date || '',
+      newErrors
     );
-    if (coverletterError) newErrors.coverletter = coverletterError;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -894,7 +918,7 @@ export function CompanySettingsPage() {
     setSubmitAttempted(true);
 
     if (!validateAll()) {
-      addToast('Please fix the validation errors before saving', 'error');
+      addToast('Please fill proper fields', 'error');
       return;
     }
 
@@ -951,9 +975,6 @@ export function CompanySettingsPage() {
         <div className="flex items-center gap-3">
           <Button variant="outline" icon={FileDown} isLoading={pdfGenerating} onClick={handleGeneratePdf}>
             Generate PDF
-          </Button>
-          <Button variant="primary" icon={Save} isLoading={saving} onClick={handleSave}>
-            Save All Changes
           </Button>
         </div>
       </div>
@@ -1072,20 +1093,30 @@ export function CompanySettingsPage() {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
+                        setLogoError('');
+                        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                          setLogoError('Invalid file type. Allowed: PNG, JPG, SVG, WebP');
+                          return;
+                        }
+                        if (file.size > 2 * 1024 * 1024) {
+                          setLogoError('File size must be less than 2MB');
+                          return;
+                        }
                         try {
                           const result = await companyProfileApi.uploadLogo(file);
-                          // Backend now returns base64 data URL in result.url
                           handleInputChange('logo_data', result.url);
                           handleInputChange('logo_url', '');
                         } catch (error) {
                           console.error('Logo upload failed:', error);
-                          alert('Failed to upload logo. Please try again.');
+                          setLogoError('Failed to upload logo. Please try again.');
                         }
                       }}
                       className="hidden"
                     />
                   </label>
-<p className="text-[11px] text-slate-500">PNG, JPG, SVG, WebP (max 2MB)</p>
+                  <p className="text-[11px] text-slate-500">PNG, JPG, SVG, WebP (max 2MB)</p>
+                  {logoError && <p className="text-xs text-rose-600 font-medium mt-1">{logoError}</p>}
                 </div>
               </div>
             </div>
@@ -1102,14 +1133,14 @@ export function CompanySettingsPage() {
           </div>
           <CoverletterField
             label="Coverletter Content"
-            paragraphs={profile.coverletter_paragraphs || []}
-            onParagraphsChange={(val) => handleInputChange('coverletter_paragraphs', val)}
-            signatureName={profile.coverletter_signature_name || ''}
-            onSignatureNameChange={(val) => handleInputChange('coverletter_signature_name', val)}
-            signatureDesignation={profile.coverletter_signature_designation || ''}
-            onSignatureDesignationChange={(val) => handleInputChange('coverletter_signature_designation', val)}
-            signatureDate={profile.coverletter_signature_date || ''}
-            onSignatureDateChange={(val) => handleInputChange('coverletter_signature_date', val)}
+            paragraphs={profile.cover_letter_paragraphs || []}
+            onParagraphsChange={(val) => handleInputChange('cover_letter_paragraphs', val)}
+            signatureName={profile.cover_letter_signature_name || ''}
+            onSignatureNameChange={(val) => handleInputChange('cover_letter_signature_name', val)}
+            signatureDesignation={profile.cover_letter_signature_designation || ''}
+            onSignatureDesignationChange={(val) => handleInputChange('cover_letter_signature_designation', val)}
+            signatureDate={profile.cover_letter_signature_date || ''}
+            onSignatureDateChange={(val) => handleInputChange('cover_letter_signature_date', val)}
             signatureImage={profile.cover_letter_signature_image || profile.signature_data || ''}
             onSignatureImageChange={(val) => handleInputChange('cover_letter_signature_image', val)}
             errors={errors}
