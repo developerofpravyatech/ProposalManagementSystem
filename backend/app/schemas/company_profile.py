@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 from datetime import datetime
 from typing import Optional, Any
 
@@ -243,6 +243,15 @@ class CompanyProfileRead(CompanyProfileBase):
     signatures_rel: list[SignatureRead] = []
     payment_method_rel: Optional[PaymentMethodRead] = None
     contract_terms_rel: list[ContractTermRead] = []
+
+    @model_validator(mode="after")
+    def _set_contract_terms_from_rel(self):
+        if not self.contract_terms and self.contract_terms_rel:
+            self.contract_terms = [
+                {"title": t.title, "bullets": t.bullets}
+                for t in self.contract_terms_rel
+            ]
+        return self
 
 
 class CompanyProfileWithRelations(CompanyProfileRead):

@@ -347,7 +347,6 @@ async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
     relation_sources = (
         (CoreValue, "core_values_rel", getattr(profile, "core_values", None) or [], _sync_core_values),
         (WorkProcessStep, "work_process_steps_rel", getattr(profile, "work_process_steps", None) or [], _sync_work_process_steps),
-        (ContractTerm, "contract_terms_rel", profile.contract_terms or [], _sync_contract_terms),
     )
     updated = False
 
@@ -446,8 +445,8 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
         if key in relational_fields:
             await relational_fields[key](db, profile, value)
             updated = True
-            # Also update JSON column for backward compatibility
-            setattr(profile, key, value)
+            if hasattr(profile, key):
+                setattr(profile, key, value)
         elif value is not None and hasattr(profile, key):
             setattr(profile, key, value)
             updated = True

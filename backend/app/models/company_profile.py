@@ -35,7 +35,6 @@ class CompanyProfile(Base):
     logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     terms: Mapped[str | None] = mapped_column(Text, nullable=True)
-    contract_terms: Mapped[list | None] = mapped_column(JSON, nullable=True)
     profile_paragraphs: Mapped[list | None] = mapped_column(JSON, nullable=True)
     cover_letter_salutation: Mapped[str | None] = mapped_column(Text, nullable=True)
     cover_letter_paragraphs: Mapped[list | None] = mapped_column(JSON, nullable=True)
