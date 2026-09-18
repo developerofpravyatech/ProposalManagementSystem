@@ -111,6 +111,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .step-card:nth-child(even) .step-num { background: var(--accent); }
 .step-title { font-size: 8.6pt; font-weight: 700; color: var(--dark); min-height: 9mm; }
 .step-desc { font-size: 7.2pt; color: var(--muted); margin-top: 1.5mm; line-height: 1.4; }
+.step-icon-label { font-size: 7pt; color: var(--primary); margin-top: 2mm; font-weight: 600; letter-spacing: 0.3pt; }
 /* ================= PAGE 6 : TERMS ================= */
 .terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
 .term-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm; }
@@ -385,6 +386,9 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
       {% for step in process.steps[:5] %}
       <div class="step-card">
         <div class="step-num">{{ step.get('number', '%02d' % loop.index) }}</div>
+        {% if step.get('icon') %}
+        <div class="step-icon-label">{{ step.get('icon') }}</div>
+        {% endif %}
         <div class="step-title">{{ step.get('title', '') }}</div>
         <div class="step-desc">{{ step.get('description', '') }}</div>
       </div>

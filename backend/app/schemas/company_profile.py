@@ -67,7 +67,6 @@ class InternationalClientRead(InternationalClientBase):
 
 class BranchOfficeBase(BaseModel):
     name: str = Field(..., max_length=255)
-    logo: Optional[str] = None
     sort_order: int = 0
 
 
@@ -245,7 +244,12 @@ class CompanyProfileRead(CompanyProfileBase):
     contract_terms_rel: list[ContractTermRead] = []
 
     @model_validator(mode="after")
-    def _set_contract_terms_from_rel(self):
+    def _set_fields_from_rel(self):
+        if not self.core_values and self.core_values_rel:
+            self.core_values = [
+                {"title": cv.title, "description": cv.description, "logo": cv.logo}
+                for cv in self.core_values_rel
+            ]
         if not self.contract_terms and self.contract_terms_rel:
             self.contract_terms = [
                 {"title": t.title, "bullets": t.bullets}

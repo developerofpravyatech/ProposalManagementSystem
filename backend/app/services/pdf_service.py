@@ -435,7 +435,18 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
         services_data["categories"] = _service_categories_with_logos(company_profile, services)
 
     process_data = content.setdefault("process", {})
-    process_data.setdefault("steps", copy.deepcopy(REFERENCE_CONTENT["process"]["steps"]))
+    if not raw.get("process") and getattr(company_profile, "work_process_steps_rel", None):
+        process_data["steps"] = [
+            {
+                "number": f"{i + 1:02d}",
+                "title": step.title,
+                "description": step.description or "",
+                "icon": step.icon or "",
+            }
+            for i, step in enumerate(company_profile.work_process_steps_rel[:5])
+        ]
+    else:
+        process_data.setdefault("steps", copy.deepcopy(REFERENCE_CONTENT["process"]["steps"]))
 
     terms_data = content.setdefault("terms", {})
     raw_terms = raw.get("terms_sections")

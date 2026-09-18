@@ -183,15 +183,12 @@ async def _sync_branch_offices(db: AsyncSession, profile: CompanyProfile, office
     for i, office in enumerate(offices or []):
         if isinstance(office, dict):
             name = office.get("name", "")
-            logo = office.get("logo", "")
         else:
             name = str(office)
-            logo = ""
         if name:
             db.add(BranchOffice(
                 company_profile_id=profile.id,
                 name=name,
-                logo=logo,
                 sort_order=i,
             ))
 

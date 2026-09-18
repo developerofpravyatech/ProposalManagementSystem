@@ -3,6 +3,7 @@ import { Save, Building2, Sparkles, Plus, Trash2, Upload, Image, X, FileDown } f
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input, Textarea } from '../components/common/Input';
+import { IconSelector } from '../components/common/IconSelector';
 import { companyProfileApi } from '../api/companyProfileApi';
 import { useToast } from '../context/ToastContext';
 
@@ -85,7 +86,7 @@ function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = c
       const result = await upload(file);
       // Revoke the temporary object URL
       URL.revokeObjectURL(tempPreview);
-      // Backend now returns base64 data URL in result.url
+      // API functions return the data URL directly
       setPreview(result);
       onLogoChange(result);
     } catch (error) {
@@ -156,12 +157,27 @@ function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = c
   );
 }
 
-function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title...', showLogo = false, error }: { label: string; items: Array<{ title: string; description?: string; logo?: string }> | Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean; error?: string }) {
+function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title...', showLogo = false, error, fieldType = 'item' }: { label: string; items: Array<{ title: string; description?: string; logo?: string }> | Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean; error?: string; fieldType?: string }) {
   const [titleValue, setTitleValue] = useState('');
   const [logoValue, setLogoValue] = useState('');
   const [localError, setLocalError] = useState('');
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (localError && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [localError]);
 
   const addItem = () => {
+    const hasEmptyItem = items.some(item => {
+      const itemObj = typeof item === 'string' ? { title: item } : item;
+      return !itemObj.title || !itemObj.title.trim();
+    });
+    if (hasEmptyItem) {
+      setLocalError('Please fill the details in added box first');
+      return;
+    }
     if (titleValue.trim()) {
       const newItem: any = { title: titleValue.trim() };
       if (showLogo && logoValue) {
@@ -172,7 +188,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
       setLogoValue('');
       setLocalError('');
     } else {
-      setLocalError('Please enter a title before adding');
+      setLocalError(`Please add the ${fieldType}`);
     }
   };
 
@@ -201,7 +217,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
     <div className="space-y-2">
       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
       <div className={`grid grid-cols-1 ${showLogo ? 'sm:grid-cols-4' : 'sm:grid-cols-[minmax(0,1fr)_auto]'} gap-2 items-stretch`}>
-        <Input placeholder={placeholder} value={titleValue} onChange={(e) => { setTitleValue(e.target.value); setLocalError(''); }} className="sm:col-span-2" error={localError || error} />
+        <Input placeholder={placeholder} value={titleValue} onChange={(e) => { setTitleValue(e.target.value); setLocalError(''); }} className="sm:col-span-2" error={error} />
         {showLogo && (
           <div className="flex items-center">
             <ImageUploadButton
@@ -215,13 +231,13 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
         )}
         <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addItem} className="flex items-center justify-center" />
       </div>
-      {(localError || error) && <p className="text-xs text-rose-600 font-medium">{localError || error}</p>}
       {items.length > 0 && (
         <div className="space-y-1.5 mt-2">
           {items.map((item, idx) => {
             const itemObj = typeof item === 'string' ? { title: item } : item;
+            const isLast = idx === items.length - 1;
             return (
-              <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div key={idx} ref={isLast ? errorRef : null} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${isLast && localError ? 'border-rose-500' : 'border-slate-200'}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 flex-1 min-w-0">
                     <div className="min-w-0">
@@ -251,23 +267,46 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
 
                   )}
                 </div>
+                {isLast && localError && (
+                  <p className="text-xs text-rose-600 font-medium">{localError}</p>
+                )}
               </div>
             );
           })}
         </div>
+      )}
+      {localError && items.length === 0 && (
+        <p className="text-xs text-rose-600 font-medium">{localError}</p>
       )}
     </div>
   );
 }
 
 function WorkProcessField({ label, items, onChange, error }: { label: string; items: Array<{ icon?: string; title: string; description?: string }>; onChange: (items: Array<{ icon?: string; title: string; description?: string }>) => void; error?: string }) {
+  const [localError, setLocalError] = useState('');
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (localError && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [localError]);
+
   const addItem = () => {
+    // Check if any existing step is not filled
+    const hasEmptyStep = items.some(item => !item.title?.trim() || !item.description?.trim());
+    if (hasEmptyStep) {
+      setLocalError('Please fill the details in added box first');
+      return;
+    }
     const stepNum = items.length + 1;
     onChange([...items, { title: `Step ${stepNum}`, description: '', icon: undefined }]);
+    setLocalError('');
   };
 
   const removeItem = (index: number) => {
     onChange(items.filter((_, i) => i !== index));
+    setLocalError('');
   };
 
   const updateItem = (index: number, field: string, value: any) => {
@@ -282,13 +321,17 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
       <Button type="button" variant="outline" size="sm" icon={Plus} onClick={addItem} className="flex items-center gap-1">
         Add Step
       </Button>
-      {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
       {items.length > 0 && (
         <div className="space-y-2 mt-2">
           {items.map((item, idx) => (
-            <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+            <div ref={idx === items.length - 1 ? errorRef : null} key={idx} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${idx === items.length - 1 && localError ? 'border-rose-500' : 'border-slate-200'}`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <IconSelector
+                    value={item.icon}
+                    onChange={(icon) => updateItem(idx, 'icon', icon)}
+                    showLabel={false}
+                  />
                   <Input
                     value={item.title || ''}
                     onChange={(e) => updateItem(idx, 'title', e.target.value)}
@@ -311,24 +354,45 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
                 rows={2}
                 className="text-sm"
               />
+              {idx === items.length - 1 && localError && (
+                <p className="text-xs text-rose-600 font-medium">{localError}</p>
+              )}
             </div>
           ))}
         </div>
+      )}
+      {localError && items.length === 0 && (
+        <p className="text-xs text-rose-600 font-medium">{localError}</p>
       )}
     </div>
   );
 }
 
-function ArrayField({ label, items, onChange, placeholder = 'Enter item...', showLogo = false, error }: { label: string; items: Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean; error?: string }) {
+function ArrayField({ label, items, onChange, placeholder = 'Enter item...', showLogo = false, error, fieldType = 'item' }: { label: string; items: Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean; error?: string; fieldType?: string }) {
   const [inputValue, setInputValue] = useState('');
   const [logoValue, setLogoValue] = useState('');
   const [localError, setLocalError] = useState('');
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (localError && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [localError]);
 
   const addItem = () => {
+    const hasEmptyItem = items.some(item => {
+      const itemObj = typeof item === 'string' ? { name: item } : item;
+      return !itemObj.name || !itemObj.name.trim();
+    });
+    if (hasEmptyItem) {
+      setLocalError('Please fill the details in added box first');
+      return;
+    }
     if (inputValue.trim()) {
       if (showLogo) {
         if (!logoValue) {
-          setLocalError('Please upload a logo before adding');
+          setLocalError(`Please upload a logo before adding`);
           return;
         }
         onChange([...items, { name: inputValue.trim(), logo: logoValue }]);
@@ -339,7 +403,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
       setLogoValue('');
       setLocalError('');
     } else {
-      setLocalError('Please enter a name before adding');
+      setLocalError(`Please add the ${fieldType}`);
     }
   };
 
@@ -373,7 +437,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
           value={inputValue}
           onChange={(e) => { setInputValue(e.target.value); setLocalError(''); }}
           className={showLogo ? 'flex-1 min-w-[200px]' : 'flex-1'}
-          error={error || localError}
+          error={error}
         />
         {showLogo && (
           <div className="flex items-center">
@@ -388,13 +452,13 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
         )}
         <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addItem} className="flex items-center justify-center" />
       </div>
-      {(error || localError) && <p className="text-xs text-rose-600 font-medium">{localError || error}</p>}
       {items.length > 0 && (
         <div className="space-y-1.5 mt-2">
           {items.map((item, idx) => {
             const itemObj = typeof item === 'string' ? { name: item } : item;
+            const isLast = idx === items.length - 1;
             return (
-              <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div key={idx} ref={isLast ? errorRef : null} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${isLast && localError ? 'border-rose-500' : 'border-slate-200'}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 flex-1 min-w-0">
                     <div className="min-w-0">
@@ -421,37 +485,132 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
 
                   )}
                 </div>
+                {isLast && localError && (
+                  <p className="text-xs text-rose-600 font-medium">{localError}</p>
+                )}
               </div>
             );
           })}
         </div>
+      )}
+      {localError && items.length === 0 && (
+        <p className="text-xs text-rose-600 font-medium">{localError}</p>
       )}
     </div>
   );
 }
 
 function ContractTermsField({ label, items, onChange, error }: { label: string; items: Array<{ title: string; bullets: string[] }>; onChange: (items: Array<{ title: string; bullets: string[] }>) => void; error?: string }) {
-  const [localError, setLocalError] = useState('');
+  const [termErrors, setTermErrors] = useState<Record<number, { title?: boolean; bullets?: boolean }>>({});
+  const [bulletErrors, setBulletErrors] = useState<Record<number, boolean>>({});
+  const prevTermErrors = useRef(termErrors);
+  const prevBulletErrors = useRef(bulletErrors);
+
+  useEffect(() => {
+    const termIndices = Object.keys(termErrors).map(Number);
+    for (const idx of termIndices) {
+      const err = termErrors[idx];
+      const prev = prevTermErrors.current[idx];
+      if ((err?.title && !prev?.title) || (err?.bullets && !prev?.bullets)) {
+        const el = document.getElementById(`term-card-${idx}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+    for (const key of Object.keys(bulletErrors)) {
+      if (bulletErrors[key] && !prevBulletErrors.current[key]) {
+        const [itemIdx] = key.split('-');
+        const el = document.getElementById(`term-card-${itemIdx}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+    prevTermErrors.current = termErrors;
+    prevBulletErrors.current = bulletErrors;
+  }, [termErrors, bulletErrors]);
 
   const addItem = () => {
-    onChange([...items, { title: '', bullets: ['', '', '', '', ''] }]);
-    setLocalError('Please fill in the term title and bullets');
-  };
-
-  const removeItem = (index: number) => {
-    onChange(items.filter((_, i) => i !== index));
+    // Check if the last term (most recently added) is empty
+    if (items.length > 0) {
+      const lastIndex = items.length - 1;
+      const lastItem = items[lastIndex];
+      
+      if (!lastItem.title || !lastItem.title.trim()) {
+        setTermErrors(prev => ({ ...prev, [lastIndex]: { ...prev[lastIndex], title: true } }));
+        return;
+      }
+      if (!lastItem.bullets || lastItem.bullets.length === 0 || lastItem.bullets.some(b => !b.trim())) {
+        setTermErrors(prev => ({ ...prev, [lastIndex]: { ...prev[lastIndex], bullets: true } }));
+        return;
+      }
+    }
+    
+    // Clear any previous error for the last index since we're adding a new one
+    setTermErrors(prev => {
+      const next = { ...prev };
+      if (items.length > 0) {
+        delete next[items.length - 1];
+      }
+      return next;
+    });
+    
+    onChange([...items, { title: '', bullets: [''] }]);
   };
 
   const updateItem = (index: number, field: string, value: any) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     onChange(newItems);
+    
+    // Clear error when user starts typing
+    if (field === 'title') {
+      setTermErrors(prev => {
+        const next = { ...prev };
+        if (next[index]) {
+          next[index] = { ...next[index], title: false };
+          if (!next[index].bullets) delete next[index];
+        }
+        return next;
+      });
+    }
   };
 
   const addBullet = (index: number) => {
+    const item = items[index];
+    const firstEmptyIndex = item.bullets.findIndex(b => !b.trim());
+    if (firstEmptyIndex !== -1) {
+      setBulletErrors(prev => ({ ...prev, [`${index}-${firstEmptyIndex}`]: true }));
+      // Also mark the term as having bullet errors
+      setTermErrors(prev => ({ ...prev, [index]: { ...prev[index], bullets: true } }));
+      return;
+    }
     const newItems = [...items];
     newItems[index] = { ...newItems[index], bullets: [...newItems[index].bullets, ''] };
     onChange(newItems);
+    // Clear bullet error for this term
+    setTermErrors(prev => {
+      const next = { ...prev };
+      if (next[index]) {
+        next[index] = { ...next[index], bullets: false };
+        if (!next[index].title) delete next[index];
+      }
+      return next;
+    });
+  };
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+    setBulletErrors(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(key => {
+        const [itemIdx] = key.split('-').map(Number);
+        if (itemIdx === index) delete next[key];
+        else if (itemIdx > index) {
+          const [, bulletIdx] = key.split('-').map(Number);
+          delete next[key];
+          next[`${itemIdx - 1}-${bulletIdx}`] = true;
+        }
+      });
+      return next;
+    });
   };
 
   const removeBullet = (itemIndex: number, bulletIndex: number) => {
@@ -461,6 +620,20 @@ function ContractTermsField({ label, items, onChange, error }: { label: string; 
       bullets: newItems[itemIndex].bullets.filter((_, i) => i !== bulletIndex),
     };
     onChange(newItems);
+    setBulletErrors(prev => {
+      const next = { ...prev };
+      const key = `${itemIndex}-${bulletIndex}`;
+      delete next[key];
+      // Shift down subsequent bullet errors
+      Object.keys(next).forEach(k => {
+        const [idx, bIdx] = k.split('-').map(Number);
+        if (idx === itemIndex && bIdx > bulletIndex) {
+          delete next[k];
+          next[`${idx}-${bIdx - 1}`] = true;
+        }
+      });
+      return next;
+    });
   };
 
   const updateBullet = (itemIndex: number, bulletIndex: number, value: string) => {
@@ -471,28 +644,32 @@ function ContractTermsField({ label, items, onChange, error }: { label: string; 
     onChange(newItems);
   };
 
-  return (
+return (
     <div className="space-y-2">
       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
       <Button type="button" variant="outline" size="sm" icon={Plus} onClick={addItem} className="flex items-center gap-1">
         Add Term
       </Button>
-      {(error || localError) && <p className="text-xs text-rose-600 font-medium">{localError || error}</p>}
       {items.length > 0 && (
         <div className="space-y-3 mt-2">
-          {items.map((item, idx) => (
-            <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {idx + 1}
-                </div>
-                <Input
-                  value={item.title || ''}
-                  onChange={(e) => { updateItem(idx, 'title', e.target.value); setLocalError(''); }}
-                  placeholder={`Term ${idx + 1} title`}
-                  className="flex-1 min-w-0"
-                />
-                <button
+          {items.map((item, idx) => {
+            const termError = termErrors[idx];
+            const hasTermTitleError = termError?.title;
+            const hasTermBulletsError = termError?.bullets;
+            return (
+            <div key={idx} id={`term-card-${idx}`} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${hasTermTitleError || hasTermBulletsError ? 'border-rose-500' : 'border-slate-200'}`}>
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    {idx + 1}
+                  </div>
+                  <Input
+                    value={item.title || ''}
+                    onChange={(e) => { updateItem(idx, 'title', e.target.value); }}
+                    placeholder={`Term ${idx + 1} title`}
+                    className="flex-1 min-w-0"
+                    error={hasTermTitleError ? 'Please fill the term title' : undefined}
+                  />
+                  <button
                   type="button"
                   onClick={() => removeItem(idx)}
                   className="text-rose-500 hover:text-rose-700 p-1 flex-shrink-0"
@@ -501,24 +678,29 @@ function ContractTermsField({ label, items, onChange, error }: { label: string; 
                 </button>
               </div>
               <div className="space-y-1.5 pl-9">
-                {item.bullets.map((bullet, bIdx) => (
-                  <div key={bIdx} className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400 font-mono w-4 text-right flex-shrink-0">•</span>
-                    <Input
-                      value={bullet || ''}
-                      onChange={(e) => updateBullet(idx, bIdx, e.target.value)}
-                      placeholder={`Bullet point ${bIdx + 1}`}
-                      className="flex-1 min-w-0 text-xs"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeBullet(idx, bIdx)}
-                      className="text-rose-400 hover:text-rose-600 p-0.5 flex-shrink-0"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
+                {item.bullets.map((bullet, bIdx) => {
+                  const bulletKey = `${idx}-${bIdx}`;
+                  const hasBulletError = bulletErrors[bulletKey];
+                  return (
+                    <div key={bIdx} className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 font-mono w-4 text-right flex-shrink-0">•</span>
+                      <Input
+                        value={bullet || ''}
+                        onChange={(e) => { updateBullet(idx, bIdx, e.target.value); setBulletErrors(prev => ({ ...prev, [bulletKey]: false })); }}
+                        placeholder={`Bullet point ${bIdx + 1}`}
+                        className="flex-1 min-w-0 text-xs"
+                        error={hasBulletError ? 'Please fill this first' : undefined}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeBullet(idx, bIdx)}
+                        className="text-rose-400 hover:text-rose-600 p-0.5 flex-shrink-0"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                }                )}
                 <button
                   type="button"
                   onClick={() => addBullet(idx)}
@@ -528,7 +710,7 @@ function ContractTermsField({ label, items, onChange, error }: { label: string; 
                 </button>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>
@@ -602,9 +784,7 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
           />
           <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addParagraph} className="flex items-center justify-center mt-2" />
         </div>
-        
-        {paragraphError && <p className="text-xs text-rose-600 font-medium">{paragraphError}</p>}
-        
+
         {paragraphs.length > 0 && (
           <div className="space-y-2">
             {paragraphs.map((paragraph, idx) => (
@@ -721,7 +901,8 @@ export function CompanySettingsPage() {
         if (value.trim().length > 100) return 'Company name must be less than 100 characters';
         break;
       case 'tagline':
-        if (value && value.length > 150) return 'Tagline must be less than 150 characters';
+        if (!value || !value.trim()) return 'Tagline is required';
+        if (value.length > 150) return 'Tagline must be less than 150 characters';
         break;
       case 'email':
         if (!value || !value.trim()) return 'Email is required';
@@ -734,22 +915,25 @@ export function CompanySettingsPage() {
         if (!phoneRegex.test(value)) return 'Please enter a valid phone number';
         break;
       case 'website':
-        if (value && value.trim()) {
-          const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-          if (!urlRegex.test(value)) return 'Please enter a valid website URL (e.g., https://example.com)';
-        }
+        if (!value || !value.trim()) return 'Website is required';
+        const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+        if (!urlRegex.test(value)) return 'Please enter a valid website URL (e.g., https://example.com)';
         break;
       case 'sales_head_name':
-        if (value && value.length > 100) return 'Sales head name must be less than 100 characters';
+        if (!value || !value.trim()) return 'Sales head name is required';
+        if (value.length > 100) return 'Sales head name must be less than 100 characters';
         break;
       case 'sales_head_title':
-        if (value && value.length > 100) return 'Sales head title must be less than 100 characters';
+        if (!value || !value.trim()) return 'Sales head title is required';
+        if (value.length > 100) return 'Sales head title must be less than 100 characters';
         break;
       case 'mission':
-        if (value && value.length > 2000) return 'Mission statement must be less than 2000 characters';
+        if (!value || !value.trim()) return 'Mission statement is required';
+        if (value.trim().length > 2000) return 'Mission statement must be less than 2000 characters';
         break;
       case 'vision':
-        if (value && value.length > 2000) return 'Vision statement must be less than 2000 characters';
+        if (!value || !value.trim()) return 'Vision statement is required';
+        if (value.trim().length > 2000) return 'Vision statement must be less than 2000 characters';
         break;
       case 'terms':
         if (value && value.length > 5000) return 'Terms must be less than 5000 characters';
@@ -1105,7 +1289,7 @@ export function CompanySettingsPage() {
                         }
                         try {
                           const result = await companyProfileApi.uploadLogo(file);
-                          handleInputChange('logo_data', result.url);
+                          handleInputChange('logo_data', result);
                           handleInputChange('logo_url', '');
                         } catch (error) {
                           console.error('Logo upload failed:', error);
@@ -1191,6 +1375,7 @@ export function CompanySettingsPage() {
             onChange={(val) => handleInputChange('core_values', val)}
             placeholder="e.g. Integrity"
             showLogo={true}
+            fieldType="core value"
             error={errors.core_values && (touched.has('core_values') || submitAttempted) ? errors.core_values : undefined}
           />
         </Card>
@@ -1209,6 +1394,7 @@ export function CompanySettingsPage() {
             onChange={(val) => handleInputChange('services', val)}
             placeholder="e.g. Design & Illustration"
             showLogo={true}
+            fieldType="service"
             error={errors.services && (touched.has('services') || submitAttempted) ? errors.services : undefined}
           />
         </Card>
@@ -1227,6 +1413,7 @@ export function CompanySettingsPage() {
             onChange={(val) => handleInputChange('bni_clients', val)}
             placeholder="e.g. Shree Cement"
             showLogo={true}
+            fieldType="BNI OR Regional Partner Name"
             error={errors.bni_clients && (touched.has('bni_clients') || submitAttempted) ? errors.bni_clients : undefined}
           />
           <ArrayField
@@ -1235,6 +1422,7 @@ export function CompanySettingsPage() {
             onChange={(val) => handleInputChange('international_clients', val)}
             placeholder="e.g. TechFlow Inc. (USA)"
             showLogo={true}
+            fieldType="International Partner name"
             error={errors.international_clients && (touched.has('international_clients') || submitAttempted) ? errors.international_clients : undefined}
           />
         </Card>
@@ -1252,7 +1440,8 @@ export function CompanySettingsPage() {
             items={profile.branch_offices || []}
             onChange={(val) => handleInputChange('branch_offices', val)}
             placeholder="e.g. Rajkot - 150ft Rd, Gujarat, India"
-            showLogo={true}
+            showLogo={false}
+            fieldType="branch office name"
             error={errors.branch_offices && (touched.has('branch_offices') || submitAttempted) ? errors.branch_offices : undefined}
           />
         </Card>
