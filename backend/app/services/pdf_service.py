@@ -499,6 +499,32 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
     return content
 
 
+def _terms_from_text(terms_text: str | None) -> dict[str, list[str]]:
+    if not terms_text:
+        return {}
+    section_keywords = {
+        "payment_terms": ["payment", "advance", "milestone", "final delivery", "gst"],
+        "annual_maintenance_contract": ["maintenance", "amc"],
+        "services_limitations": ["limitation", "liable", "not responsible"],
+        "exclusions": ["exclusion", "not included", "not covered"],
+        "client_side_support": ["client side", "decision-maker", "decision maker"],
+        "project_cancellation": ["cancellation", "non-refundable", "refund"],
+    }
+    result: dict[str, list[str]] = {}
+    lines = [line.strip() for line in str(terms_text).strip().split("\n") if line.strip()]
+    for line in lines:
+        line_lower = line.lower()
+        matched = False
+        for key, keywords in section_keywords.items():
+            if any(kw in line_lower for kw in keywords):
+                result.setdefault(key, []).append(line)
+                matched = True
+                break
+        if not matched:
+            result.setdefault("general_terms", []).append(line)
+    return result
+
+
 def _nl2br_filter(value: Any) -> Markup:
     text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br/>")
     return Markup(text)
@@ -510,7 +536,7 @@ def _qr_src(value: Any) -> str:
         if source.startswith("data:"):
             return source
         buffer = io.BytesIO()
-        qrcode.make(source).save(buffer, format="PNG")
+        qrcode.make(source).save(buffer)
         encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
         return f"data:image/png;base64,{encoded}"
     except Exception:
@@ -713,17 +739,9 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
 
     # Terms (legacy)
     terms_text = str(getattr(cp, "terms", None) or "")
-    terms_dict = _terms_from_text(terms_text) if terms_text else {}
-    terms_sections = [
-        ("Payment Terms", terms_dict.get("payment_terms", [])),
-        ("Annual Maintenance Contract", terms_dict.get("annual_maintenance_contract", [])),
-        ("Services Limitations", terms_dict.get("services_limitations", [])),
-        ("Exclusions", terms_dict.get("exclusions", [])),
-        ("Client Side Support", terms_dict.get("client_side_support", [])),
-        ("Project Cancellation", terms_dict.get("project_cancellation", [])),
-    ]
-    # Only include sections that have content
-    terms_sections = [(t, items) for t, items in terms_sections if items]
+    # terms_dict = _terms_from_text(terms_text) if terms_text else {}
+    terms_dict = {}
+    terms_sections = [(t["title"], t["bullets"]) for t in contract_terms] if contract_terms else []
 
     # Payment
     payment: dict[str, Any] = {}

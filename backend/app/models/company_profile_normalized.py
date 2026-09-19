@@ -152,3 +152,23 @@ class ContractTerm(Base):
     __table_args__ = (
         UniqueConstraint("company_profile_id", "sort_order", name="uq_contract_term_profile_order"),
     )
+
+
+class BankDetails(Base):
+    __tablename__ = "company_bank_details"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    bank_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    account_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    account_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    ifsc: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    branch: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    upi_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    swift_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    iban: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="bank_details_rel")

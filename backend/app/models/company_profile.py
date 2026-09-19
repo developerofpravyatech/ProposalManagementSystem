@@ -15,6 +15,7 @@ if TYPE_CHECKING:
         PaymentMethod,
         Signature,
         ContractTerm,
+        BankDetails,
     )
 
 
@@ -33,7 +34,6 @@ class CompanyProfile(Base):
     vision: Mapped[str | None] = mapped_column(Text, nullable=True)
     logo_data: Mapped[str | None] = mapped_column(Text, nullable=True)
     logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     terms: Mapped[str | None] = mapped_column(Text, nullable=True)
     profile_paragraphs: Mapped[list | None] = mapped_column(JSON, nullable=True)
     cover_letter_salutation: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -43,6 +43,9 @@ class CompanyProfile(Base):
     cover_letter_signature_designation: Mapped[str | None] = mapped_column(String(255), nullable=True)
     cover_letter_signature_date: Mapped[str | None] = mapped_column(String(50), nullable=True)
     cover_letter_signature_image: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    quote_acceptance_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    footer_tagline: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Bank Details - moved to company_payment_methods table
     # bank_name, bank_account_name, bank_account_number, bank_ifsc, bank_branch, upi_id, swift_code, iban kept for backward compatibility
@@ -77,4 +80,7 @@ class CompanyProfile(Base):
     )
     contract_terms_rel: Mapped[list["ContractTerm"]] = relationship(
         "ContractTerm", back_populates="company_profile", cascade="all, delete-orphan", order_by="ContractTerm.sort_order"
+    )
+    bank_details_rel: Mapped["BankDetails | None"] = relationship(
+        "BankDetails", back_populates="company_profile", cascade="all, delete-orphan", uselist=False
     )

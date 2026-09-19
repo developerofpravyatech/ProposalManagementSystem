@@ -48,6 +48,30 @@ function normalizeRelationalData(profile: any) {
       image_data: s.image_data,
     }));
   }
+  if (profile.payment_method_rel) {
+    const pm = profile.payment_method_rel;
+    profile.bank_name = pm.bank_name;
+    profile.bank_account_name = pm.account_name;
+    profile.bank_account_number = pm.account_number;
+    profile.bank_ifsc = pm.ifsc;
+    profile.bank_branch = pm.branch;
+    profile.upi_id = pm.upi_id;
+    profile.qr_code = pm.qr_code;
+    profile.swift_code = pm.swift_code;
+    profile.iban = pm.iban;
+  }
+  if (profile.bank_details_rel) {
+    const bd = profile.bank_details_rel;
+    profile.bank_name = bd.bank_name;
+    profile.bank_account_name = bd.account_name;
+    profile.bank_account_number = bd.account_number;
+    profile.bank_ifsc = bd.ifsc;
+    profile.bank_branch = bd.branch;
+    profile.upi_id = bd.upi_id;
+    profile.qr_code = bd.qr_code;
+    profile.swift_code = bd.swift_code;
+    profile.iban = bd.iban;
+  }
   return profile;
 }
 

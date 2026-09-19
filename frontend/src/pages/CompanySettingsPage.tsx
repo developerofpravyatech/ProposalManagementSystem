@@ -36,6 +36,8 @@ interface CompanyProfile {
   upi_id?: string;
   swift_code?: string;
   iban?: string;
+  quote_acceptance_message?: string;
+  footer_tagline?: string;
   signatures?: Array<{ image_data: string }>;
   signature_data?: string;
   cover_letter_paragraphs?: string[];
@@ -877,6 +879,8 @@ export function CompanySettingsPage() {
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [logoError, setLogoError] = useState('');
+  const initialProfileRef = useRef<CompanyProfile>({});
+  const dirtyFieldsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     loadProfile();
@@ -886,6 +890,8 @@ export function CompanySettingsPage() {
     try {
       const data = await companyProfileApi.getCompanyProfile();
       setProfile(data);
+      initialProfileRef.current = data;
+      dirtyFieldsRef.current = new Set();
     } catch (err) {
       addToast('Failed to load company profile', 'error');
     } finally {
@@ -938,6 +944,12 @@ export function CompanySettingsPage() {
       case 'terms':
         if (value && value.length > 5000) return 'Terms must be less than 5000 characters';
         break;
+      case 'bank_name':
+        if (value && value.length > 255) return 'Bank name must be less than 255 characters';
+        break;
+      case 'bank_branch':
+        if (value && value.length > 255) return 'Branch name must be less than 255 characters';
+        break;
       case 'bank_account_number':
         if (value && value.length > 30) return 'Account number must be less than 30 characters';
         break;
@@ -952,6 +964,12 @@ export function CompanySettingsPage() {
         break;
       case 'upi_id':
         if (value && value.length > 50) return 'UPI ID must be less than 50 characters';
+        break;
+      case 'quote_acceptance_message':
+        if (value && value.length > 2000) return 'Quote acceptance message must be less than 2000 characters';
+        break;
+      case 'footer_tagline':
+        if (value && value.length > 500) return 'Footer tagline must be less than 500 characters';
         break;
     }
     return undefined;
@@ -1044,7 +1062,7 @@ export function CompanySettingsPage() {
   const validateAll = (): boolean => {
     const newErrors: ValidationErrors = {};
 
-    const basicFields = ['company_name', 'tagline', 'email', 'phone', 'website', 'sales_head_name', 'sales_head_title', 'mission', 'vision', 'terms', 'bank_account_number', 'bank_ifsc', 'swift_code', 'iban', 'upi_id'];
+    const basicFields = ['company_name', 'tagline', 'email', 'phone', 'website', 'sales_head_name', 'sales_head_title', 'mission', 'vision', 'terms', 'bank_name', 'bank_account_number', 'bank_branch', 'bank_ifsc', 'swift_code', 'iban', 'upi_id', 'quote_acceptance_message', 'footer_tagline'];
     basicFields.forEach(field => {
       const error = validateField(field, profile[field as keyof CompanyProfile]);
       if (error) newErrors[field] = error;
@@ -1103,12 +1121,25 @@ export function CompanySettingsPage() {
 
     if (!validateAll()) {
       addToast('Please fill proper fields', 'error');
+      setTimeout(() => {
+        const firstErrorEl = document.querySelector('.border-rose-500, p.text-rose-600');
+        if (firstErrorEl) {
+          firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       return;
     }
 
     setSaving(true);
     try {
-      await companyProfileApi.updateCompanyProfile(profile);
+      const payload = getDirtyProfilePayload();
+      if (Object.keys(payload).length === 0) {
+        addToast('Company profile saved successfully', 'success');
+        return;
+      }
+      await companyProfileApi.updateCompanyProfile(payload);
+      initialProfileRef.current = profile;
+      dirtyFieldsRef.current.clear();
       addToast('Company profile saved successfully', 'success');
     } catch (err) {
       addToast('Failed to save company profile', 'error');
@@ -1136,6 +1167,15 @@ export function CompanySettingsPage() {
 
   const handleInputChange = (field: string, value: any) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
+    dirtyFieldsRef.current.add(field);
+  };
+
+  const getDirtyProfilePayload = () => {
+    const payload: Record<string, any> = {};
+    for (const field of dirtyFieldsRef.current) {
+      payload[field] = profile[field as keyof CompanyProfile];
+    }
+    return payload;
   };
 
   if (loading) {
@@ -1333,7 +1373,7 @@ export function CompanySettingsPage() {
           />
         </Card>
 
-{/* Mission & Vision */}
+        {/* Mission & Vision */}
         <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
@@ -1494,6 +1534,120 @@ export function CompanySettingsPage() {
             rows={6}
             placeholder="Enter terms and conditions (one term per line)..."
             error={errors.terms && (touched.has('terms') || submitAttempted) ? errors.terms : undefined}
+          />
+        </Card>
+
+        {/* Payment Methods */}
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm" id="field-bank_name">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-brand-600" />
+              Payment Methods
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Bank Name"
+              value={profile.bank_name || ''}
+              onChange={(e) => handleInputChange('bank_name', e.target.value)}
+              onBlur={(e) => handleBlur('bank_name', e.target.value)}
+              error={errors.bank_name && (touched.has('bank_name') || submitAttempted) ? errors.bank_name : undefined}
+              placeholder="Enter bank name"
+              helperText="Example: State Bank of India"
+            />
+            <Input
+              label="Account Number"
+              value={profile.bank_account_number || ''}
+              onChange={(e) => handleInputChange('bank_account_number', e.target.value)}
+              onBlur={(e) => handleBlur('bank_account_number', e.target.value)}
+              error={errors.bank_account_number && (touched.has('bank_account_number') || submitAttempted) ? errors.bank_account_number : undefined}
+              placeholder="Enter account number"
+            />
+            <Input
+              label="Branch Name"
+              value={profile.bank_branch || ''}
+              onChange={(e) => handleInputChange('bank_branch', e.target.value)}
+              onBlur={(e) => handleBlur('bank_branch', e.target.value)}
+              error={errors.bank_branch && (touched.has('bank_branch') || submitAttempted) ? errors.bank_branch : undefined}
+              placeholder="Enter branch name"
+            />
+            <Input
+              label="IFSC Code"
+              value={profile.bank_ifsc || ''}
+              onChange={(e) => handleInputChange('bank_ifsc', e.target.value)}
+              onBlur={(e) => handleBlur('bank_ifsc', e.target.value)}
+              error={errors.bank_ifsc && (touched.has('bank_ifsc') || submitAttempted) ? errors.bank_ifsc : undefined}
+              placeholder="Enter IFSC code"
+            />
+            <Input
+              label="UPI ID"
+              value={profile.upi_id || ''}
+              onChange={(e) => handleInputChange('upi_id', e.target.value)}
+              onBlur={(e) => handleBlur('upi_id', e.target.value)}
+              error={errors.upi_id && (touched.has('upi_id') || submitAttempted) ? errors.upi_id : undefined}
+              placeholder="Enter UPI ID"
+              helperText="Example: company@upi"
+            />
+            <Input
+              label="Swift Code"
+              value={profile.swift_code || ''}
+              onChange={(e) => handleInputChange('swift_code', e.target.value)}
+              onBlur={(e) => handleBlur('swift_code', e.target.value)}
+              error={errors.swift_code && (touched.has('swift_code') || submitAttempted) ? errors.swift_code : undefined}
+              placeholder="Enter Swift Code (Optional)"
+            />
+          </div>
+          <div className="pt-4 border-t border-slate-200">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">QR Code</label>
+            <ImageUploadButton
+              label="QR Code"
+              currentLogo={profile.qr_code || ''}
+              onLogoChange={(logo) => {
+                handleInputChange('qr_code', logo);
+                handleBlur('qr_code', logo);
+              }}
+              onLogoRemove={() => {
+                handleInputChange('qr_code', '');
+                handleBlur('qr_code', '');
+              }}
+              upload={companyProfileApi.uploadLogo}
+              size="lg"
+              helpText="Upload a QR code for quick payments (PNG/JPG)"
+            />
+            {errors.qr_code && (touched.has('qr_code') || submitAttempted) && (
+              <p className="text-xs text-rose-600 font-medium mt-1">{errors.qr_code}</p>
+            )}
+          </div>
+        </Card>
+
+        {/* Quote Sign Off / Footer */}
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm" id="field-quote_acceptance_message">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-brand-600" />
+              Quote Sign Off & Footer
+            </h2>
+          </div>
+          
+          <Textarea
+            label="Quote Acceptance Terms"
+            value={profile.quote_acceptance_message || ''}
+            onChange={(e) => handleInputChange('quote_acceptance_message', e.target.value)}
+            onBlur={(e) => handleBlur('quote_acceptance_message', e.target.value)}
+            rows={4}
+            placeholder="e.g. By signing below, the client confirms acceptance of the quote..."
+            helperText="This message will be printed on the final acceptance page."
+            error={errors.quote_acceptance_message && (touched.has('quote_acceptance_message') || submitAttempted) ? errors.quote_acceptance_message : undefined}
+          />
+
+          <Input
+            label="Footer Tagline"
+            value={profile.footer_tagline || ''}
+            onChange={(e) => handleInputChange('footer_tagline', e.target.value)}
+            onBlur={(e) => handleBlur('footer_tagline', e.target.value)}
+            placeholder="e.g. Take your business to the next level."
+            helperText="This is shown on the final back cover page."
+            error={errors.footer_tagline && (touched.has('footer_tagline') || submitAttempted) ? errors.footer_tagline : undefined}
           />
         </Card>
 

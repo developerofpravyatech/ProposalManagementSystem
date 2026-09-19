@@ -55,6 +55,19 @@ async def lifespan(app: FastAPI):
                 END $$;
             """)))
 
+            print("[STARTUP] Adding new text fields to company_profile if missing...")
+            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'company_profile' AND column_name = 'quote_acceptance_message') THEN
+                        ALTER TABLE company_profile ADD COLUMN quote_acceptance_message TEXT;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'company_profile' AND column_name = 'footer_tagline') THEN
+                        ALTER TABLE company_profile ADD COLUMN footer_tagline VARCHAR(500);
+                    END IF;
+                END $$;
+            """)))
+
             print("[STARTUP] Migrating contract_terms to dedicated table...")
             await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS company_contract_terms (
@@ -138,18 +151,23 @@ async def lifespan(app: FastAPI):
 
             print("[STARTUP] Migrating legacy bank data to company_payment_methods...")
             await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
-                INSERT INTO company_payment_methods (
-                    company_profile_id, bank_name, account_name, account_number, 
-                    ifsc, branch, upi_id, qr_code, swift_code, iban, is_default
-                )
-                SELECT 
-                    id, bank_name, bank_account_name, bank_account_number,
-                    bank_ifsc, bank_branch, upi_id, qr_code, swift_code, iban, TRUE
-                FROM company_profile
-                WHERE (bank_name IS NOT NULL OR bank_account_name IS NOT NULL OR bank_account_number IS NOT NULL 
-                       OR bank_ifsc IS NOT NULL OR bank_branch IS NOT NULL OR upi_id IS NOT NULL 
-                       OR qr_code IS NOT NULL OR swift_code IS NOT NULL OR iban IS NOT NULL)
-                ON CONFLICT (company_profile_id) DO NOTHING;
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'company_profile' AND column_name = 'bank_name') THEN
+                        INSERT INTO company_payment_methods (
+                            company_profile_id, bank_name, account_name, account_number, 
+                            ifsc, branch, upi_id, qr_code, swift_code, iban, is_default
+                        )
+                        SELECT 
+                            id, bank_name, bank_account_name, bank_account_number,
+                            bank_ifsc, bank_branch, upi_id, qr_code, swift_code, iban, TRUE
+                        FROM company_profile
+                        WHERE (bank_name IS NOT NULL OR bank_account_name IS NOT NULL OR bank_account_number IS NOT NULL 
+                               OR bank_ifsc IS NOT NULL OR bank_branch IS NOT NULL OR upi_id IS NOT NULL 
+                               OR qr_code IS NOT NULL OR swift_code IS NOT NULL OR iban IS NOT NULL)
+                        ON CONFLICT (company_profile_id) DO NOTHING;
+                    END IF;
+                END $$;
             """)))
 
             print("[STARTUP] Tables ready.")

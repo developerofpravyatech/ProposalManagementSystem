@@ -4,7 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.models.company_profile import CompanyProfile
-from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, WorkProcessStep, PaymentMethod, Signature, ContractTerm
+from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, WorkProcessStep, PaymentMethod, Signature, ContractTerm, BankDetails
+from typing import Any
 
 
 DEFAULT_COMPANY_PROFILE = {
@@ -273,6 +274,40 @@ async def _sync_payment_method(db: AsyncSession, profile: CompanyProfile, data: 
         ))
 
 
+async def _sync_bank_details(db: AsyncSession, profile: CompanyProfile, data: dict | None) -> None:
+    """Sync bank details from JSON to relational table"""
+    if data is None:
+        return
+        
+    result = await db.execute(select(BankDetails).where(BankDetails.company_profile_id == profile.id))
+    existing = result.scalar_one_or_none()
+    
+    if existing:
+        existing.bank_name = data.get("bank_name")
+        existing.account_name = data.get("account_name")
+        existing.account_number = data.get("account_number")
+        existing.ifsc = data.get("ifsc")
+        existing.branch = data.get("branch")
+        existing.upi_id = data.get("upi_id")
+        existing.qr_code = data.get("qr_code")
+        existing.swift_code = data.get("swift_code")
+        existing.iban = data.get("iban")
+        existing.updated_at = datetime.now(timezone.utc)
+    else:
+        db.add(BankDetails(
+            company_profile_id=profile.id,
+            bank_name=data.get("bank_name"),
+            account_name=data.get("account_name"),
+            account_number=data.get("account_number"),
+            ifsc=data.get("ifsc"),
+            branch=data.get("branch"),
+            upi_id=data.get("upi_id"),
+            qr_code=data.get("qr_code"),
+            swift_code=data.get("swift_code"),
+            iban=data.get("iban"),
+        ))
+
+
 async def _sync_contract_terms(db: AsyncSession, profile: CompanyProfile, terms: list) -> None:
     """Sync contract terms from JSON to relational table"""
     await db.execute(
@@ -308,6 +343,7 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
             selectinload(CompanyProfile.work_process_steps_rel),
             selectinload(CompanyProfile.signatures_rel),
             selectinload(CompanyProfile.payment_method_rel),
+            selectinload(CompanyProfile.bank_details_rel),
             selectinload(CompanyProfile.contract_terms_rel),
         )
         .limit(1)
@@ -319,6 +355,18 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
         # core_values is not a column on the model; use it only for relational sync
         default_core_values = profile_data.pop("core_values", [])
         default_contract_terms = profile_data.pop("contract_terms", [])
+        # Bank details defaults
+        default_bank_details = {
+            "bank_name": profile_data.pop("bank_name", None),
+            "account_name": profile_data.pop("bank_account_name", None),
+            "account_number": profile_data.pop("bank_account_number", None),
+            "ifsc": profile_data.pop("bank_ifsc", None),
+            "branch": profile_data.pop("bank_branch", None),
+            "upi_id": profile_data.pop("upi_id", None),
+            "swift_code": profile_data.pop("swift_code", None),
+            "iban": profile_data.pop("iban", None),
+            "qr_code": profile_data.pop("qr_code", None),
+        }
         profile = CompanyProfile(**profile_data)
         db.add(profile)
         await db.flush()
@@ -331,6 +379,7 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
             {"title": "Content Marketing", "description": "Engaging content strategies that drive traffic, generate leads, and build brand authority."},
         ])
         await _sync_contract_terms(db, profile, default_contract_terms)
+        await _sync_bank_details(db, profile, default_bank_details)
         await db.commit()
         await db.refresh(profile)
     else:
@@ -361,18 +410,35 @@ async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
     result = await db.execute(select(PaymentMethod).where(PaymentMethod.company_profile_id == profile.id))
     if not result.scalar():
         legacy_data = {
-            "bank_name": profile.bank_name,
-            "bank_account_name": profile.bank_account_name,
-            "bank_account_number": profile.bank_account_number,
-            "bank_ifsc": profile.bank_ifsc,
-            "bank_branch": profile.bank_branch,
-            "upi_id": profile.upi_id,
-            "qr_code": profile.qr_code,
-            "swift_code": profile.swift_code,
-            "iban": profile.iban,
+            "bank_name": getattr(profile, "bank_name", None),
+            "bank_account_name": getattr(profile, "bank_account_name", None),
+            "bank_account_number": getattr(profile, "bank_account_number", None),
+            "bank_ifsc": getattr(profile, "bank_ifsc", None),
+            "bank_branch": getattr(profile, "bank_branch", None),
+            "upi_id": getattr(profile, "upi_id", None),
+            "qr_code": getattr(profile, "qr_code", None),
+            "swift_code": getattr(profile, "swift_code", None),
+            "iban": getattr(profile, "iban", None),
         }
         if any(legacy_data.values()):
             await _sync_payment_method(db, profile, legacy_data)
+            await db.commit()
+
+    result = await db.execute(select(BankDetails).where(BankDetails.company_profile_id == profile.id))
+    if not result.scalar():
+        legacy_data = {
+            "bank_name": getattr(profile, "bank_name", None),
+            "account_name": getattr(profile, "bank_account_name", None),
+            "account_number": getattr(profile, "bank_account_number", None),
+            "ifsc": getattr(profile, "bank_ifsc", None),
+            "branch": getattr(profile, "bank_branch", None),
+            "upi_id": getattr(profile, "upi_id", None),
+            "qr_code": getattr(profile, "qr_code", None),
+            "swift_code": getattr(profile, "swift_code", None),
+            "iban": getattr(profile, "iban", None),
+        }
+        if any(legacy_data.values()):
+            await _sync_bank_details(db, profile, legacy_data)
             await db.commit()
 
 
@@ -388,6 +454,7 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
             selectinload(CompanyProfile.work_process_steps_rel),
             selectinload(CompanyProfile.signatures_rel),
             selectinload(CompanyProfile.payment_method_rel),
+            selectinload(CompanyProfile.bank_details_rel),
             selectinload(CompanyProfile.contract_terms_rel),
         )
         .limit(1)
@@ -406,6 +473,7 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
                 selectinload(CompanyProfile.work_process_steps_rel),
                 selectinload(CompanyProfile.signatures_rel),
                 selectinload(CompanyProfile.payment_method_rel),
+                selectinload(CompanyProfile.bank_details_rel),
                 selectinload(CompanyProfile.contract_terms_rel),
             )
             .where(CompanyProfile.id == profile.id)
@@ -427,6 +495,7 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
         "work_process_steps": _sync_work_process_steps,
         "signatures": _sync_signatures,
         "payment_method": _sync_payment_method,
+        "bank_details": _sync_bank_details,
         "contract_terms": _sync_contract_terms,
     }
     
@@ -463,6 +532,7 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
             selectinload(CompanyProfile.work_process_steps_rel),
             selectinload(CompanyProfile.signatures_rel),
             selectinload(CompanyProfile.payment_method_rel),
+            selectinload(CompanyProfile.bank_details_rel),
             selectinload(CompanyProfile.contract_terms_rel),
         )
         .where(CompanyProfile.id == profile_id)

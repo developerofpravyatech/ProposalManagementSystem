@@ -133,6 +133,29 @@ class PaymentMethodRead(PaymentMethodBase):
     updated_at: datetime
 
 
+class BankDetailsBase(BaseModel):
+    bank_name: Optional[str] = Field(None, max_length=255)
+    account_name: Optional[str] = Field(None, max_length=255)
+    account_number: Optional[str] = Field(None, max_length=50)
+    ifsc: Optional[str] = Field(None, max_length=20)
+    branch: Optional[str] = Field(None, max_length=255)
+    upi_id: Optional[str] = Field(None, max_length=100)
+    qr_code: Optional[str] = None
+    swift_code: Optional[str] = Field(None, max_length=20)
+    iban: Optional[str] = Field(None, max_length=50)
+
+
+class BankDetailsCreate(BankDetailsBase):
+    pass
+
+
+class BankDetailsRead(BankDetailsBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+
 class SignatureBase(BaseModel):
     image_data: Optional[str] = None
     sort_order: int = 0
@@ -173,6 +196,8 @@ class CompanyProfileBase(BaseModel):
     cover_letter_signature_designation: Optional[str] = Field(None, max_length=255)
     cover_letter_signature_date: Optional[str] = Field(None, max_length=50)
     cover_letter_signature_image: Optional[str] = None
+    quote_acceptance_message: Optional[str] = None
+    footer_tagline: Optional[str] = Field(None, max_length=500)
 
     # Bank Details - deprecated, use payment_method_rel instead
     bank_name: Optional[str] = Field(None, max_length=255)
@@ -212,6 +237,8 @@ class CompanyProfileUpdate(BaseModel):
     cover_letter_signature_designation: Optional[str] = Field(None, max_length=255)
     cover_letter_signature_date: Optional[str] = Field(None, max_length=50)
     cover_letter_signature_image: Optional[str] = None
+    quote_acceptance_message: Optional[str] = None
+    footer_tagline: Optional[str] = Field(None, max_length=500)
     
     # Bank Details - deprecated, use payment_method instead
     bank_name: Optional[str] = Field(None, max_length=255)
@@ -241,6 +268,7 @@ class CompanyProfileRead(CompanyProfileBase):
     work_process_steps_rel: list[WorkProcessStepRead] = []
     signatures_rel: list[SignatureRead] = []
     payment_method_rel: Optional[PaymentMethodRead] = None
+    bank_details_rel: Optional[BankDetailsRead] = None
     contract_terms_rel: list[ContractTermRead] = []
 
     @model_validator(mode="after")
@@ -268,4 +296,5 @@ class CompanyProfileWithRelations(CompanyProfileRead):
     work_process_steps_rel: list[WorkProcessStepRead]
     signatures_rel: list[SignatureRead]
     payment_method_rel: Optional[PaymentMethodRead] = None
+    bank_details_rel: Optional[BankDetailsRead] = None
     contract_terms_rel: list[ContractTermRead]
