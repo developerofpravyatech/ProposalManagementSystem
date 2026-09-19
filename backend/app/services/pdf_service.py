@@ -737,23 +737,52 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
     cover_letter_paragraphs = getattr(cp, "cover_letter_paragraphs", None) or []
     cover_letter_signoff = getattr(cp, "cover_letter_signoff", None) or "Warm regards,"
 
+    # Quote acceptance and footer tagline
+    quote_acceptance_message = getattr(cp, "quote_acceptance_message", None)
+    footer_tagline = getattr(cp, "footer_tagline", None)
+
     # Terms (legacy)
     terms_text = str(getattr(cp, "terms", None) or "")
     # terms_dict = _terms_from_text(terms_text) if terms_text else {}
     terms_dict = {}
     terms_sections = [(t["title"], t["bullets"]) for t in contract_terms] if contract_terms else []
 
-    # Payment
+    # Payment - use normalized bank_details_rel or payment_method_rel
     payment: dict[str, Any] = {}
     if cp:
-        payment["qr_code"] = getattr(cp, "qr_code", None)
-        payment["upi_id"] = str(getattr(cp, "upi_id", None) or "")
-        payment["bank_name"] = str(getattr(cp, "bank_name", None) or "")
-        payment["account_number"] = str(getattr(cp, "bank_account_number", None) or "")
-        payment["branch_name"] = str(getattr(cp, "bank_branch", None) or "")
-        payment["ifsc"] = str(getattr(cp, "bank_ifsc", None) or "")
-        payment["swift_code"] = str(getattr(cp, "swift_code", None) or "")
-        payment["iban"] = str(getattr(cp, "iban", None) or "")
+        # Try bank_details_rel first (new normalized table)
+        bank_details = getattr(cp, "bank_details_rel", None)
+        # Fallback to payment_method_rel
+        payment_method = getattr(cp, "payment_method_rel", None)
+        
+        if bank_details:
+            payment["qr_code"] = getattr(bank_details, "qr_code", None)
+            payment["upi_id"] = str(getattr(bank_details, "upi_id", None) or "")
+            payment["bank_name"] = str(getattr(bank_details, "bank_name", None) or "")
+            payment["account_number"] = str(getattr(bank_details, "account_number", None) or "")
+            payment["branch_name"] = str(getattr(bank_details, "branch", None) or "")
+            payment["ifsc"] = str(getattr(bank_details, "ifsc", None) or "")
+            payment["swift_code"] = str(getattr(bank_details, "swift_code", None) or "")
+            payment["iban"] = str(getattr(bank_details, "iban", None) or "")
+        elif payment_method:
+            payment["qr_code"] = getattr(payment_method, "qr_code", None)
+            payment["upi_id"] = str(getattr(payment_method, "upi_id", None) or "")
+            payment["bank_name"] = str(getattr(payment_method, "bank_name", None) or "")
+            payment["account_number"] = str(getattr(payment_method, "account_number", None) or "")
+            payment["branch_name"] = str(getattr(payment_method, "branch", None) or "")
+            payment["ifsc"] = str(getattr(payment_method, "ifsc", None) or "")
+            payment["swift_code"] = str(getattr(payment_method, "swift_code", None) or "")
+            payment["iban"] = str(getattr(payment_method, "iban", None) or "")
+        else:
+            # Fallback to deprecated fields on CompanyProfile
+            payment["qr_code"] = getattr(cp, "qr_code", None)
+            payment["upi_id"] = str(getattr(cp, "upi_id", None) or "")
+            payment["bank_name"] = str(getattr(cp, "bank_name", None) or "")
+            payment["account_number"] = str(getattr(cp, "bank_account_number", None) or "")
+            payment["branch_name"] = str(getattr(cp, "bank_branch", None) or "")
+            payment["ifsc"] = str(getattr(cp, "bank_ifsc", None) or "")
+            payment["swift_code"] = str(getattr(cp, "swift_code", None) or "")
+            payment["iban"] = str(getattr(cp, "iban", None) or "")
         payment["swift_iban"] = payment["swift_code"] or payment["iban"] or "-"
         payment["qr_src"] = _qr_src(payment["qr_code"] or payment["upi_id"] or website or "")
 
@@ -823,6 +852,8 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         cover_letter_paragraphs=cover_letter_paragraphs,
         cover_letter_signoff=cover_letter_signoff,
         profile_paragraphs=profile_paragraphs,
+        quote_acceptance_message=quote_acceptance_message,
+        footer_tagline=footer_tagline,
     )
     _render_html_to_pdf(html, filepath)
 

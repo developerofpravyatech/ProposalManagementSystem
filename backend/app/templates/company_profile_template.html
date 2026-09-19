@@ -52,6 +52,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 /* ===== INNER PAGES HEADER/FOOTER ===== */
 .page-header { position: absolute; top: 10mm; left: 14mm; right: 14mm; text-align: right; font-size: 8pt; color: var(--muted-light); }
 .page-footer { position: absolute; bottom: 10mm; left: 14mm; right: 14mm; text-align: right; font-size: 10pt; font-weight: 700; color: var(--muted-light); }
+.page-footer .footer-tagline { display: block; font-size: 8pt; font-weight: 400; color: var(--muted); margin-top: 2mm; }
 
 /* Typography */
 .section-title { font-size: 26pt; font-weight: 800; color: var(--dark); letter-spacing: -0.5pt; line-height: 1.1; margin-bottom: 2mm; }
@@ -247,7 +248,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
     <div class="cl-sign-title">{{ sales_head_title }}</div>
   </div>
   
-  <div class="page-footer">2</div>
+  <div class="page-footer">2{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}</div>
 </section>
 
 <!-- ==================== PAGE 3 : VISION / MISSION ==================== -->
@@ -287,7 +288,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
     {% endif %}
   </div>
   
-  <div class="page-footer">3</div>
+  <div class="page-footer">3{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}</div>
 </section>
 
 <!-- ==================== PAGE 4 : SERVICES ==================== -->
@@ -487,6 +488,13 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
       <div class="payment-upi-title">Via UPI-ID</div>
       <div class="payment-upi-val">{{ payment.upi_id | default('', true) }}</div>
     </div>
+
+    {% if quote_acceptance_message %}
+    <div style="margin-top: 15mm; padding: 5mm; background: var(--light); border-left: 3mm solid var(--primary);">
+      <div style="font-size: 10pt; font-weight: 700; color: var(--dark); margin-bottom: 3mm;">Quote Acceptance</div>
+      <div style="font-size: 9pt; color: var(--dark); line-height: 1.6;">{{ quote_acceptance_message }}</div>
+    </div>
+    {% endif %}
   </div>
   <div class="page-footer">9</div>
 </section>
@@ -494,6 +502,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 
 <!-- ==================== PAGE 10 : CLOSING ==================== -->
 <section class="page">
+  <div class="page-header">Project Proposal</div>
   <div class="pad" style="top: 25mm;">
     <div class="closing-title">Take your<br/>business to<br/>the <span class="highlight">next level.</span></div>
   </div>
@@ -525,6 +534,8 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
       <div class="contact-web">{{ website }}</div>
     </div>
   </div>
+  
+  <div class="page-footer">10</div>
 </section>
 
 </body>

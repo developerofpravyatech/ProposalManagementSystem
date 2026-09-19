@@ -942,34 +942,46 @@ export function CompanySettingsPage() {
         if (value.trim().length > 2000) return 'Vision statement must be less than 2000 characters';
         break;
       case 'terms':
-        if (value && value.length > 5000) return 'Terms must be less than 5000 characters';
+        if (!value || !value.trim()) return 'Terms & conditions is required';
+        if (value.length > 5000) return 'Terms must be less than 5000 characters';
         break;
       case 'bank_name':
-        if (value && value.length > 255) return 'Bank name must be less than 255 characters';
+        if (!value || !value.trim()) return 'Bank name is required';
+        if (value.length > 255) return 'Bank name must be less than 255 characters';
         break;
       case 'bank_branch':
-        if (value && value.length > 255) return 'Branch name must be less than 255 characters';
+        if (!value || !value.trim()) return 'Branch name is required';
+        if (value.length > 255) return 'Branch name must be less than 255 characters';
         break;
       case 'bank_account_number':
-        if (value && value.length > 30) return 'Account number must be less than 30 characters';
+        if (!value || !value.trim()) return 'Account number is required';
+        if (value.length > 30) return 'Account number must be less than 30 characters';
         break;
       case 'bank_ifsc':
-        if (value && value.length > 20) return 'IFSC code must be less than 20 characters';
+        if (!value || !value.trim()) return 'IFSC code is required';
+        if (value.length > 20) return 'IFSC code must be less than 20 characters';
         break;
       case 'swift_code':
         if (value && value.length > 20) return 'SWIFT code must be less than 20 characters';
         break;
       case 'iban':
-        if (value && value.length > 34) return 'IBAN must be less than 34 characters';
+        if (!value || !value.trim()) return 'IBAN is required';
+        if (value.length > 34) return 'IBAN must be less than 34 characters';
         break;
       case 'upi_id':
-        if (value && value.length > 50) return 'UPI ID must be less than 50 characters';
+        if (!value || !value.trim()) return 'UPI ID is required';
+        if (value.length > 50) return 'UPI ID must be less than 50 characters';
         break;
       case 'quote_acceptance_message':
-        if (value && value.length > 2000) return 'Quote acceptance message must be less than 2000 characters';
+        if (!value || !value.trim()) return 'Quote acceptance message is required';
+        if (value.length > 2000) return 'Quote acceptance message must be less than 2000 characters';
+        break;
+      case 'qr_code':
+        if (!value || !value.trim()) return 'QR code is required';
         break;
       case 'footer_tagline':
-        if (value && value.length > 500) return 'Footer tagline must be less than 500 characters';
+        if (!value || !value.trim()) return 'Footer tagline is required';
+        if (value.length > 500) return 'Footer tagline must be less than 500 characters';
         break;
     }
     return undefined;
@@ -1062,7 +1074,7 @@ export function CompanySettingsPage() {
   const validateAll = (): boolean => {
     const newErrors: ValidationErrors = {};
 
-    const basicFields = ['company_name', 'tagline', 'email', 'phone', 'website', 'sales_head_name', 'sales_head_title', 'mission', 'vision', 'terms', 'bank_name', 'bank_account_number', 'bank_branch', 'bank_ifsc', 'swift_code', 'iban', 'upi_id', 'quote_acceptance_message', 'footer_tagline'];
+    const basicFields = ['company_name', 'tagline', 'email', 'phone', 'website', 'sales_head_name', 'sales_head_title', 'mission', 'vision', 'terms', 'bank_name', 'bank_account_number', 'bank_branch', 'bank_ifsc', 'swift_code', 'iban', 'upi_id', 'quote_acceptance_message', 'footer_tagline', 'qr_code'];
     basicFields.forEach(field => {
       const error = validateField(field, profile[field as keyof CompanyProfile]);
       if (error) newErrors[field] = error;
