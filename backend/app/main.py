@@ -68,39 +68,6 @@ async def lifespan(app: FastAPI):
                 END $$;
             """)))
 
-            print("[STARTUP] Migrating contract_terms to dedicated table...")
-            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS company_contract_terms (
-                    id SERIAL PRIMARY KEY,
-                    company_profile_id INTEGER NOT NULL REFERENCES company_profile(id) ON DELETE CASCADE,
-                    title VARCHAR(255) NOT NULL,
-                    bullets JSONB NOT NULL DEFAULT '[]',
-                    sort_order INTEGER DEFAULT 0,
-                    UNIQUE(company_profile_id, sort_order)
-                );
-            """)))
-            await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
-                DO $$
-                BEGIN
-                    IF EXISTS (
-                        SELECT 1 FROM information_schema.columns
-                        WHERE table_name = 'company_profile'
-                        AND column_name = 'contract_terms'
-                    ) THEN
-                        INSERT INTO company_contract_terms (company_profile_id, title, bullets, sort_order)
-                        SELECT cp.id, (term.value->>'title')::VARCHAR(255),
-                               COALESCE(term.value->'bullets', '[]'::jsonb),
-                           term.idx - 1
-                        FROM company_profile cp,
-                             jsonb_array_elements(cp.contract_terms::jsonb) WITH ORDINALITY AS term(value, idx)
-                        WHERE cp.contract_terms IS NOT NULL AND cp.contract_terms != '[]'::jsonb
-                        ON CONFLICT (company_profile_id, sort_order) DO NOTHING;
-
-                        ALTER TABLE company_profile DROP COLUMN contract_terms;
-                    END IF;
-                END $$;
-            """)))
-
             print("[STARTUP] Creating company_signatures table if missing...")
             await conn.run_sync(lambda sync_conn: sync_conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS company_signatures (
@@ -138,7 +105,6 @@ async def lifespan(app: FastAPI):
                     upi_id VARCHAR(100),
                     qr_code TEXT,
                     swift_code VARCHAR(20),
-                    iban VARCHAR(50),
                     is_default BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -156,15 +122,15 @@ async def lifespan(app: FastAPI):
                     IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'company_profile' AND column_name = 'bank_name') THEN
                         INSERT INTO company_payment_methods (
                             company_profile_id, bank_name, account_name, account_number, 
-                            ifsc, branch, upi_id, qr_code, swift_code, iban, is_default
+                            ifsc, branch, upi_id, qr_code, swift_code, is_default
                         )
                         SELECT 
                             id, bank_name, bank_account_name, bank_account_number,
-                            bank_ifsc, bank_branch, upi_id, qr_code, swift_code, iban, TRUE
+                            bank_ifsc, bank_branch, upi_id, qr_code, swift_code, TRUE
                         FROM company_profile
                         WHERE (bank_name IS NOT NULL OR bank_account_name IS NOT NULL OR bank_account_number IS NOT NULL 
                                OR bank_ifsc IS NOT NULL OR bank_branch IS NOT NULL OR upi_id IS NOT NULL 
-                               OR qr_code IS NOT NULL OR swift_code IS NOT NULL OR iban IS NOT NULL)
+                               OR qr_code IS NOT NULL OR swift_code IS NOT NULL)
                         ON CONFLICT (company_profile_id) DO NOTHING;
                     END IF;
                 END $$;
@@ -233,11 +199,12 @@ app.include_router(api_router)
 
 
 @app.options("/{path:path}")
-async def cors_preflight():
+async def cors_preflight(request: Request):
+    origin = request.headers.get("Origin", "")
     return Response(
         status_code=204,
         headers={
-            "Access-Control-Allow-Origin": "http://localhost:5173,http://localhost:5174,http://192.168.1.70:5173,http://192.168.1.70:5174,http://192.168.1.101:5173,http://192.168.1.101:5174,http://10.25.171.39:5173,http://10.25.171.39:5174,http://localhost:3000,http://192.168.1.101:3000",
+            "Access-Control-Allow-Origin": origin,
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD",
             "Access-Control-Allow-Headers": "Content-Type, Authorization",
             "Access-Control-Allow-Credentials": "true",

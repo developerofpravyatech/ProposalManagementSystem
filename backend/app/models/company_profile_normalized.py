@@ -54,6 +54,22 @@ class BNIClient(Base):
     )
 
 
+class RegionalClient(Base):
+    __tablename__ = "company_regional_clients"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    logo: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="regional_clients_rel")
+
+    __table_args__ = (
+        UniqueConstraint("company_profile_id", "sort_order", name="uq_regional_client_profile_order"),
+    )
+
+
 class InternationalClient(Base):
     __tablename__ = "company_international_clients"
 
@@ -130,28 +146,11 @@ class PaymentMethod(Base):
     upi_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     swift_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    iban: Mapped[str | None] = mapped_column(String(50), nullable=True)
     is_default: Mapped[bool] = mapped_column(default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     company_profile: Mapped["CompanyProfile"] = relationship(back_populates="payment_method_rel")
-
-
-class ContractTerm(Base):
-    __tablename__ = "company_contract_terms"
-
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
-    bullets: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-
-    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="contract_terms_rel")
-
-    __table_args__ = (
-        UniqueConstraint("company_profile_id", "sort_order", name="uq_contract_term_profile_order"),
-    )
 
 
 class BankDetails(Base):
@@ -166,9 +165,24 @@ class BankDetails(Base):
     branch: Mapped[str | None] = mapped_column(String(255), nullable=True)
     upi_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     swift_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    iban: Mapped[str | None] = mapped_column(String(50), nullable=True)
     qr_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     company_profile: Mapped["CompanyProfile"] = relationship(back_populates="bank_details_rel")
+
+
+class StatementOfWork(Base):
+    __tablename__ = "company_statement_of_work"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_profile_id: Mapped[int] = mapped_column(ForeignKey("company_profile.id", ondelete="CASCADE"), nullable=False, index=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    heading: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+
+    company_profile: Mapped["CompanyProfile"] = relationship(back_populates="statement_of_work_rel")
+
+    __table_args__ = (
+        UniqueConstraint("company_profile_id", "sort_order", name="uq_sow_profile_order"),
+    )

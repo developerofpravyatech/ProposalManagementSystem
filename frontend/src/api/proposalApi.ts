@@ -234,8 +234,8 @@ export const proposalApi = {
         unique_devices: new Set(views.map(v => v.device_type)).size,
         first_opened_at: proposal.first_opened_at,
         last_opened_at: proposal.last_opened_at,
-        pdf_downloaded_at: proposal.pdf_downloaded_at,
         downloaded: !!proposal.pdf_downloaded_at,
+        downloaded_at: proposal.pdf_downloaded_at,
         events: views,
       };
     }

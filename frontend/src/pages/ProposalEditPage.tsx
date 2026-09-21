@@ -19,11 +19,15 @@ export function ProposalEditPage() {
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [taxRate, setTaxRate] = useState(0);
+  const [discountRate, setDiscountRate] = useState(0);
 
   const loadProposal = async () => {
     try {
       const data = await proposalApi.getProposalById(id);
       setProposal(data);
+      if (data.tax_rate !== undefined) setTaxRate(data.tax_rate);
+      if (data.discount_rate !== undefined) setDiscountRate(data.discount_rate);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -274,6 +278,9 @@ export function ProposalEditPage() {
             options={currencyOptions}
             value={proposal.currency || 'USD'}
             onChange={(e) => updateField('currency', e.target.value)}
+            error={undefined}
+            helperText={undefined}
+            id="currency-step1"
           />
         </div>
 
@@ -286,6 +293,9 @@ export function ProposalEditPage() {
                 options={durationOptions}
                 value={proposal.contract_duration || '12 Months'}
                 onChange={(e) => updateField('contract_duration', e.target.value)}
+                error={undefined}
+                helperText={undefined}
+                id="contract-duration"
               />
               <Input
                 label="Renewal Date"
@@ -298,17 +308,13 @@ export function ProposalEditPage() {
                 options={currencyOptions}
                 value={proposal.currency || 'USD'}
                 onChange={(e) => updateField('currency', e.target.value)}
+                error={undefined}
+                helperText={undefined}
+                id="currency-step2"
               />
             </div>
           </>
         )}
-
-        <Textarea
-          label="Terms & Conditions"
-          rows={3}
-          value={proposal.terms || ''}
-          onChange={(e) => updateField('terms', e.target.value)}
-        />
 
         {/* Cover Letter */}
         <Card className="p-6 bg-white space-y-6">
@@ -472,6 +478,10 @@ export function ProposalEditPage() {
                 onDurationChange={(d) => updateField('contract_duration', d)}
                 renewalDate={proposal.renewal_date}
                 onRenewalDateChange={(d) => updateField('renewal_date', d)}
+                taxRate={taxRate}
+                onTaxChange={setTaxRate}
+                discountRate={discountRate}
+                onDiscountChange={setDiscountRate}
               />
             </>
           ) : (

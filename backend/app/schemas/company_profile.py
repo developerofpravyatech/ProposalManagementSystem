@@ -50,6 +50,21 @@ class BNIClientRead(BNIClientBase):
     id: int
 
 
+class RegionalClientBase(BaseModel):
+    name: str = Field(..., max_length=255)
+    logo: Optional[str] = None
+    sort_order: int = 0
+
+
+class RegionalClientCreate(RegionalClientBase):
+    pass
+
+
+class RegionalClientRead(RegionalClientBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
+
 class InternationalClientBase(BaseModel):
     name: str = Field(..., max_length=255)
     logo: Optional[str] = None
@@ -79,21 +94,6 @@ class BranchOfficeRead(BranchOfficeBase):
     id: int
 
 
-class ContractTermBase(BaseModel):
-    title: str = Field(..., max_length=255)
-    bullets: list[str] = Field(default_factory=list)
-    sort_order: int = 0
-
-
-class ContractTermCreate(ContractTermBase):
-    pass
-
-
-class ContractTermRead(ContractTermBase):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-
-
 class WorkProcessStepBase(BaseModel):
     icon: Optional[str] = None
     title: str = Field(..., max_length=255)
@@ -119,7 +119,6 @@ class PaymentMethodBase(BaseModel):
     upi_id: Optional[str] = Field(None, max_length=100)
     qr_code: Optional[str] = None
     swift_code: Optional[str] = Field(None, max_length=20)
-    iban: Optional[str] = Field(None, max_length=50)
 
 
 class PaymentMethodCreate(PaymentMethodBase):
@@ -142,7 +141,6 @@ class BankDetailsBase(BaseModel):
     upi_id: Optional[str] = Field(None, max_length=100)
     qr_code: Optional[str] = None
     swift_code: Optional[str] = Field(None, max_length=20)
-    iban: Optional[str] = Field(None, max_length=50)
 
 
 class BankDetailsCreate(BankDetailsBase):
@@ -170,6 +168,21 @@ class SignatureRead(SignatureBase):
     id: int
 
 
+class StatementOfWorkBase(BaseModel):
+    heading: str = Field(..., max_length=255)
+    description: str = Field(..., min_length=1)
+    sort_order: int = 0
+
+
+class StatementOfWorkCreate(StatementOfWorkBase):
+    pass
+
+
+class StatementOfWorkRead(StatementOfWorkBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
+
 class CompanyProfileBase(BaseModel):
     company_name: str = Field(..., max_length=255)
     tagline: Optional[str] = Field(None, max_length=500)
@@ -181,12 +194,11 @@ class CompanyProfileBase(BaseModel):
     mission: Optional[str] = None
     vision: Optional[str] = None
     core_values: Optional[list[Any]] = None
+    services: Optional[list[Any]] = None
     logo_data: Optional[str] = None
     logo_url: Optional[str] = None
     qr_code: Optional[str] = None
     work_process_steps: Optional[list[Any]] = None
-    terms: Optional[str] = None
-    contract_terms: Optional[list[Any]] = None
     signatures: Optional[list[Any]] = None
     profile_paragraphs: Optional[list[str]] = None
     cover_letter_salutation: Optional[str] = None
@@ -196,6 +208,7 @@ class CompanyProfileBase(BaseModel):
     cover_letter_signature_designation: Optional[str] = Field(None, max_length=255)
     cover_letter_signature_date: Optional[str] = Field(None, max_length=50)
     cover_letter_signature_image: Optional[str] = None
+    statement_of_work: Optional[list[Any]] = None
     quote_acceptance_message: Optional[str] = None
     footer_tagline: Optional[str] = Field(None, max_length=500)
 
@@ -207,7 +220,6 @@ class CompanyProfileBase(BaseModel):
     bank_branch: Optional[str] = Field(None, max_length=255)
     upi_id: Optional[str] = Field(None, max_length=100)
     swift_code: Optional[str] = Field(None, max_length=20)
-    iban: Optional[str] = Field(None, max_length=50)
 
 
 class CompanyProfileUpdate(BaseModel):
@@ -222,13 +234,16 @@ class CompanyProfileUpdate(BaseModel):
     mission: Optional[str] = None
     vision: Optional[str] = None
     core_values: Optional[list[Any]] = None
+    services: Optional[list[Any]] = None
     logo_data: Optional[str] = None
     logo_url: Optional[str] = None
     qr_code: Optional[str] = None
     work_process_steps: Optional[list[Any]] = None
-    terms: Optional[str] = None
-    contract_terms: Optional[list[Any]] = None
     signatures: Optional[list[Any]] = None
+    bni_clients: Optional[list[Any]] = None
+    regional_clients: Optional[list[Any]] = None
+    international_clients: Optional[list[Any]] = None
+    branch_offices: Optional[list[Any]] = None
     profile_paragraphs: Optional[list[str]] = None
     cover_letter_salutation: Optional[str] = None
     cover_letter_paragraphs: Optional[list[str]] = None
@@ -237,6 +252,7 @@ class CompanyProfileUpdate(BaseModel):
     cover_letter_signature_designation: Optional[str] = Field(None, max_length=255)
     cover_letter_signature_date: Optional[str] = Field(None, max_length=50)
     cover_letter_signature_image: Optional[str] = None
+    statement_of_work: Optional[list[Any]] = None
     quote_acceptance_message: Optional[str] = None
     footer_tagline: Optional[str] = Field(None, max_length=500)
     
@@ -248,7 +264,6 @@ class CompanyProfileUpdate(BaseModel):
     bank_branch: Optional[str] = Field(None, max_length=255)
     upi_id: Optional[str] = Field(None, max_length=100)
     swift_code: Optional[str] = Field(None, max_length=20)
-    iban: Optional[str] = Field(None, max_length=50)
     
     # Payment Method (normalized)
     payment_method: Optional[PaymentMethodCreate] = None
@@ -263,13 +278,14 @@ class CompanyProfileRead(CompanyProfileBase):
     core_values_rel: list[CoreValueRead] = []
     services_rel: list[ServiceRead] = []
     bni_clients_rel: list[BNIClientRead] = []
+    regional_clients_rel: list[RegionalClientRead] = []
     international_clients_rel: list[InternationalClientRead] = []
     branch_offices_rel: list[BranchOfficeRead] = []
     work_process_steps_rel: list[WorkProcessStepRead] = []
     signatures_rel: list[SignatureRead] = []
+    statement_of_work_rel: list[StatementOfWorkRead] = []
     payment_method_rel: Optional[PaymentMethodRead] = None
     bank_details_rel: Optional[BankDetailsRead] = None
-    contract_terms_rel: list[ContractTermRead] = []
 
     @model_validator(mode="after")
     def _set_fields_from_rel(self):
@@ -278,10 +294,15 @@ class CompanyProfileRead(CompanyProfileBase):
                 {"title": cv.title, "description": cv.description, "logo": cv.logo}
                 for cv in self.core_values_rel
             ]
-        if not self.contract_terms and self.contract_terms_rel:
-            self.contract_terms = [
-                {"title": t.title, "bullets": t.bullets}
-                for t in self.contract_terms_rel
+        if not self.services and self.services_rel:
+            self.services = [
+                {"title": s.title, "description": s.description, "logo": s.logo}
+                for s in self.services_rel
+            ]
+        if not self.statement_of_work and self.statement_of_work_rel:
+            self.statement_of_work = [
+                {"title": sow.heading, "description": sow.description}
+                for sow in self.statement_of_work_rel
             ]
         return self
 
@@ -291,10 +312,11 @@ class CompanyProfileWithRelations(CompanyProfileRead):
     core_values_rel: list[CoreValueRead]
     services_rel: list[ServiceRead]
     bni_clients_rel: list[BNIClientRead]
+    regional_clients_rel: list[RegionalClientRead]
     international_clients_rel: list[InternationalClientRead]
     branch_offices_rel: list[BranchOfficeRead]
     work_process_steps_rel: list[WorkProcessStepRead]
     signatures_rel: list[SignatureRead]
+    statement_of_work_rel: list[StatementOfWorkRead] = []
     payment_method_rel: Optional[PaymentMethodRead] = None
     bank_details_rel: Optional[BankDetailsRead] = None
-    contract_terms_rel: list[ContractTermRead]

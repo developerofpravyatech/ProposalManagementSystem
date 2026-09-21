@@ -240,6 +240,7 @@ export function DashboardPage() {
             onOpenAnalytics={(p) => setActiveAnalyticsProposal(p)}
             onRenew={handleRenew}
             onDelete={handleDelete}
+            onGeneratePdf={(id) => console.log('Generate PDF for', id)}
           />
         </div>
 

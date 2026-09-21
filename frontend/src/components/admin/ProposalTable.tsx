@@ -143,7 +143,7 @@ export function ProposalTable({
                           <span className="font-mono font-bold text-slate-900 text-xs bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">
                             {p.proposal_no}
                           </span>
-                          <Badge type={p.type} />
+                          <Badge type={p.type} count={p.view_count} status={p.status} />
                         </div>
                         <p className="text-xs text-slate-500 font-medium mt-1 max-w-[220px] truncate" title={p.project_title}>
                           {p.project_title}
@@ -181,7 +181,7 @@ export function ProposalTable({
 
                       {/* Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge status={p.status} count={p.view_count} />
+                        <Badge status={p.status} count={p.view_count} type={p.type} />
                         {p.pdf_downloaded_at && (
                           <div className="text-[10px] text-brand-700 mt-1 flex items-center gap-1 font-bold">
                             <Download className="w-3 h-3" /> PDF Downloaded

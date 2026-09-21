@@ -66,7 +66,7 @@ export function AnalyticsModal({ isOpen, onClose, proposal }) {
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Current Status</span>
             <div className="mt-2">
-              <Badge status={proposal.status} />
+              <Badge status={proposal.status} type={proposal.type} count={proposal.view_count} />
             </div>
           </div>
 

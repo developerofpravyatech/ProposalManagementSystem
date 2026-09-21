@@ -83,12 +83,18 @@ export function LineItemForm({
           options={currencies}
           value={currency}
           onChange={(e) => onCurrencyChange(e.target.value)}
+          error={undefined}
+          helperText={undefined}
+          id="lineitem-currency"
         />
         <Select
           label="Contract Duration"
           options={durations}
           value={contractDuration}
           onChange={(e) => onDurationChange(e.target.value)}
+          error={undefined}
+          helperText={undefined}
+          id="lineitem-duration"
         />
         <Input
           label="Contract Renewal Date"

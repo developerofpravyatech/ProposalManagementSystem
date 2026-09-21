@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.models.company_profile import CompanyProfile
-from app.models.company_profile_normalized import CoreValue, Service, BNIClient, InternationalClient, BranchOffice, WorkProcessStep, PaymentMethod, Signature, ContractTerm, BankDetails
+from app.models.company_profile_normalized import CoreValue, Service, BNIClient, RegionalClient, InternationalClient, BranchOffice, WorkProcessStep, PaymentMethod, Signature, BankDetails, StatementOfWork
 from typing import Any
 
 
@@ -30,25 +30,19 @@ DEFAULT_COMPANY_PROFILE = {
         {"title": "Excellence", "description": "We are committed to delivering quality work that stands the test of time."},
         {"title": "Collaboration", "description": "We believe in the power of teamwork and long-term partnerships."},
     ],
+    "statement_of_work": [
+        {"title": "Project Scope", "description": "Define project objectives, deliverables, and success criteria in collaboration with stakeholders."},
+        {"title": "Timeline & Milestones", "description": "Establish a clear project schedule with measurable milestones and regular review checkpoints."},
+        {"title": "Deliverables", "description": "Specify all deliverables including source code, documentation, and deployment assets."},
+        {"title": "Revisions Policy", "description": "Include up to two rounds of revisions per deliverable to ensure client satisfaction."},
+        {"title": "Payment Terms", "description": "50% advance payment at project kickoff, 30% at midpoint milestone, and 20% upon final delivery."},
+        {"title": "Support Period", "description": "Provide 60 days of post-launch support for bug fixes and minor adjustments."},
+        {"title": "Confidentiality", "description": "Both parties agree to maintain confidentiality of proprietary information throughout the engagement."},
+    ],
     "work_process_steps": [],
     "logo_data": None,
     "logo_url": None,
     "qr_code": None,
-    "terms": (
-        "All proposals are valid for 30 days from the date of issuance.\n"
-        "Payment terms: 50% advance, 30% on milestone completion, 20% on final delivery.\n"
-        "Any changes to project scope must be documented and agreed upon in writing.\n"
-        "Intellectual property rights transfer upon full payment settlement.\n"
-        "Confidentiality: Both parties agree to protect sensitive information shared during the engagement.\n"
-        "Governing Law: This agreement shall be governed by the laws of India."
-    ),
-    "contract_terms": [
-        {"title": "Project Scope Definition", "bullets": ["Detailed project scope document with deliverables", "Timeline with milestone schedule", "Acceptance criteria and sign-off process", "Change request and approval workflow", "Scope exclusion list"]},
-        {"title": "Payment Terms and Conditions", "bullets": ["50% advance payment before project commencement", "30% payment at mid-project milestone", "20% payment upon final delivery and acceptance", "Payment method: Bank transfer or UPI", "Late payment penalty: 1.5% per month"]},
-        {"title": "Intellectual Property Rights", "bullets": ["All deliverables IP transfers upon full payment", "Pre-existing tools and frameworks remain owned by vendor", "Client provided materials remain their property", "Source code ownership upon final payment", "License grants for third-party components"]},
-        {"title": "Confidentiality and NDA", "bullets": ["Both parties maintain strict confidentiality", "Non-compete clause for project duration", "Employee and contractor confidentiality obligations", "Duration: 3 years post-project completion", "Exceptions for public domain information"]},
-        {"title": "Warranty and Support", "bullets": ["30-day warranty period from delivery date", "Bug fixes provided free of charge", "Support via email and phone during business hours", "Warranty excludes client-requested changes", "Extended support available via separate agreement"]},
-    ],
     # Profile & Cover Letter fields
     "profile_paragraphs": [
         "PRAVYA TECH is a leading technology partner specializing in digital transformation, custom software development, and creative design solutions. We empower businesses across industries to embrace innovation and achieve sustainable growth through technology.",
@@ -69,9 +63,8 @@ DEFAULT_COMPANY_PROFILE = {
     "bank_ifsc": "HDFC0001234",
     "bank_branch": "Rajkot Main Branch",
     "upi_id": "pravyatech@hdfcbank",
-    "swift_code": "HDFCINBB",
-    "iban": None,
-}
+"swift_code": "HDFCINBB",
+    }
 
 
 async def _sync_core_values(db: AsyncSession, profile: CompanyProfile, values: list[dict]) -> None:
@@ -108,7 +101,7 @@ async def _sync_services(db: AsyncSession, profile: CompanyProfile, services: li
         Service.__table__.delete().where(Service.company_profile_id == profile.id)
     )
     await db.flush()
-    
+
     for i, svc in enumerate(services or []):
         if isinstance(svc, dict):
             title = svc.get("title", "")
@@ -144,6 +137,29 @@ async def _sync_bni_clients(db: AsyncSession, profile: CompanyProfile, clients: 
             logo = ""
         if name:
             db.add(BNIClient(
+                company_profile_id=profile.id,
+                name=name,
+                logo=logo,
+                sort_order=i,
+            ))
+
+
+async def _sync_regional_clients(db: AsyncSession, profile: CompanyProfile, clients: list) -> None:
+    """Sync regional clients from JSON to relational table"""
+    await db.execute(
+        RegionalClient.__table__.delete().where(RegionalClient.company_profile_id == profile.id)
+    )
+    await db.flush()
+
+    for i, client in enumerate(clients or []):
+        if isinstance(client, dict):
+            name = client.get("name", "")
+            logo = client.get("logo", "")
+        else:
+            name = str(client)
+            logo = ""
+        if name:
+            db.add(RegionalClient(
                 company_profile_id=profile.id,
                 name=name,
                 logo=logo,
@@ -240,6 +256,29 @@ async def _sync_signatures(db: AsyncSession, profile: CompanyProfile, signatures
             ))
 
 
+async def _sync_statement_of_work(db: AsyncSession, profile: CompanyProfile, items: list[dict]) -> None:
+    """Sync statement of work from JSON to relational table"""
+    await db.execute(
+        StatementOfWork.__table__.delete().where(StatementOfWork.company_profile_id == profile.id)
+    )
+    await db.flush()
+
+    for i, item in enumerate(items or []):
+        if isinstance(item, dict):
+            heading = item.get("title", "") or item.get("heading", "")
+            description = item.get("description", "")
+        else:
+            heading = str(item)
+            description = ""
+        if heading:
+            db.add(StatementOfWork(
+                company_profile_id=profile.id,
+                heading=heading,
+                description=description or "",
+                sort_order=i,
+            ))
+
+
 async def _sync_payment_method(db: AsyncSession, profile: CompanyProfile, data: dict | None) -> None:
     """Sync payment method from JSON to relational table"""
     if data is None:
@@ -257,7 +296,6 @@ async def _sync_payment_method(db: AsyncSession, profile: CompanyProfile, data: 
         existing.upi_id = data.get("upi_id")
         existing.qr_code = data.get("qr_code")
         existing.swift_code = data.get("swift_code")
-        existing.iban = data.get("iban")
         existing.updated_at = datetime.now(timezone.utc)
     else:
         db.add(PaymentMethod(
@@ -270,7 +308,6 @@ async def _sync_payment_method(db: AsyncSession, profile: CompanyProfile, data: 
             upi_id=data.get("upi_id"),
             qr_code=data.get("qr_code"),
             swift_code=data.get("swift_code"),
-            iban=data.get("iban"),
         ))
 
 
@@ -291,7 +328,6 @@ async def _sync_bank_details(db: AsyncSession, profile: CompanyProfile, data: di
         existing.upi_id = data.get("upi_id")
         existing.qr_code = data.get("qr_code")
         existing.swift_code = data.get("swift_code")
-        existing.iban = data.get("iban")
         existing.updated_at = datetime.now(timezone.utc)
     else:
         db.add(BankDetails(
@@ -304,31 +340,7 @@ async def _sync_bank_details(db: AsyncSession, profile: CompanyProfile, data: di
             upi_id=data.get("upi_id"),
             qr_code=data.get("qr_code"),
             swift_code=data.get("swift_code"),
-            iban=data.get("iban"),
         ))
-
-
-async def _sync_contract_terms(db: AsyncSession, profile: CompanyProfile, terms: list) -> None:
-    """Sync contract terms from JSON to relational table"""
-    await db.execute(
-        ContractTerm.__table__.delete().where(ContractTerm.company_profile_id == profile.id)
-    )
-    await db.flush()
-    
-    for i, term in enumerate(terms or []):
-        if isinstance(term, dict):
-            title = term.get("title", "")
-            bullets = term.get("bullets", [])
-        else:
-            title = str(term)
-            bullets = []
-        if title:
-            db.add(ContractTerm(
-                company_profile_id=profile.id,
-                title=title,
-                bullets=bullets,
-                sort_order=i,
-            ))
 
 
 async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
@@ -338,13 +350,14 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
             selectinload(CompanyProfile.core_values_rel),
             selectinload(CompanyProfile.services_rel),
             selectinload(CompanyProfile.bni_clients_rel),
+            selectinload(CompanyProfile.regional_clients_rel),
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
             selectinload(CompanyProfile.signatures_rel),
+            selectinload(CompanyProfile.statement_of_work_rel),
             selectinload(CompanyProfile.payment_method_rel),
             selectinload(CompanyProfile.bank_details_rel),
-            selectinload(CompanyProfile.contract_terms_rel),
         )
         .limit(1)
     )
@@ -354,7 +367,6 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
         profile_data = DEFAULT_COMPANY_PROFILE.copy()
         # core_values is not a column on the model; use it only for relational sync
         default_core_values = profile_data.pop("core_values", [])
-        default_contract_terms = profile_data.pop("contract_terms", [])
         # Bank details defaults
         default_bank_details = {
             "bank_name": profile_data.pop("bank_name", None),
@@ -364,9 +376,10 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
             "branch": profile_data.pop("bank_branch", None),
             "upi_id": profile_data.pop("upi_id", None),
             "swift_code": profile_data.pop("swift_code", None),
-            "iban": profile_data.pop("iban", None),
             "qr_code": profile_data.pop("qr_code", None),
         }
+        # statement_of_work defaults
+        default_statement_of_work = profile_data.pop("statement_of_work", [])
         profile = CompanyProfile(**profile_data)
         db.add(profile)
         await db.flush()
@@ -378,7 +391,7 @@ async def get_or_create_company_profile(db: AsyncSession) -> CompanyProfile:
             {"title": "Research & Analysis", "description": "In-depth market research and data-driven analysis to inform strategic business decisions."},
             {"title": "Content Marketing", "description": "Engaging content strategies that drive traffic, generate leads, and build brand authority."},
         ])
-        await _sync_contract_terms(db, profile, default_contract_terms)
+        await _sync_statement_of_work(db, profile, default_statement_of_work)
         await _sync_bank_details(db, profile, default_bank_details)
         await db.commit()
         await db.refresh(profile)
@@ -418,7 +431,6 @@ async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
             "upi_id": getattr(profile, "upi_id", None),
             "qr_code": getattr(profile, "qr_code", None),
             "swift_code": getattr(profile, "swift_code", None),
-            "iban": getattr(profile, "iban", None),
         }
         if any(legacy_data.values()):
             await _sync_payment_method(db, profile, legacy_data)
@@ -435,7 +447,6 @@ async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
             "upi_id": getattr(profile, "upi_id", None),
             "qr_code": getattr(profile, "qr_code", None),
             "swift_code": getattr(profile, "swift_code", None),
-            "iban": getattr(profile, "iban", None),
         }
         if any(legacy_data.values()):
             await _sync_bank_details(db, profile, legacy_data)
@@ -445,17 +456,18 @@ async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
 async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
     result = await db.execute(
         select(CompanyProfile)
-        .options(
+         .options(
             selectinload(CompanyProfile.core_values_rel),
             selectinload(CompanyProfile.services_rel),
             selectinload(CompanyProfile.bni_clients_rel),
+            selectinload(CompanyProfile.regional_clients_rel),
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
             selectinload(CompanyProfile.signatures_rel),
+            selectinload(CompanyProfile.statement_of_work_rel),
             selectinload(CompanyProfile.payment_method_rel),
             selectinload(CompanyProfile.bank_details_rel),
-            selectinload(CompanyProfile.contract_terms_rel),
         )
         .limit(1)
     )
@@ -468,14 +480,15 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
                 selectinload(CompanyProfile.core_values_rel),
                 selectinload(CompanyProfile.services_rel),
                 selectinload(CompanyProfile.bni_clients_rel),
+                selectinload(CompanyProfile.regional_clients_rel),
                 selectinload(CompanyProfile.international_clients_rel),
                 selectinload(CompanyProfile.branch_offices_rel),
                 selectinload(CompanyProfile.work_process_steps_rel),
                 selectinload(CompanyProfile.signatures_rel),
+                selectinload(CompanyProfile.statement_of_work_rel),
                 selectinload(CompanyProfile.payment_method_rel),
                 selectinload(CompanyProfile.bank_details_rel),
-                selectinload(CompanyProfile.contract_terms_rel),
-            )
+                )
             .where(CompanyProfile.id == profile.id)
         )
         profile = result.scalar_one_or_none()
@@ -485,26 +498,54 @@ async def get_company_profile(db: AsyncSession) -> CompanyProfile | None:
 async def update_company_profile(db: AsyncSession, update_data: dict) -> CompanyProfile:
     profile = await get_or_create_company_profile(db)
     updated = False
-    
+
+    # Handle qr_code specially - it's stored in PaymentMethod/BankDetails, not CompanyProfile
+    if "qr_code" in update_data:
+        qr_code_value = update_data.pop("qr_code")
+        result = await db.execute(
+            select(PaymentMethod).where(PaymentMethod.company_profile_id == profile.id)
+        )
+        payment_method = result.scalar_one_or_none()
+        if payment_method:
+            payment_method.qr_code = qr_code_value
+            payment_method.updated_at = datetime.now(timezone.utc)
+        else:
+            result = await db.execute(
+                select(BankDetails).where(BankDetails.company_profile_id == profile.id)
+            )
+            bank_details = result.scalar_one_or_none()
+            if bank_details:
+                bank_details.qr_code = qr_code_value
+                bank_details.updated_at = datetime.now(timezone.utc)
+        updated = True
+
     # Handle relational fields
     relational_fields = {
         "core_values": _sync_core_values,
+        "services": _sync_services,
         "bni_clients": _sync_bni_clients,
+        "regional_clients": _sync_regional_clients,
         "international_clients": _sync_international_clients,
         "branch_offices": _sync_branch_offices,
         "work_process_steps": _sync_work_process_steps,
         "signatures": _sync_signatures,
+        "statement_of_work": _sync_statement_of_work,
         "payment_method": _sync_payment_method,
         "bank_details": _sync_bank_details,
-        "contract_terms": _sync_contract_terms,
     }
-    
+
     # Handle backward compatibility for signature_data
     if "signature_data" in update_data:
         signature_data = update_data.pop("signature_data")
         if signature_data:
             update_data["signatures"] = [{"image_data": signature_data}]
-    
+
+    # Handle cover_letter_signature_image -> signatures sync
+    if "cover_letter_signature_image" in update_data:
+        cover_letter_sig = update_data["cover_letter_signature_image"]
+        if cover_letter_sig and "signatures" not in update_data:
+            update_data["signatures"] = [{"image_data": cover_letter_sig}]
+
     for key, value in update_data.items():
         if key in {"id", "created_at", "updated_at"}:
             continue
@@ -527,13 +568,14 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
             selectinload(CompanyProfile.core_values_rel),
             selectinload(CompanyProfile.services_rel),
             selectinload(CompanyProfile.bni_clients_rel),
+            selectinload(CompanyProfile.regional_clients_rel),
             selectinload(CompanyProfile.international_clients_rel),
             selectinload(CompanyProfile.branch_offices_rel),
             selectinload(CompanyProfile.work_process_steps_rel),
-            selectinload(CompanyProfile.signatures_rel),
-            selectinload(CompanyProfile.payment_method_rel),
-            selectinload(CompanyProfile.bank_details_rel),
-            selectinload(CompanyProfile.contract_terms_rel),
+             selectinload(CompanyProfile.signatures_rel),
+             selectinload(CompanyProfile.statement_of_work_rel),
+             selectinload(CompanyProfile.payment_method_rel),
+             selectinload(CompanyProfile.bank_details_rel),
         )
         .where(CompanyProfile.id == profile_id)
     )

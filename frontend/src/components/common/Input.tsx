@@ -33,9 +33,9 @@ export function Input({
         )}
         <input
           id={inputId}
-          className={`w-full rounded-xl bg-white border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 focus:outline-none transition-all ${
+          className={`w-full rounded-xl bg-white border px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:outline-none transition-all ${
             Icon ? 'pl-10' : ''
-          } ${error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : ''} ${className}`}
+          } ${error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'} ${className}`}
           {...props}
         />
       </div>
@@ -72,8 +72,8 @@ export function Textarea({
       <textarea
         id={textareaId}
         rows={rows}
-        className={`w-full rounded-xl bg-white border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 focus:outline-none transition-all ${
-          error ? 'border-rose-500 focus:border-rose-500' : ''
+        className={`w-full rounded-xl bg-white border px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:outline-none transition-all ${
+          error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'
         } ${className}`}
         {...props}
       />
@@ -82,4 +82,3 @@ export function Textarea({
     </div>
   );
 }
-

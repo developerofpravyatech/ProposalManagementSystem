@@ -20,14 +20,13 @@ interface CompanyProfile {
   core_values?: Array<{ title: string; description?: string; logo?: string }>;
   services?: Array<{ title: string; description?: string; logo?: string }>;
   bni_clients?: Array<string | { name: string; logo?: string }>;
+  regional_clients?: Array<string | { name: string; logo?: string }>;
   international_clients?: Array<string | { name: string; logo?: string }>;
   branch_offices?: Array<string | { name: string; logo?: string }>;
   work_process_steps?: Array<{ icon?: string; title: string; description?: string }>;
   logo_data?: string;
   logo_url?: string;
   qr_code?: string;
-  terms?: string;
-  contract_terms?: Array<{ title: string; bullets: string[] }>;
   bank_name?: string;
   bank_account_name?: string;
   bank_account_number?: string;
@@ -35,8 +34,6 @@ interface CompanyProfile {
   bank_branch?: string;
   upi_id?: string;
   swift_code?: string;
-  iban?: string;
-  quote_acceptance_message?: string;
   footer_tagline?: string;
   signatures?: Array<{ image_data: string }>;
   signature_data?: string;
@@ -44,7 +41,8 @@ interface CompanyProfile {
   cover_letter_signature_name?: string;
   cover_letter_signature_designation?: string;
   cover_letter_signature_date?: string;
-  cover_letter_signature_image?: string;
+   cover_letter_signature_image?: string;
+   statement_of_work?: Array<{ title: string; description: string }>;
 }
 
 function LabeledField({ label, value, onChange, type = 'text', rows, placeholder }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; type?: string; rows?: number; placeholder?: string }) {
@@ -55,7 +53,7 @@ function LabeledField({ label, value, onChange, type = 'text', rows, placeholder
   );
 }
 
-function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = companyProfileApi.uploadLogo, size = 'sm', label = 'Logo', allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'], accept = 'image/*', helpText = 'PNG, JPG, SVG, WebP (max 2MB)', previewAlt = 'Logo preview' }: { currentLogo?: string; onLogoChange: (logo: string) => void; onLogoRemove: () => void; upload?: (file: File) => Promise<string>; size?: 'sm' | 'lg'; label?: string; allowedTypes?: string[]; accept?: string; helpText?: string; previewAlt?: string }) {
+export function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = companyProfileApi.uploadLogo, size = 'sm', label = 'Logo', allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'], accept = 'image/*', helpText = 'PNG, JPG, SVG, WebP (max 2MB)', previewAlt = 'Logo preview' }: { currentLogo?: string; onLogoChange: (logo: string) => void; onLogoRemove: () => void; upload?: (file: File) => Promise<string>; size?: 'sm' | 'lg'; label?: string; allowedTypes?: string[]; accept?: string; helpText?: string; previewAlt?: string }) {
   const [preview, setPreview] = useState<string | null>(currentLogo || null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,6 +61,15 @@ function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = c
   useEffect(() => {
     setPreview(currentLogo || null);
   }, [currentLogo]);
+
+  const fileToDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,22 +86,19 @@ function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = c
       return;
     }
 
-    // Create a temporary preview using object URL for immediate feedback
-    const tempPreview = URL.createObjectURL(file);
+    // Create a base64 data URL for immediate preview (works across machines and persists on refresh)
+    const tempPreview = await fileToDataUrl(file);
     setPreview(tempPreview);
     setUploading(true);
 
     try {
       const result = await upload(file);
-      // Revoke the temporary object URL
-      URL.revokeObjectURL(tempPreview);
       // API functions return the data URL directly
       setPreview(result);
       onLogoChange(result);
     } catch (error) {
-      console.error('Logo upload failed:', error);
-      alert('Failed to upload logo. Please try again.');
-      URL.revokeObjectURL(tempPreview);
+      console.error(`${label} upload failed:`, error);
+      alert(`Failed to upload ${label.toLowerCase()}. Please try again.`);
       setPreview(currentLogo || null);
     } finally {
       setUploading(false);
@@ -159,10 +163,12 @@ function ImageUploadButton({ currentLogo, onLogoChange, onLogoRemove, upload = c
   );
 }
 
-function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title...', showLogo = false, error, fieldType = 'item' }: { label: string; items: Array<{ title: string; description?: string; logo?: string }> | Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean; error?: string; fieldType?: string }) {
+function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title...', showLogo = false, showDescription = true, requireDescription = false, error, fieldType = 'item' }: { label: string; items: Array<{ title: string; description?: string; logo?: string }> | Array<string | { name: string; logo?: string }>; onChange: (items: any[]) => void; placeholder?: string; showLogo?: boolean; showDescription?: boolean; requireDescription?: boolean; error?: string; fieldType?: string }) {
   const [titleValue, setTitleValue] = useState('');
+  const [descriptionValue, setDescriptionValue] = useState('');
   const [logoValue, setLogoValue] = useState('');
   const [localError, setLocalError] = useState('');
+  const [errorIndices, setErrorIndices] = useState<Set<number>>(new Set());
   const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -172,23 +178,35 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
   }, [localError]);
 
   const addItem = () => {
-    const hasEmptyItem = items.some(item => {
+    const emptyIndices = items.map((item, i) => {
       const itemObj = typeof item === 'string' ? { title: item } : item;
-      return !itemObj.title || !itemObj.title.trim();
-    });
-    if (hasEmptyItem) {
+      const titleEmpty = !itemObj.title || !itemObj.title.trim();
+      const descEmpty = showDescription && requireDescription && (!itemObj.description || !itemObj.description.trim());
+      return titleEmpty || descEmpty ? i : -1;
+    }).filter(i => i !== -1);
+    if (emptyIndices.length > 0) {
+      setErrorIndices(new Set(emptyIndices));
       setLocalError('Please fill the details in added box first');
       return;
     }
     if (titleValue.trim()) {
+      if (showDescription && requireDescription && !descriptionValue.trim()) {
+        setLocalError('Description is required for each item');
+        return;
+      }
       const newItem: any = { title: titleValue.trim() };
       if (showLogo && logoValue) {
         newItem.logo = logoValue;
       }
+      if (showDescription && descriptionValue.trim()) {
+        newItem.description = descriptionValue.trim();
+      }
       onChange([...items, newItem]);
       setTitleValue('');
+      setDescriptionValue('');
       setLogoValue('');
       setLocalError('');
+      setErrorIndices(new Set());
     } else {
       setLocalError(`Please add the ${fieldType}`);
     }
@@ -196,6 +214,11 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
 
   const removeItem = (index: number) => {
     onChange(items.filter((_, i) => i !== index));
+    setErrorIndices(prev => {
+      const next = new Set(prev);
+      next.delete(index);
+      return next;
+    });
   };
 
   const updateItem = (index: number, field: string, value: any) => {
@@ -205,6 +228,13 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
     }
     newItems[index] = { ...newItems[index], [field]: value };
     onChange(newItems);
+    if (field === 'title' && value.trim()) {
+      setErrorIndices(prev => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
   };
 
   const handleLogoChange = (index: number, logo: string) => {
@@ -216,12 +246,34 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
-      <div className={`grid grid-cols-1 ${showLogo ? 'sm:grid-cols-4' : 'sm:grid-cols-[minmax(0,1fr)_auto]'} gap-2 items-stretch`}>
-        <Input placeholder={placeholder} value={titleValue} onChange={(e) => { setTitleValue(e.target.value); setLocalError(''); }} className="sm:col-span-2" error={error} />
-        {showLogo && (
-          <div className="flex items-center">
+
+      {/* Add Row */}
+      <div className="flex flex-col sm:flex-row gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+        <div className="flex-1 min-w-0">
+          <Input
+            placeholder={placeholder}
+            value={titleValue}
+            onChange={(e) => { setTitleValue(e.target.value); setLocalError(''); }}
+            className="w-full"
+            error={localError || error}
+          />
+        </div>
+        {showDescription && (
+          <div className="flex-1 min-w-0">
+            <Textarea
+              placeholder="Enter description..."
+              value={descriptionValue}
+              onChange={(e) => { setDescriptionValue(e.target.value); setLocalError(''); }}
+              rows={2}
+              className="text-sm w-full"
+              error={requireDescription && descriptionValue && !descriptionValue.trim() ? 'Description is required' : undefined}
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          {showLogo && (
             <ImageUploadButton
               currentLogo={logoValue}
               onLogoChange={setLogoValue}
@@ -229,56 +281,67 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
               upload={companyProfileApi.uploadItemLogo}
               size="sm"
             />
-          </div>
-        )}
-        <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addItem} className="flex items-center justify-center" />
+          )}
+          <Button type="button" variant="primary" size="sm" icon={Plus} iconOnly onClick={addItem} />
+        </div>
       </div>
+      {localError && (
+        <p className="text-xs text-rose-600 font-medium -mt-1">{localError}</p>
+      )}
+
+      {/* Items List */}
       {items.length > 0 && (
-        <div className="space-y-1.5 mt-2">
+        <div className="space-y-2">
           {items.map((item, idx) => {
             const itemObj = typeof item === 'string' ? { title: item } : item;
             const isLast = idx === items.length - 1;
+            const hasError = errorIndices.has(idx);
             return (
-              <div key={idx} ref={isLast ? errorRef : null} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${isLast && localError ? 'border-rose-500' : 'border-slate-200'}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <div className="min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900 truncate">{itemObj.title}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(idx)}
-                          className="text-rose-500 hover:text-rose-700 p-1 flex-shrink-0"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                      {itemObj.description && (
-                        <p className="text-[11px] text-slate-500 mt-0.5">{itemObj.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  {showLogo && (
-                    <ImageUploadButton
-                      currentLogo={itemObj.logo || ''}
-                      onLogoChange={(logo) => handleLogoChange(idx, logo)}
-                      onLogoRemove={() => handleLogoRemove(idx)}
-                      upload={companyProfileApi.uploadItemLogo}
-                      size="sm"
+              <div key={idx} ref={isLast ? errorRef : null} className={`p-4 rounded-xl bg-white border shadow-sm transition-all ${hasError ? 'border-rose-400 shadow-rose-500/10' : 'border-slate-200 hover:border-slate-300 hover:shadow-md'}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Input
+                      value={itemObj.title}
+                      onChange={(e) => updateItem(idx, 'title', e.target.value)}
+                      placeholder="Title"
+                      className="max-w-md"
+                      error={hasError && !itemObj.title?.trim() ? 'Title is required' : undefined}
                     />
-
-                  )}
+                    {showDescription && (
+                      <Textarea
+                        value={itemObj.description || ''}
+                        onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                        placeholder="Short description (1-2 lines)"
+                        rows={2}
+                        className="text-sm max-w-md"
+                        error={hasError && !itemObj.description?.trim() ? 'Description is required' : undefined}
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-start gap-2 flex-shrink-0">
+                    {showLogo && (
+                      <ImageUploadButton
+                        currentLogo={itemObj.logo || ''}
+                        onLogoChange={(logo) => handleLogoChange(idx, logo)}
+                        onLogoRemove={() => handleLogoRemove(idx)}
+                        upload={companyProfileApi.uploadItemLogo}
+                        size="sm"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeItem(idx)}
+                      className="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-all mt-0.5"
+                      title="Remove"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                {isLast && localError && (
-                  <p className="text-xs text-rose-600 font-medium">{localError}</p>
-                )}
               </div>
             );
           })}
         </div>
-      )}
-      {localError && items.length === 0 && (
-        <p className="text-xs text-rose-600 font-medium">{localError}</p>
       )}
     </div>
   );
@@ -286,6 +349,7 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
 
 function WorkProcessField({ label, items, onChange, error }: { label: string; items: Array<{ icon?: string; title: string; description?: string }>; onChange: (items: Array<{ icon?: string; title: string; description?: string }>) => void; error?: string }) {
   const [localError, setLocalError] = useState('');
+  const [errorIndices, setErrorIndices] = useState<Set<number>>(new Set());
   const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -296,25 +360,40 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
 
   const addItem = () => {
     // Check if any existing step is not filled
-    const hasEmptyStep = items.some(item => !item.title?.trim() || !item.description?.trim());
-    if (hasEmptyStep) {
+    const emptyIndices = items.map((item, i) => {
+      return !item.title?.trim() || !item.description?.trim() ? i : -1;
+    }).filter(i => i !== -1);
+    if (emptyIndices.length > 0) {
+      setErrorIndices(new Set(emptyIndices));
       setLocalError('Please fill the details in added box first');
       return;
     }
     const stepNum = items.length + 1;
     onChange([...items, { title: `Step ${stepNum}`, description: '', icon: undefined }]);
     setLocalError('');
+    setErrorIndices(new Set());
   };
 
   const removeItem = (index: number) => {
     onChange(items.filter((_, i) => i !== index));
-    setLocalError('');
+    setErrorIndices(prev => {
+      const next = new Set(prev);
+      next.delete(index);
+      return next;
+    });
   };
 
   const updateItem = (index: number, field: string, value: any) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     onChange(newItems);
+    if (value && value.trim()) {
+      setErrorIndices(prev => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
   };
 
   return (
@@ -326,7 +405,7 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
       {items.length > 0 && (
         <div className="space-y-2 mt-2">
           {items.map((item, idx) => (
-            <div ref={idx === items.length - 1 ? errorRef : null} key={idx} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${idx === items.length - 1 && localError ? 'border-rose-500' : 'border-slate-200'}`}>
+            <div ref={idx === items.length - 1 ? errorRef : null} key={idx} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${errorIndices.has(idx) ? 'border-rose-500' : 'border-slate-200'}`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <IconSelector
@@ -337,8 +416,8 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
                   <Input
                     value={item.title || ''}
                     onChange={(e) => updateItem(idx, 'title', e.target.value)}
-                    placeholder={`Step ${idx + 1}`}
-                    className="flex-1 min-w-0"
+                    placeholder={`Step ${idx + 1} title`}
+                    error={errorIndices.has(idx) && !item.title?.trim() ? 'Title is required' : undefined}
                   />
                 </div>
                 <button
@@ -355,10 +434,8 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
                 placeholder="Short description (1-2 lines)"
                 rows={2}
                 className="text-sm"
+                error={errorIndices.has(idx) && !item.description?.trim() ? 'Description is required' : undefined}
               />
-              {idx === items.length - 1 && localError && (
-                <p className="text-xs text-rose-600 font-medium">{localError}</p>
-              )}
             </div>
           ))}
         </div>
@@ -374,6 +451,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
   const [inputValue, setInputValue] = useState('');
   const [logoValue, setLogoValue] = useState('');
   const [localError, setLocalError] = useState('');
+  const [errorIndices, setErrorIndices] = useState<Set<number>>(new Set());
   const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -383,11 +461,12 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
   }, [localError]);
 
   const addItem = () => {
-    const hasEmptyItem = items.some(item => {
+    const emptyIndices = items.map((item, i) => {
       const itemObj = typeof item === 'string' ? { name: item } : item;
-      return !itemObj.name || !itemObj.name.trim();
-    });
-    if (hasEmptyItem) {
+      return !itemObj.name || !itemObj.name.trim() ? i : -1;
+    }).filter(i => i !== -1);
+    if (emptyIndices.length > 0) {
+      setErrorIndices(new Set(emptyIndices));
       setLocalError('Please fill the details in added box first');
       return;
     }
@@ -404,6 +483,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
       setInputValue('');
       setLogoValue('');
       setLocalError('');
+      setErrorIndices(new Set());
     } else {
       setLocalError(`Please add the ${fieldType}`);
     }
@@ -411,6 +491,11 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
 
   const removeItem = (index: number) => {
     onChange(items.filter((_, i) => i !== index));
+    setErrorIndices(prev => {
+      const next = new Set(prev);
+      next.delete(index);
+      return next;
+    });
   };
 
   const updateItem = (index: number, field: string, value: any) => {
@@ -420,6 +505,13 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
     }
     newItems[index] = { ...newItems[index], [field]: value };
     onChange(newItems);
+    if (field === 'name' && value && value.trim()) {
+      setErrorIndices(prev => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
   };
 
   const handleLogoChange = (index: number, logo: string) => {
@@ -439,7 +531,7 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
           value={inputValue}
           onChange={(e) => { setInputValue(e.target.value); setLocalError(''); }}
           className={showLogo ? 'flex-1 min-w-[200px]' : 'flex-1'}
-          error={error}
+          error={localError && localError.startsWith('Please add') ? localError : error}
         />
         {showLogo && (
           <div className="flex items-center">
@@ -459,20 +551,29 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
           {items.map((item, idx) => {
             const itemObj = typeof item === 'string' ? { name: item } : item;
             const isLast = idx === items.length - 1;
+            const hasError = errorIndices.has(idx);
             return (
-              <div key={idx} ref={isLast ? errorRef : null} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${isLast && localError ? 'border-rose-500' : 'border-slate-200'}`}>
+              <div key={idx} ref={isLast ? errorRef : null} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${hasError ? 'border-rose-500' : 'border-slate-200'}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <div className="min-w-0">
+                    <div className="min-w-0 w-full">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900 truncate">{String(itemObj.name || item)}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(idx)}
-                          className="text-rose-500 hover:text-rose-700 p-1 flex-shrink-0"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-start justify-between gap-2 w-full">
+                          <Input
+                            value={String(itemObj.name || item)}
+                            onChange={(e) => updateItem(idx, 'name', e.target.value)}
+                            placeholder="Name"
+                            className="flex-1 min-w-0"
+                            error={hasError && !String(itemObj.name || item)?.trim() ? 'Name is required' : undefined}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeItem(idx)}
+                            className="text-rose-500 hover:text-rose-700 p-1 flex-shrink-0 mt-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -487,9 +588,6 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
 
                   )}
                 </div>
-                {isLast && localError && (
-                  <p className="text-xs text-rose-600 font-medium">{localError}</p>
-                )}
               </div>
             );
           })}
@@ -502,226 +600,9 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
   );
 }
 
-function ContractTermsField({ label, items, onChange, error }: { label: string; items: Array<{ title: string; bullets: string[] }>; onChange: (items: Array<{ title: string; bullets: string[] }>) => void; error?: string }) {
-  const [termErrors, setTermErrors] = useState<Record<number, { title?: boolean; bullets?: boolean }>>({});
-  const [bulletErrors, setBulletErrors] = useState<Record<number, boolean>>({});
-  const prevTermErrors = useRef(termErrors);
-  const prevBulletErrors = useRef(bulletErrors);
-
-  useEffect(() => {
-    const termIndices = Object.keys(termErrors).map(Number);
-    for (const idx of termIndices) {
-      const err = termErrors[idx];
-      const prev = prevTermErrors.current[idx];
-      if ((err?.title && !prev?.title) || (err?.bullets && !prev?.bullets)) {
-        const el = document.getElementById(`term-card-${idx}`);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-    for (const key of Object.keys(bulletErrors)) {
-      if (bulletErrors[key] && !prevBulletErrors.current[key]) {
-        const [itemIdx] = key.split('-');
-        const el = document.getElementById(`term-card-${itemIdx}`);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-    prevTermErrors.current = termErrors;
-    prevBulletErrors.current = bulletErrors;
-  }, [termErrors, bulletErrors]);
-
-  const addItem = () => {
-    // Check if the last term (most recently added) is empty
-    if (items.length > 0) {
-      const lastIndex = items.length - 1;
-      const lastItem = items[lastIndex];
-      
-      if (!lastItem.title || !lastItem.title.trim()) {
-        setTermErrors(prev => ({ ...prev, [lastIndex]: { ...prev[lastIndex], title: true } }));
-        return;
-      }
-      if (!lastItem.bullets || lastItem.bullets.length === 0 || lastItem.bullets.some(b => !b.trim())) {
-        setTermErrors(prev => ({ ...prev, [lastIndex]: { ...prev[lastIndex], bullets: true } }));
-        return;
-      }
-    }
-    
-    // Clear any previous error for the last index since we're adding a new one
-    setTermErrors(prev => {
-      const next = { ...prev };
-      if (items.length > 0) {
-        delete next[items.length - 1];
-      }
-      return next;
-    });
-    
-    onChange([...items, { title: '', bullets: [''] }]);
-  };
-
-  const updateItem = (index: number, field: string, value: any) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    onChange(newItems);
-    
-    // Clear error when user starts typing
-    if (field === 'title') {
-      setTermErrors(prev => {
-        const next = { ...prev };
-        if (next[index]) {
-          next[index] = { ...next[index], title: false };
-          if (!next[index].bullets) delete next[index];
-        }
-        return next;
-      });
-    }
-  };
-
-  const addBullet = (index: number) => {
-    const item = items[index];
-    const firstEmptyIndex = item.bullets.findIndex(b => !b.trim());
-    if (firstEmptyIndex !== -1) {
-      setBulletErrors(prev => ({ ...prev, [`${index}-${firstEmptyIndex}`]: true }));
-      // Also mark the term as having bullet errors
-      setTermErrors(prev => ({ ...prev, [index]: { ...prev[index], bullets: true } }));
-      return;
-    }
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], bullets: [...newItems[index].bullets, ''] };
-    onChange(newItems);
-    // Clear bullet error for this term
-    setTermErrors(prev => {
-      const next = { ...prev };
-      if (next[index]) {
-        next[index] = { ...next[index], bullets: false };
-        if (!next[index].title) delete next[index];
-      }
-      return next;
-    });
-  };
-
-  const removeItem = (index: number) => {
-    onChange(items.filter((_, i) => i !== index));
-    setBulletErrors(prev => {
-      const next = { ...prev };
-      Object.keys(next).forEach(key => {
-        const [itemIdx] = key.split('-').map(Number);
-        if (itemIdx === index) delete next[key];
-        else if (itemIdx > index) {
-          const [, bulletIdx] = key.split('-').map(Number);
-          delete next[key];
-          next[`${itemIdx - 1}-${bulletIdx}`] = true;
-        }
-      });
-      return next;
-    });
-  };
-
-  const removeBullet = (itemIndex: number, bulletIndex: number) => {
-    const newItems = [...items];
-    newItems[itemIndex] = {
-      ...newItems[itemIndex],
-      bullets: newItems[itemIndex].bullets.filter((_, i) => i !== bulletIndex),
-    };
-    onChange(newItems);
-    setBulletErrors(prev => {
-      const next = { ...prev };
-      const key = `${itemIndex}-${bulletIndex}`;
-      delete next[key];
-      // Shift down subsequent bullet errors
-      Object.keys(next).forEach(k => {
-        const [idx, bIdx] = k.split('-').map(Number);
-        if (idx === itemIndex && bIdx > bulletIndex) {
-          delete next[k];
-          next[`${idx}-${bIdx - 1}`] = true;
-        }
-      });
-      return next;
-    });
-  };
-
-  const updateBullet = (itemIndex: number, bulletIndex: number, value: string) => {
-    const newItems = [...items];
-    const newBullets = [...newItems[itemIndex].bullets];
-    newBullets[bulletIndex] = value;
-    newItems[itemIndex] = { ...newItems[itemIndex], bullets: newBullets };
-    onChange(newItems);
-  };
-
-return (
-    <div className="space-y-2">
-      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
-      <Button type="button" variant="outline" size="sm" icon={Plus} onClick={addItem} className="flex items-center gap-1">
-        Add Term
-      </Button>
-      {items.length > 0 && (
-        <div className="space-y-3 mt-2">
-          {items.map((item, idx) => {
-            const termError = termErrors[idx];
-            const hasTermTitleError = termError?.title;
-            const hasTermBulletsError = termError?.bullets;
-            return (
-            <div key={idx} id={`term-card-${idx}`} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${hasTermTitleError || hasTermBulletsError ? 'border-rose-500' : 'border-slate-200'}`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {idx + 1}
-                  </div>
-                  <Input
-                    value={item.title || ''}
-                    onChange={(e) => { updateItem(idx, 'title', e.target.value); }}
-                    placeholder={`Term ${idx + 1} title`}
-                    className="flex-1 min-w-0"
-                    error={hasTermTitleError ? 'Please fill the term title' : undefined}
-                  />
-                  <button
-                  type="button"
-                  onClick={() => removeItem(idx)}
-                  className="text-rose-500 hover:text-rose-700 p-1 flex-shrink-0"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
-              <div className="space-y-1.5 pl-9">
-                {item.bullets.map((bullet, bIdx) => {
-                  const bulletKey = `${idx}-${bIdx}`;
-                  const hasBulletError = bulletErrors[bulletKey];
-                  return (
-                    <div key={bIdx} className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400 font-mono w-4 text-right flex-shrink-0">•</span>
-                      <Input
-                        value={bullet || ''}
-                        onChange={(e) => { updateBullet(idx, bIdx, e.target.value); setBulletErrors(prev => ({ ...prev, [bulletKey]: false })); }}
-                        placeholder={`Bullet point ${bIdx + 1}`}
-                        className="flex-1 min-w-0 text-xs"
-                        error={hasBulletError ? 'Please fill this first' : undefined}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeBullet(idx, bIdx)}
-                        className="text-rose-400 hover:text-rose-600 p-0.5 flex-shrink-0"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  );
-                }                )}
-                <button
-                  type="button"
-                  onClick={() => addBullet(idx)}
-                  className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 ml-4"
-                >
-                  <Plus className="w-3 h-3" /> Add bullet
-                </button>
-              </div>
-            </div>
-          )})}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName, onSignatureNameChange, signatureDesignation, onSignatureDesignationChange, signatureDate, onSignatureDateChange, signatureImage, onSignatureImageChange, errors, touched, submitAttempted }: { 
-  label: string; 
-  paragraphs: string[]; 
+function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName, onSignatureNameChange, signatureDesignation, onSignatureDesignationChange, signatureDate, onSignatureDateChange, signatureImage, onSignatureImageChange, errors, touched, submitAttempted }: {
+  label: string;
+  paragraphs: string[];
   onParagraphsChange: (paragraphs: string[]) => void;
   signatureName: string;
   onSignatureNameChange: (name: string) => void;
@@ -769,10 +650,12 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
     return errors[field];
   };
 
+  const hasCoverletterError = !!getCoverletterError();
+
   return (
     <div className="space-y-4">
       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
-      
+
       {/* Paragraphs */}
       <div className="space-y-2">
         <div className="flex items-start gap-2">
@@ -782,7 +665,7 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
             onChange={(e) => { setNewParagraph(e.target.value); setParagraphError(''); }}
             rows={3}
             className="flex-1 min-w-0"
-            error={paragraphError}
+            error={paragraphError || (paragraphs.length === 0 ? getCoverletterError() : undefined)}
           />
           <Button type="button" variant="outline" size="sm" icon={Plus} iconOnly onClick={addParagraph} className="flex items-center justify-center mt-2" />
         </div>
@@ -790,7 +673,7 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
         {paragraphs.length > 0 && (
           <div className="space-y-2">
             {paragraphs.map((paragraph, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div key={idx} className={`p-3 rounded-lg bg-slate-50 border space-y-2 ${hasCoverletterError && !paragraph?.trim() ? 'border-rose-500' : 'border-slate-200'}`}>
                 <div className="flex items-start justify-between gap-2">
                   <Textarea
                     value={paragraph}
@@ -798,7 +681,7 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
                     placeholder={`Paragraph ${idx + 1} content...`}
                     rows={3}
                     className="flex-1 min-w-0 text-sm"
-                    error={getCoverletterError()}
+                    error={hasCoverletterError && !paragraph?.trim() ? 'Content is required' : undefined}
                   />
                   <button
                     type="button"
@@ -812,7 +695,7 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
             ))}
           </div>
         )}
-        
+
         {paragraphs.length === 0 && (
           <p className="text-sm text-slate-500 italic">Add 4-5 paragraphs for the coverletter</p>
         )}
@@ -821,29 +704,29 @@ function CoverletterField({ label, paragraphs, onParagraphsChange, signatureName
       {/* Signature Fields */}
       <div className="space-y-4 pt-4 border-t border-slate-200">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Input 
-            label="Signature Name" 
-            value={signatureName} 
-            onChange={(e) => onSignatureNameChange(e.target.value)} 
-            placeholder="Enter your full name"
+          <Input
+            label="Signature Name"
+            value={signatureName}
+            onChange={(e) => onSignatureNameChange(e.target.value)}
+            placeholder="Enter your signature name"
             error={getSignatureError('cover_letter_signature_name')}
           />
-          <Input 
-            label="Designation" 
-            value={signatureDesignation} 
-            onChange={(e) => onSignatureDesignationChange(e.target.value)} 
+          <Input
+            label="Designation"
+            value={signatureDesignation}
+            onChange={(e) => onSignatureDesignationChange(e.target.value)}
             placeholder="Enter your designation (e.g., CEO, Founder)"
             error={getSignatureError('cover_letter_signature_designation')}
           />
-          <Input 
-            label="Date" 
-            type="date" 
-            value={signatureDate} 
-            onChange={(e) => onSignatureDateChange(e.target.value)} 
+          <Input
+            label="Date"
+            type="date"
+            value={signatureDate}
+            onChange={(e) => onSignatureDateChange(e.target.value)}
             error={getSignatureError('cover_letter_signature_date')}
           />
         </div>
-        
+
         {/* Signature Image Upload */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Signature Image</label>
@@ -941,10 +824,6 @@ export function CompanySettingsPage() {
         if (!value || !value.trim()) return 'Vision statement is required';
         if (value.trim().length > 2000) return 'Vision statement must be less than 2000 characters';
         break;
-      case 'terms':
-        if (!value || !value.trim()) return 'Terms & conditions is required';
-        if (value.length > 5000) return 'Terms must be less than 5000 characters';
-        break;
       case 'bank_name':
         if (!value || !value.trim()) return 'Bank name is required';
         if (value.length > 255) return 'Bank name must be less than 255 characters';
@@ -964,20 +843,12 @@ export function CompanySettingsPage() {
       case 'swift_code':
         if (value && value.length > 20) return 'SWIFT code must be less than 20 characters';
         break;
-      case 'iban':
-        if (!value || !value.trim()) return 'IBAN is required';
-        if (value.length > 34) return 'IBAN must be less than 34 characters';
-        break;
       case 'upi_id':
         if (!value || !value.trim()) return 'UPI ID is required';
         if (value.length > 50) return 'UPI ID must be less than 50 characters';
         break;
-      case 'quote_acceptance_message':
-        if (!value || !value.trim()) return 'Quote acceptance message is required';
-        if (value.length > 2000) return 'Quote acceptance message must be less than 2000 characters';
-        break;
       case 'qr_code':
-        if (!value || !value.trim()) return 'QR code is required';
+        // QR code is optional - no validation needed for base64 data URL
         break;
       case 'footer_tagline':
         if (!value || !value.trim()) return 'Footer tagline is required';
@@ -993,10 +864,11 @@ export function CompanySettingsPage() {
         core_values: 'At least one core value is required',
         services: 'At least one service is required',
         bni_clients: 'At least one BNI client is required',
+        regional_clients: 'At least one regional client is required',
         international_clients: 'At least one international client is required',
         branch_offices: 'At least one branch office is required',
         work_process_steps: 'At least one work process step is required',
-        contract_terms: 'At least one contract term is required',
+        statement_of_work: 'At least one statement of work item is required',
       };
       return fieldLabels[name] || `${name} must have at least one item`;
     }
@@ -1013,13 +885,13 @@ export function CompanySettingsPage() {
         if (item.description && item.description.length > 500) {
           return `${name === 'core_values' ? 'Core value' : 'Service'} ${i + 1}: Description must be less than 500 characters`;
         }
-      } else if (name === 'bni_clients' || name === 'international_clients' || name === 'branch_offices') {
+      } else if (name === 'bni_clients' || name === 'regional_clients' || name === 'international_clients' || name === 'branch_offices') {
         const itemName = typeof item === 'string' ? item : item.name;
         if (!itemName || !itemName.trim()) {
-          return `${name === 'bni_clients' ? 'BNI client' : name === 'international_clients' ? 'International client' : 'Branch office'} ${i + 1}: Name is required`;
+          return `${name === 'bni_clients' ? 'BNI client' : name === 'regional_clients' ? 'Regional client' : name === 'international_clients' ? 'International client' : 'Branch office'} ${i + 1}: Name is required`;
         }
         if (itemName.trim().length > 100) {
-          return `${name === 'bni_clients' ? 'BNI client' : name === 'international_clients' ? 'International client' : 'Branch office'} ${i + 1}: Name must be less than 100 characters`;
+          return `${name === 'bni_clients' ? 'BNI client' : name === 'regional_clients' ? 'Regional client' : name === 'international_clients' ? 'International client' : 'Branch office'} ${i + 1}: Name must be less than 100 characters`;
         }
       } else if (name === 'work_process_steps') {
         if (!item.title || !item.title.trim()) {
@@ -1031,20 +903,18 @@ export function CompanySettingsPage() {
         if (item.description && item.description.length > 500) {
           return `Work process step ${i + 1}: Description must be less than 500 characters`;
         }
-      } else if (name === 'contract_terms') {
+      } else if (name === 'statement_of_work') {
         if (!item.title || !item.title.trim()) {
-          return `Contract term ${i + 1}: Title is required`;
+          return `Statement of work item ${i + 1}: Title is required`;
         }
         if (item.title.trim().length > 100) {
-          return `Contract term ${i + 1}: Title must be less than 100 characters`;
+          return `Statement of work item ${i + 1}: Title must be less than 100 characters`;
         }
-        if (!item.bullets || item.bullets.length === 0) {
-          return `Contract term ${i + 1}: At least one bullet point is required`;
+        if (!item.description || !item.description.trim()) {
+          return `Statement of work item ${i + 1}: Description is required`;
         }
-        for (let j = 0; j < item.bullets.length; j++) {
-          if (!item.bullets[j] || !item.bullets[j].trim()) {
-            return `Contract term ${i + 1}, bullet ${j + 1}: Text is required`;
-          }
+        if (item.description.length > 2000) {
+          return `Statement of work item ${i + 1}: Description must be less than 2000 characters`;
         }
       }
     }
@@ -1074,13 +944,13 @@ export function CompanySettingsPage() {
   const validateAll = (): boolean => {
     const newErrors: ValidationErrors = {};
 
-    const basicFields = ['company_name', 'tagline', 'email', 'phone', 'website', 'sales_head_name', 'sales_head_title', 'mission', 'vision', 'terms', 'bank_name', 'bank_account_number', 'bank_branch', 'bank_ifsc', 'swift_code', 'iban', 'upi_id', 'quote_acceptance_message', 'footer_tagline', 'qr_code'];
+    const basicFields = ['company_name', 'tagline', 'email', 'phone', 'website', 'sales_head_name', 'sales_head_title', 'mission', 'vision', 'bank_name', 'bank_account_number', 'bank_branch', 'bank_ifsc', 'swift_code', 'upi_id', 'footer_tagline'];
     basicFields.forEach(field => {
       const error = validateField(field, profile[field as keyof CompanyProfile]);
       if (error) newErrors[field] = error;
     });
 
-    const arrayFields = ['core_values', 'services', 'bni_clients', 'international_clients', 'branch_offices', 'work_process_steps', 'contract_terms'];
+    const arrayFields = ['core_values', 'services', 'bni_clients', 'regional_clients', 'international_clients', 'branch_offices', 'work_process_steps', 'statement_of_work'];
     arrayFields.forEach(field => {
       const items = profile[field as keyof CompanyProfile] as any[];
       const error = validateArrayField(field, items || []);
@@ -1214,19 +1084,6 @@ export function CompanySettingsPage() {
           </Button>
         </div>
       </div>
-
-      {submitAttempted && Object.keys(errors).length > 0 && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200">
-          <div className="flex items-center gap-2 text-rose-800 mb-2">
-            <span className="font-semibold">Please fix the following errors:</span>
-          </div>
-          <ul className="list-disc list-inside space-y-1 text-sm text-rose-700">
-            {Object.entries(errors).map(([field, message]) => (
-              <li key={field}>{field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: {message}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Basic Info */}
@@ -1427,6 +1284,7 @@ export function CompanySettingsPage() {
             onChange={(val) => handleInputChange('core_values', val)}
             placeholder="e.g. Integrity"
             showLogo={true}
+            showDescription={false}
             fieldType="core value"
             error={errors.core_values && (touched.has('core_values') || submitAttempted) ? errors.core_values : undefined}
           />
@@ -1460,13 +1318,22 @@ export function CompanySettingsPage() {
             </h2>
           </div>
           <ArrayField
-            label="BNI Members & Regional Partners"
+            label="BNI Members"
             items={profile.bni_clients || []}
             onChange={(val) => handleInputChange('bni_clients', val)}
             placeholder="e.g. Shree Cement"
             showLogo={true}
-            fieldType="BNI OR Regional Partner Name"
+            fieldType="BNI Member Name"
             error={errors.bni_clients && (touched.has('bni_clients') || submitAttempted) ? errors.bni_clients : undefined}
+          />
+          <ArrayField
+            label="Regional Partners"
+            items={profile.regional_clients || []}
+            onChange={(val) => handleInputChange('regional_clients', val)}
+            placeholder="e.g. Regional Client Name"
+            showLogo={true}
+            fieldType="Regional Partner Name"
+            error={errors.regional_clients && (touched.has('regional_clients') || submitAttempted) ? errors.regional_clients : undefined}
           />
           <ArrayField
             label="International Partners"
@@ -1476,6 +1343,27 @@ export function CompanySettingsPage() {
             showLogo={true}
             fieldType="International Partner name"
             error={errors.international_clients && (touched.has('international_clients') || submitAttempted) ? errors.international_clients : undefined}
+          />
+        </Card>
+
+        {/* Statement of Work & Contract Terms */}
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-brand-600" />
+              Statement of Work &amp; Contract Terms
+            </h2>
+          </div>
+          <KeyValueArrayField
+            label="Statement of Work Items"
+            items={profile.statement_of_work || []}
+            onChange={(val) => handleInputChange('statement_of_work', val)}
+            placeholder="e.g. Project Scope"
+            showLogo={false}
+            showDescription={true}
+            requireDescription={true}
+            fieldType="statement of work item"
+            error={errors.statement_of_work && (touched.has('statement_of_work') || submitAttempted) ? errors.statement_of_work : undefined}
           />
         </Card>
 
@@ -1511,41 +1399,6 @@ export function CompanySettingsPage() {
             items={profile.work_process_steps || []}
             onChange={(val) => handleInputChange('work_process_steps', val)}
             error={errors.work_process_steps && (touched.has('work_process_steps') || submitAttempted) ? errors.work_process_steps : undefined}
-          />
-        </Card>
-
-        {/* Statement of work and Contract Terms */}
-        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
-          <div className="border-b border-slate-200 pb-4">
-            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-brand-600" />
-              Statement of work and Contract Terms
-            </h2>
-          </div>
-          <ContractTermsField
-            label="Contract Terms"
-            items={profile.contract_terms || []}
-            onChange={(val) => handleInputChange('contract_terms', val)}
-            error={errors.contract_terms && (touched.has('contract_terms') || submitAttempted) ? errors.contract_terms : undefined}
-          />
-        </Card>
-
-        {/* Terms */}
-        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm">
-          <div className="border-b border-slate-200 pb-4">
-            <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-brand-600" />
-              Terms & Conditions
-            </h2>
-          </div>
-          <Textarea
-            label="General Terms"
-            value={profile.terms || ''}
-            onChange={(e) => handleInputChange('terms', e.target.value)}
-            onBlur={(e) => handleBlur('terms', e.target.value)}
-            rows={6}
-            placeholder="Enter terms and conditions (one term per line)..."
-            error={errors.terms && (touched.has('terms') || submitAttempted) ? errors.terms : undefined}
           />
         </Card>
 
@@ -1622,7 +1475,7 @@ export function CompanySettingsPage() {
                 handleInputChange('qr_code', '');
                 handleBlur('qr_code', '');
               }}
-              upload={companyProfileApi.uploadLogo}
+              upload={companyProfileApi.uploadQrCode}
               size="lg"
               helpText="Upload a QR code for quick payments (PNG/JPG)"
             />
@@ -1633,24 +1486,13 @@ export function CompanySettingsPage() {
         </Card>
 
         {/* Quote Sign Off / Footer */}
-        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm" id="field-quote_acceptance_message">
+        <Card className="space-y-6 bg-white border border-slate-200 shadow-sm" id="field-footer_tagline">
           <div className="border-b border-slate-200 pb-4">
             <h2 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-brand-600" />
               Quote Sign Off & Footer
             </h2>
           </div>
-          
-          <Textarea
-            label="Quote Acceptance Terms"
-            value={profile.quote_acceptance_message || ''}
-            onChange={(e) => handleInputChange('quote_acceptance_message', e.target.value)}
-            onBlur={(e) => handleBlur('quote_acceptance_message', e.target.value)}
-            rows={4}
-            placeholder="e.g. By signing below, the client confirms acceptance of the quote..."
-            helperText="This message will be printed on the final acceptance page."
-            error={errors.quote_acceptance_message && (touched.has('quote_acceptance_message') || submitAttempted) ? errors.quote_acceptance_message : undefined}
-          />
 
           <Input
             label="Footer Tagline"

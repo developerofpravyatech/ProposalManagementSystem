@@ -39,7 +39,6 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
   const bniClients = cp.bni_clients || [];
   const intlClients = cp.international_clients || [];
   const branchOffices = cp.branch_offices || [];
-  const terms = cp.terms || '';
 
   const sections = isQuotation
     ? [
@@ -105,7 +104,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
                 </div>
               </div>
             )}
-            <Badge type={proposal.type} />
+            <Badge type={proposal.type} count={proposal.view_count} status={proposal.status} />
             <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
               Ref: {proposal.proposal_no}
             </span>
@@ -401,25 +400,6 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
               {intlClients.map((client, idx) => (
                 <p key={idx}>• {client}</p>
               ))}
-            </Card>
-          </section>
-
-          {/* PAGE 8: General Terms & Conditions */}
-          <section id="terms" className="space-y-4">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5" style={{ color: '#C81D31' }} />
-              <h2 className="text-xl font-bold text-slate-900 font-display">General Terms & Conditions</h2>
-            </div>
-            <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
-              <p><strong>Statement of Work</strong></p>
-              {terms.split('\n').map((line, idx) => {
-                if (!line.trim()) return null;
-                if (line.includes('Governing Law')) {
-                  const [label, ...rest] = line.split(':');
-                  return <p key={idx} className="pt-2"><strong>{label}:</strong> {rest.join(':')}</p>;
-                }
-                return <p key={idx}>{line}</p>;
-              })}
             </Card>
           </section>
 

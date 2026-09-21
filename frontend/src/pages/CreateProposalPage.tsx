@@ -15,6 +15,7 @@ import { Input, Textarea } from '../components/common/Input';
 import { LineItemForm } from '../components/admin/LineItemForm';
 import { proposalApi } from '../api/proposalApi';
 import { useToast } from '../context/ToastContext';
+import { ProposalType } from '../types';
 
 export function CreateProposalPage() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export function CreateProposalPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Proposal Form State
-  const [proposalType, setProposalType] = useState('quotation_proposal'); // 'profile_only' or 'quotation_proposal'
+  const [proposalType, setProposalType] = useState<ProposalType>('quotation_proposal');
   const [clientName, setClientName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
@@ -42,9 +43,6 @@ export function CreateProposalPage() {
   });
   const [taxRate, setTaxRate] = useState(0);
   const [discountRate, setDiscountRate] = useState(0);
-  const [terms, setTerms] = useState(
-    '50% upfront upon project kickoff, 30% upon staging milestone approval, 20% on final production sign-off. Proposal valid for 30 days.'
-  );
 
   const [lineItems, setLineItems] = useState([
     {
@@ -158,7 +156,7 @@ export function CreateProposalPage() {
     closing_statement: 'Take your business to the next level.',
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!clientName.trim() || !companyName.trim()) {
       addToast('Please provide client and company name', 'error');
@@ -171,6 +169,14 @@ export function CreateProposalPage() {
 
     setIsSubmitting(true);
     try {
+      const mappedLineItems = lineItems.map(item => ({
+        name: item.title,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.subtotal,
+      }));
+      
       const payload = {
         type: proposalType,
         client_name: clientName,
@@ -184,8 +190,7 @@ export function CreateProposalPage() {
         currency_symbol: currencySymbols[currency] || '$',
         contract_duration: proposalType === 'quotation_proposal' ? contractDuration : 'N/A',
         renewal_date: proposalType === 'quotation_proposal' ? renewalDate : null,
-        line_items: proposalType === 'quotation_proposal' ? lineItems : [],
-        terms: proposalType === 'quotation_proposal' ? terms : null,
+        line_items: proposalType === 'quotation_proposal' ? mappedLineItems : [],
         content: buildProposalContent(),
       };
 
@@ -437,13 +442,6 @@ export function CreateProposalPage() {
             onDurationChange={setContractDuration}
             renewalDate={renewalDate}
             onRenewalDateChange={setRenewalDate}
-          />
-
-          <Textarea
-            label="Invoicing & Milestone Terms"
-            rows={3}
-            value={terms}
-            onChange={(e) => setTerms(e.target.value)}
           />
 
           <div className="flex items-center justify-between pt-4 border-t border-slate-200">

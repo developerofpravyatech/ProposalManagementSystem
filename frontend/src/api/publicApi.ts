@@ -18,7 +18,7 @@ export const publicApi = {
     }
   },
 
-  async recordView(token, metadata = {}) {
+  async recordView(token, metadata: { ip?: string; city?: string } = {}) {
     try {
       return await apiRequest(`/public/proposals/${token}/view`, {
         method: 'POST',

@@ -12,12 +12,12 @@ from app.services.pdf_service import build_company_profile_pdf
 from app.api.auth import get_current_admin
 from app.utils.security import settings
 from app.models.company_profile import CompanyProfile
-from app.models.company_profile_normalized import Signature
+from app.models.company_profile_normalized import Signature, PaymentMethod, BankDetails, RegionalClient
 import os
 import logging
 import uuid
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 router = APIRouter(prefix="/company-profile", tags=["company-profile"])
@@ -37,10 +37,14 @@ def validate_file(file: UploadFile, allowed_extensions: set[str] = ALLOWED_EXTEN
     if ext not in allowed_extensions:
         raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: {', '.join(sorted(allowed_extensions))}")
     
-    # Check file size
-    file.file.seek(0, 2)  # Seek to end
-    size = file.file.tell()
-    file.file.seek(0)  # Reset to beginning
+    # Check file size (use UploadFile.size instead of seek/tell to avoid pointer issues)
+    size = getattr(file, "size", None)
+    if size is None:
+        # Fallback for older FastAPI versions
+        file.file.seek(0, 2)
+        size = file.file.tell()
+        file.file.seek(0)
+
     if size > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File size must be less than 2MB")
 
@@ -177,6 +181,42 @@ async def upload_item_logo(
         "filename": file.filename,
         "stored_in_db": False,
     }
+
+
+@router.post("/upload-qr-code")
+async def upload_qr_code(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_admin=Depends(get_current_admin),
+):
+    """Upload a QR code image and save it to the payment_method table"""
+    validate_file(file)
+
+    content = await file.read()
+    data_url = encode_image(file, content)
+
+    profile = await get_or_create_company_profile(db)
+
+    # Save to PaymentMethod.qr_code (preferred) or BankDetails.qr_code
+    result = await db.execute(
+        select(PaymentMethod).where(PaymentMethod.company_profile_id == profile.id)
+    )
+    payment_method = result.scalar_one_or_none()
+    if payment_method:
+        payment_method.qr_code = data_url
+        payment_method.updated_at = datetime.now(timezone.utc)
+    else:
+        result = await db.execute(
+            select(BankDetails).where(BankDetails.company_profile_id == profile.id)
+        )
+        bank_details = result.scalar_one_or_none()
+        if bank_details:
+            bank_details.qr_code = data_url
+            bank_details.updated_at = datetime.now(timezone.utc)
+
+    await db.commit()
+    await db.refresh(profile)
+    return {"url": data_url, "filename": file.filename, "stored_in_db": True}
 
 
 @router.get("/logo")

@@ -112,15 +112,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .step-title { font-size: 8.6pt; font-weight: 700; color: var(--dark); min-height: 9mm; }
 .step-desc { font-size: 7.2pt; color: var(--muted); margin-top: 1.5mm; line-height: 1.4; }
 .step-icon-label { font-size: 7pt; color: var(--primary); margin-top: 2mm; font-weight: 600; letter-spacing: 0.3pt; }
-/* ================= PAGE 6 : TERMS ================= */
-.terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
-.term-card { background: var(--white); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4mm; }
-.term-head { display: flex; align-items: center; gap: 3mm; margin-bottom: 2.5mm; }
-.term-num { color: var(--primary); font-weight: 800; font-size: 9pt; }
-.term-card:nth-child(even) .term-num { color: var(--accent); }
-.term-title { font-size: 10pt; font-weight: 700; color: var(--dark); }
-.term-item { font-size: 8.2pt; color: var(--dark); margin-top: 1.6mm; padding-left: 4mm; position: relative; }
-.term-item::before { content: ''; position: absolute; left: 0; top: 1.2mm; width: 1.2mm; height: 1.2mm; border-radius: 50%; background: var(--primary); }
+
 /* ================= PAGES 7-8 : CLIENTS ================= */
 .client-label { margin-top: 2mm; }
 .clients-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4mm; margin-top: 4mm; }
@@ -151,8 +143,10 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .pay-upi-value { font-size: 13pt; font-weight: 800; color: var(--dark); margin-top: 2mm; }
 .pay-upi-note { font-size: 7.6pt; color: var(--muted); margin-top: 2mm; }
 .bank-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4.5mm 5mm; margin-top: 5mm; }
-.bank-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 6mm; font-size: 8.4pt; margin-top: 2mm; }
-.bank-row span b { font-weight: 700; }
+.payment-table { width: 100%; border-collapse: collapse; }
+.payment-table td { padding: 1.8mm 2mm; border-bottom: 0.3mm solid var(--line); font-size: 8.4pt; }
+.payment-table tr:last-child td { border-bottom: none; }
+.payment-table td:first-child { font-weight: 700; width: 40%; color: var(--dark); }
 .pay-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 5mm; margin-top: 6mm; }
 /* ================= PAGE 11 : ACCEPTANCE ================= */
 .accept-confirm { background: #F0FDF4; border: 0.35mm solid #BBF7D0; border-radius: 2.5mm; padding: 5mm; }
@@ -403,40 +397,7 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
   </div>
 </section>
 
-<!-- ==================== PAGE 6 : TERMS ==================== -->
-<section class="page">
-  <div class="topbar"></div>
-  <div class="pad">
-    <div class="hdr">
-      <div class="hdr-brand">PRAVYA TECH</div>
-      <div class="hdr-meta"><b>TERMS</b>&nbsp;&nbsp;/&nbsp;&nbsp;06</div>
-    </div>
-    <hr class="hdr-line"/>
-    <div class="page-title">Statement of work and Contract Terms.</div>
 
-    <div class="terms-grid">
-      {% set tn = namespace(n=0) %}
-      {% for title, items in terms_sections %}
-      {% set tn.n = tn.n + 1 %}
-      <div class="term-card">
-        <div class="term-head">
-          <span class="term-num b">{{ '%02d' % tn.n }}</span>
-          <span class="term-title">{{ title }}</span>
-        </div>
-        {% for item in items %}
-        <div class="term-item">{{ item }}</div>
-        {% endfor %}
-      </div>
-      {% endfor %}
-    </div>
-
-    <div style="position:absolute; left:0; right:0; bottom:5mm;">
-      <div class="footer">
-        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>06 / 12</span></div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ==================== PAGE 7 : BNI CLIENTS ==================== -->
 <section class="page">
@@ -471,13 +432,49 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
   </div>
 </section>
 
-<!-- ==================== PAGE 8 : INTERNATIONAL CLIENTS ==================== -->
+<!-- ==================== PAGE 8 : REGIONAL CLIENTS ==================== -->
+{% if clients.regional %}
 <section class="page">
   <div class="topbar"></div>
   <div class="pad">
     <div class="hdr">
       <div class="hdr-brand">PRAVYA TECH</div>
       <div class="hdr-meta"><b>CLIENT SHOWCASE</b>&nbsp;&nbsp;/&nbsp;&nbsp;08</div>
+    </div>
+    <hr class="hdr-line"/>
+    <div class="page-title">Our Top Clients</div>
+    <div class="eyebrow" style="color:var(--accent);">2025-2026 (REGIONAL CLIENTS)</div>
+
+    <div class="clients-grid">
+      {% for client in clients.regional[:12] %}
+      <div class="client-cell">
+        {% if client.get('logo') %}
+        <div class="logo-wrap"><img src="{{ client.logo }}" alt="logo"/></div>
+        {% else %}
+        <div class="client-name-text">{{ client.name }}</div>
+        {% endif %}
+        <div class="client-name-sub">{{ client.name }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="position:absolute; left:0; right:0; bottom:5mm;">
+      <div class="footer">
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>08 / 12</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ==================== PAGE 9 : INTERNATIONAL CLIENTS ==================== -->
+{% if clients.international %}
+<section class="page">
+  <div class="topbar"></div>
+  <div class="pad">
+    <div class="hdr">
+      <div class="hdr-brand">PRAVYA TECH</div>
+      <div class="hdr-meta"><b>CLIENT SHOWCASE</b>&nbsp;&nbsp;/&nbsp;&nbsp;{% if clients.regional %}09{% else %}08{% endif %}</div>
     </div>
     <hr class="hdr-line"/>
     <div class="page-title">Our Top Clients</div>
@@ -498,11 +495,12 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 
     <div style="position:absolute; left:0; right:0; bottom:5mm;">
       <div class="footer">
-        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>08 / 12</span></div>
+        <div><span>PRAVYA TECH&nbsp;&nbsp;|&nbsp;&nbsp;PROFESSIONAL PROPOSAL</span><span>{% if clients.regional %}09{% else %}08{% endif %} / 12</span></div>
       </div>
     </div>
   </div>
 </section>
+{% endif %}
 
 <!-- ==================== PAGE 9 : PRICING ==================== -->
 <section class="page">
@@ -580,14 +578,15 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 
     <div class="bank-card">
       <div class="eyebrow">Bank Information</div>
-      <div class="bank-row">
-        <span><b>Bank Name :</b>&nbsp;{{ payment.bank_name | default('', true) }}</span>
-        <span><b>Account No. :</b>&nbsp;{{ payment.account_number | default('', true) }}</span>
-        <span><b>Branch :</b>&nbsp;{{ payment.branch_name | default('', true) }}</span>
-        <span><b>IFSC :</b>&nbsp;{{ payment.ifsc | default('', true) }}</span>
-        <span><b>UPI ID :</b>&nbsp;{{ payment.upi_id | default('', true) }}</span>
-        <span><b>SWIFT / IBAN :</b>&nbsp;{{ payment.swift_iban | default('-', true) }}</span>
-      </div>
+      <table class="payment-table" style="margin-top: 3mm;">
+        <tbody>
+          <tr><td>Bank Name</td><td>{{ payment.bank_name | default('', true) }}</td></tr>
+          <tr><td>Account No.</td><td>{{ payment.account_number | default('', true) }}</td></tr>
+          <tr><td>Branch Name</td><td>{{ payment.branch_name | default('', true) }}</td></tr>
+          <tr><td>IFSC Code</td><td>{{ payment.ifsc | default('', true) }}</td></tr>
+          <tr><td>UPI ID</td><td>{{ payment.upi_id | default('', true) }}</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <div style="position:absolute; left:0; right:0; bottom:5mm;">

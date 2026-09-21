@@ -81,7 +81,7 @@ export function RenewalsPage() {
     .filter((p) => p.renewal_date)
     .map((p) => {
       const rDate = new Date(p.renewal_date);
-      const diffTime = rDate - now;
+      const diffTime = rDate.getTime() - now.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return { ...p, daysRemaining: diffDays };
     })
@@ -276,6 +276,9 @@ export function RenewalsPage() {
             ]}
             value={newDuration}
             onChange={(e) => setNewDuration(e.target.value)}
+            error={undefined}
+            helperText={undefined}
+            id="renewal-duration"
           />
 
           <Input

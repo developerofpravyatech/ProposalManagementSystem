@@ -9,13 +9,14 @@ if TYPE_CHECKING:
         CoreValue,
         Service,
         BNIClient,
+        RegionalClient,
         InternationalClient,
         BranchOffice,
         WorkProcessStep,
         PaymentMethod,
         Signature,
-        ContractTerm,
         BankDetails,
+        StatementOfWork,
     )
 
 
@@ -34,7 +35,6 @@ class CompanyProfile(Base):
     vision: Mapped[str | None] = mapped_column(Text, nullable=True)
     logo_data: Mapped[str | None] = mapped_column(Text, nullable=True)
     logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    terms: Mapped[str | None] = mapped_column(Text, nullable=True)
     profile_paragraphs: Mapped[list | None] = mapped_column(JSON, nullable=True)
     cover_letter_salutation: Mapped[str | None] = mapped_column(Text, nullable=True)
     cover_letter_paragraphs: Mapped[list | None] = mapped_column(JSON, nullable=True)
@@ -44,10 +44,11 @@ class CompanyProfile(Base):
     cover_letter_signature_date: Mapped[str | None] = mapped_column(String(50), nullable=True)
     cover_letter_signature_image: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    quote_acceptance_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    footer_tagline: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    statement_of_work_rel: Mapped[list["StatementOfWork"]] = relationship(
+        "StatementOfWork", back_populates="company_profile", cascade="all, delete-orphan", order_by="StatementOfWork.sort_order"
+    )
 
-    # Bank Details - moved to company_payment_methods table
+    footer_tagline: Mapped[str | None] = mapped_column(String(500), nullable=True)
     # bank_name, bank_account_name, bank_account_number, bank_ifsc, bank_branch, upi_id, swift_code, iban kept for backward compatibility
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -63,6 +64,9 @@ class CompanyProfile(Base):
     bni_clients_rel: Mapped[list["BNIClient"]] = relationship(
         "BNIClient", back_populates="company_profile", cascade="all, delete-orphan", order_by="BNIClient.sort_order"
     )
+    regional_clients_rel: Mapped[list["RegionalClient"]] = relationship(
+        "RegionalClient", back_populates="company_profile", cascade="all, delete-orphan", order_by="RegionalClient.sort_order"
+    )
     international_clients_rel: Mapped[list["InternationalClient"]] = relationship(
         "InternationalClient", back_populates="company_profile", cascade="all, delete-orphan", order_by="InternationalClient.sort_order"
     )
@@ -77,9 +81,6 @@ class CompanyProfile(Base):
     )
     payment_method_rel: Mapped["PaymentMethod | None"] = relationship(
         "PaymentMethod", back_populates="company_profile", cascade="all, delete-orphan", uselist=False
-    )
-    contract_terms_rel: Mapped[list["ContractTerm"]] = relationship(
-        "ContractTerm", back_populates="company_profile", cascade="all, delete-orphan", order_by="ContractTerm.sort_order"
     )
     bank_details_rel: Mapped["BankDetails | None"] = relationship(
         "BankDetails", back_populates="company_profile", cascade="all, delete-orphan", uselist=False

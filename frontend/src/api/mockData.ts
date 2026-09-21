@@ -51,7 +51,6 @@ const INITIAL_PROPOSALS = [
         subtotal: 3500
       }
     ],
-    terms: "50% upfront upon milestone 1 kickoff, 30% upon UAT deployment, 20% upon final production sign-off. Validity 30 days."
   },
   {
     id: 2,
@@ -124,7 +123,6 @@ const INITIAL_PROPOSALS = [
         subtotal: 500000
       }
     ],
-    terms: "Milestone-based billing. Standard 1-year warranty on bugs and security patches."
   },
   {
     id: 4,

@@ -22,6 +22,12 @@ function normalizeRelationalData(profile: any) {
       logo: c.logo,
     }));
   }
+  if (profile.regional_clients_rel && profile.regional_clients_rel.length > 0) {
+    profile.regional_clients = profile.regional_clients_rel.map((c: any) => ({
+      name: c.name,
+      logo: c.logo,
+    }));
+  }
   if (profile.international_clients_rel && profile.international_clients_rel.length > 0) {
     profile.international_clients = profile.international_clients_rel.map((c: any) => ({
       name: c.name,
@@ -44,8 +50,15 @@ function normalizeRelationalData(profile: any) {
   if (profile.signatures_rel && profile.signatures_rel.length > 0) {
     // Take the first signature for backward compatibility
     profile.signature_data = profile.signatures_rel[0].image_data;
+    profile.cover_letter_signature_image = profile.signatures_rel[0].image_data;
     profile.signatures = profile.signatures_rel.map((s: any) => ({
       image_data: s.image_data,
+    }));
+  }
+  if (profile.statement_of_work_rel && profile.statement_of_work_rel.length > 0) {
+    profile.statement_of_work = profile.statement_of_work_rel.map((s: any) => ({
+      title: s.heading,
+      description: s.description,
     }));
   }
   if (profile.payment_method_rel) {
@@ -58,7 +71,6 @@ function normalizeRelationalData(profile: any) {
     profile.upi_id = pm.upi_id;
     profile.qr_code = pm.qr_code;
     profile.swift_code = pm.swift_code;
-    profile.iban = pm.iban;
   }
   if (profile.bank_details_rel) {
     const bd = profile.bank_details_rel;
@@ -70,7 +82,6 @@ function normalizeRelationalData(profile: any) {
     profile.upi_id = bd.upi_id;
     profile.qr_code = bd.qr_code;
     profile.swift_code = bd.swift_code;
-    profile.iban = bd.iban;
   }
   return profile;
 }
@@ -135,6 +146,17 @@ export const companyProfileApi = {
     const formData = new FormData();
     formData.append('file', file);
     const response = await apiRequest('/company-profile/upload-item-logo', {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+    return response.url;
+  },
+
+  async uploadQrCode(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiRequest('/company-profile/upload-qr-code', {
       method: 'POST',
       body: formData,
       headers: {},

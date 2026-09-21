@@ -1,542 +1,1148 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8"/>
-<title>{{ company_name }} – Company Profile</title>
-<style>
-:root {
-  --primary: {{ colors.primary }};
-  --dark: {{ colors.dark }};
-  --accent: {{ colors.accent }};
-  --light: {{ colors.light }};
-  --line: {{ colors.line }};
-  --muted: #8b99af; /* Light muted text for dark background */
-  --muted-light: #64748B; /* Muted text for light background */
-  --white: #ffffff;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-html, body { margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(--dark); font-size: 9.2pt; line-height: 1.5; }
-@page { size: A4; margin: 0; }
-.page { width: 210mm; height: 297mm; position: relative; page-break-after: always; background: var(--white); overflow: hidden; }
-.page:last-child { page-break-after: auto; }
-.pad { position: absolute; top: 17mm; left: 14mm; right: 14mm; bottom: 12mm; }
-.b { font-weight: 700; }
-.up { text-transform: uppercase; }
+  <meta charset="utf-8" />
+  <title>{{ company_name }} – Company Profile</title>
+  <style>
+    :root {
+      --primary: {
+          {
+          colors.primary
+        }
+      }
 
-/* ===== COVER PAGE ===== */
-.cover-top-half { position: absolute; top: 0; left: 0; right: 0; height: 180mm; background: var(--white); padding: 18mm 14mm 0 14mm; }
-.cover-bottom-half { position: absolute; top: 183mm; left: 0; right: 0; bottom: 0; background: var(--dark); padding: 18mm 14mm 0 14mm; }
-.cover-red-band { position: absolute; top: 180mm; left: 0; right: 0; height: 3mm; background: var(--primary); }
+      ;
 
-.cover-header { display: flex; justify-content: space-between; align-items: flex-start; }
-.cover-closing-tagline { font-size: 11pt; font-weight: 700; color: var(--dark); line-height: 1.3; max-width: 80mm; }
-.cover-logo-wrapper { text-align: right; }
-.cover-logo { max-height: 12mm; max-width: 60mm; object-fit: contain; }
+      --dark: {
+          {
+          colors.dark
+        }
+      }
 
-.cover-illustration { margin-top: 20mm; text-align: left; }
-.cover-illustration img { max-width: 60mm; max-height: 50mm; object-fit: contain; }
+      ;
 
-.cover-title-area { margin-top: 15mm; }
-.cover-title { font-size: 32pt; font-weight: 800; letter-spacing: -1pt; color: var(--dark); line-height: 1.1; max-width: 130mm; }
-.cover-subtitle { font-size: 14pt; font-weight: 700; color: var(--primary); margin-top: 4mm; }
+      --accent: {
+          {
+          colors.accent
+        }
+      }
 
-.cover-bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; color: var(--white); }
-.cover-bottom-col { display: flex; flex-direction: column; gap: 6mm; }
+      ;
 
-.cb-block { display: flex; flex-direction: column; gap: 1mm; }
-.cb-label { font-size: 9pt; color: var(--white); opacity: 0.9; }
-.cb-val-red { font-size: 11pt; font-weight: 700; color: var(--primary); }
-.cb-val { font-size: 9pt; color: var(--white); line-height: 1.4; opacity: 0.9; }
+      --light: {
+          {
+          colors.light
+        }
+      }
 
-/* ===== INNER PAGES HEADER/FOOTER ===== */
-.page-header { position: absolute; top: 10mm; left: 14mm; right: 14mm; text-align: right; font-size: 8pt; color: var(--muted-light); }
-.page-footer { position: absolute; bottom: 10mm; left: 14mm; right: 14mm; text-align: right; font-size: 10pt; font-weight: 700; color: var(--muted-light); }
-.page-footer .footer-tagline { display: block; font-size: 8pt; font-weight: 400; color: var(--muted); margin-top: 2mm; }
+      ;
 
-/* Typography */
-.section-title { font-size: 26pt; font-weight: 800; color: var(--dark); letter-spacing: -0.5pt; line-height: 1.1; margin-bottom: 2mm; }
-.section-title .highlight { color: var(--primary); }
-.section-subtitle { font-size: 14pt; font-weight: 700; color: var(--primary); margin-top: 15mm; margin-bottom: 5mm; }
+      --line: {
+          {
+          colors.line
+        }
+      }
 
-/* ===== COVER LETTER ===== */
-.cl-date { text-align: right; font-size: 10pt; margin-bottom: 8mm; color: var(--dark); }
-.cl-to { font-size: 10pt; color: var(--dark); margin-bottom: 1mm; }
-.cl-name { font-size: 12pt; font-weight: 700; color: var(--primary); }
-.cl-designation { font-size: 10pt; color: var(--dark); margin-bottom: 12mm; }
-.cl-body { font-size: 10pt; line-height: 1.6; color: var(--dark); text-align: justify; display: flex; flex-direction: column; gap: 5mm; }
-.cl-signature-area { position: absolute; bottom: 30mm; left: 14mm; }
-.cl-signature-img { max-height: 25mm; max-width: 60mm; object-fit: contain; margin-bottom: 2mm; background: var(--dark); padding: 2mm;}
-.cl-sign-name { font-size: 11pt; font-weight: 800; color: var(--dark); text-transform: uppercase; }
-.cl-sign-title { font-size: 9pt; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+      ;
+      --muted: #8b99af;
+      /* Light muted text for dark background */
+      --muted-light: #64748B;
+      /* Muted text for light background */
+      --white: #ffffff;
+    }
 
-/* ===== PROFILE / MISSION / VISION ===== */
-.profile-text { font-size: 11pt; line-height: 1.5; color: var(--dark); }
-.core-values-label { font-size: 16pt; font-weight: 700; color: var(--dark); margin-top: 15mm; margin-bottom: 8mm; }
-.core-values-label .highlight { color: var(--primary); }
-.values-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6mm; }
-.value-card { display: flex; flex-direction: column; gap: 3mm; }
-.value-icon { width: 14mm; height: 14mm; color: var(--primary); }
-.value-title { font-size: 11pt; font-weight: 800; color: var(--dark); line-height: 1.2; }
-.value-desc { font-size: 9pt; color: var(--muted-light); line-height: 1.4; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
 
-/* ===== SERVICES ===== */
-.services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: 15mm; }
-.service-col { border-top: 0.5mm solid var(--line); padding-top: 5mm; position: relative; }
-.service-icon { position: absolute; top: -7mm; left: 0; background: var(--white); padding-right: 2mm; }
-.service-icon img { width: 12mm; height: 12mm; object-fit: contain; }
-.service-title { font-size: 14pt; font-weight: 800; color: var(--dark); margin-bottom: 6mm; margin-top: 4mm; }
-.service-item { font-size: 10pt; color: var(--dark); margin-bottom: 2mm; padding-left: 4mm; position: relative; }
-.service-item::before { content: '•'; position: absolute; left: 0; top: 0; color: var(--dark); font-weight: 800; }
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
 
-/* ===== PROCESS ===== */
-.process-intro { font-size: 24pt; font-weight: 800; color: var(--dark); line-height: 1.2; width: 60mm; position: absolute; top: 120mm; left: 14mm;}
-.process-list { position: absolute; top: 50mm; left: 90mm; right: 14mm; display: flex; flex-direction: column; gap: 8mm; }
-.process-step { display: flex; gap: 4mm; align-items: flex-start; }
-.process-icon { width: 10mm; height: 10mm; object-fit: contain; }
-.process-text h4 { font-size: 12pt; font-weight: 700; color: var(--primary); margin-bottom: 1mm; }
-.process-text p { font-size: 10pt; font-weight: 700; color: var(--dark); line-height: 1.4; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--dark);
+      font-size: 9.2pt;
+      line-height: 1.5;
+    }
 
-/* ===== TERMS ===== */
-.terms-dark-header { background: var(--dark); margin: -17mm -14mm 0 -14mm; padding: 25mm 14mm 15mm 14mm; position: relative; overflow: hidden; }
-.terms-dark-title { font-size: 26pt; font-weight: 800; color: var(--white); line-height: 1.1; max-width: 100mm; position: relative; z-index: 2; }
-.terms-dark-sub { font-size: 18pt; font-weight: 700; color: var(--primary); margin-top: 5mm; position: relative; z-index: 2; }
-.terms-dark-icon { position: absolute; right: 20mm; top: 15mm; width: 45mm; height: 45mm; z-index: 1; }
+    @page {
+      size: A4;
+      margin: 0;
+    }
 
-.terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; row-gap: 12mm; margin-top: 15mm; }
-.term-num { font-size: 14pt; font-weight: 800; color: var(--primary); margin-bottom: 1mm; }
-.term-title { font-size: 14pt; font-weight: 800; color: var(--dark); margin-bottom: 3mm; line-height: 1.2; }
-.term-item { font-size: 9.5pt; color: var(--dark); margin-bottom: 2mm; padding-left: 4mm; position: relative; line-height: 1.4; }
-.term-item::before { content: '•'; position: absolute; left: 0; top: 0; color: var(--dark); font-weight: 800; }
-.term-divider { position: absolute; left: 14mm; right: 14mm; border-bottom: 0.3mm solid var(--line); }
+    .page {
+      width: 210mm;
+      height: 297mm;
+      position: relative;
+      page-break-after: always;
+      background: var(--white);
+      overflow: hidden;
+    }
 
-/* ===== CLIENTS ===== */
-.clients-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6mm; margin-top: 20mm; row-gap: 15mm;}
-.client-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 20mm; }
-.client-cell img { max-width: 35mm; max-height: 18mm; object-fit: contain; }
-.client-name-text { font-size: 10pt; font-weight: 800; color: var(--dark); text-align: center; }
+    .page:last-child {
+      page-break-after: auto;
+    }
 
-/* ===== PAYMENT ===== */
-.payment-table { width: 100%; border-collapse: collapse; margin-top: 10mm; border: 0.3mm solid var(--dark); }
-.payment-table td { padding: 4mm; border: 0.3mm solid var(--dark); font-size: 10pt; }
-.payment-table tr td:first-child { width: 35%; text-transform: uppercase; }
+    .pad {
+      position: absolute;
+      top: 17mm;
+      left: 14mm;
+      right: 14mm;
+      bottom: 12mm;
+    }
 
-.payment-qr-section { margin-top: 10mm; }
-.payment-qr-title { font-size: 9pt; font-weight: 800; color: var(--dark); margin-bottom: 2mm; }
-.payment-qr-img { width: 30mm; height: 30mm; }
-.payment-upi-title { font-size: 9pt; font-weight: 800; color: var(--dark); margin-top: 8mm; margin-bottom: 1mm; }
-.payment-upi-val { font-size: 10pt; color: var(--dark); }
+    .b {
+      font-weight: 700;
+    }
 
-/* ===== CLOSING / CONTACT ===== */
-.contact-bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; background: var(--dark); height: 50mm; display: flex; padding: 15mm 14mm; gap: 5mm; }
-.contact-logo { max-height: 15mm; max-width: 60mm; object-fit: contain; margin-bottom: 8mm; }
-.contact-branches { display: flex; justify-content: space-between; width: 100%; color: var(--white); }
-.branch-col { display: flex; flex-direction: column; gap: 1mm; width: 30%; }
-.branch-title { font-size: 9pt; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 1mm; }
-.branch-text { font-size: 8.5pt; color: var(--white); line-height: 1.4; opacity: 0.9; }
-.contact-web { text-align: center; color: var(--white); font-size: 9pt; margin-top: 10mm; width: 100%; }
+    .up {
+      text-transform: uppercase;
+    }
 
-.closing-title { font-size: 38pt; font-weight: 800; color: var(--dark); line-height: 1.1; margin-top: 20mm; }
-.closing-title .highlight { color: var(--primary); }
-</style>
+    /* ===== COVER PAGE ===== */
+    .cover-top-half {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 180mm;
+      background: var(--white);
+      padding: 18mm 14mm 0 14mm;
+    }
+
+    .cover-bottom-half {
+      position: absolute;
+      top: 183mm;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--dark);
+      padding: 18mm 14mm 0 14mm;
+    }
+
+    .cover-red-band {
+      position: absolute;
+      top: 180mm;
+      left: 0;
+      right: 0;
+      height: 3mm;
+      background: var(--primary);
+    }
+
+    .cover-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .cover-closing-tagline {
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1.3;
+      max-width: 80mm;
+    }
+
+    .cover-logo-wrapper {
+      text-align: right;
+    }
+
+    .cover-logo {
+      max-height: 12mm;
+      max-width: 60mm;
+      object-fit: contain;
+    }
+
+    .cover-illustration {
+      margin-top: 20mm;
+      text-align: left;
+    }
+
+    .cover-illustration img {
+      max-width: 60mm;
+      max-height: 50mm;
+      object-fit: contain;
+    }
+
+    .cover-title-area {
+      margin-top: 15mm;
+    }
+
+    .cover-title {
+      font-size: 32pt;
+      font-weight: 800;
+      letter-spacing: -1pt;
+      color: var(--dark);
+      line-height: 1.1;
+      max-width: 130mm;
+    }
+
+    .cover-subtitle {
+      font-size: 14pt;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 4mm;
+    }
+
+    .cover-bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8mm;
+      color: var(--white);
+    }
+
+    .cover-bottom-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6mm;
+    }
+
+    .cb-block {
+      display: flex;
+      flex-direction: column;
+      gap: 1mm;
+    }
+
+    .cb-label {
+      font-size: 9pt;
+      color: var(--white);
+      opacity: 0.9;
+    }
+
+    .cb-val-red {
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .cb-val {
+      font-size: 9pt;
+      color: var(--white);
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+
+    /* ===== INNER PAGES HEADER/FOOTER ===== */
+    .page-header {
+      position: absolute;
+      top: 10mm;
+      left: 14mm;
+      right: 14mm;
+      text-align: right;
+      font-size: 8pt;
+      color: var(--muted-light);
+    }
+
+    .page-footer {
+      position: absolute;
+      bottom: 10mm;
+      left: 14mm;
+      right: 14mm;
+      text-align: right;
+      font-size: 10pt;
+      font-weight: 700;
+      color: var(--muted-light);
+    }
+
+    .page-footer .footer-tagline {
+      display: block;
+      font-size: 8pt;
+      font-weight: 400;
+      color: var(--muted);
+      margin-top: 2mm;
+    }
+
+    /* Typography */
+    .section-title {
+      font-size: 26pt;
+      font-weight: 800;
+      color: var(--dark);
+      letter-spacing: -0.5pt;
+      line-height: 1.1;
+      margin-bottom: 2mm;
+    }
+
+    .section-title .highlight {
+      color: var(--primary);
+    }
+
+    .section-subtitle {
+      font-size: 14pt;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 15mm;
+      margin-bottom: 5mm;
+    }
+
+    /* ===== COVER LETTER ===== */
+    .cl-date {
+      text-align: right;
+      font-size: 10pt;
+      margin-bottom: 8mm;
+      color: var(--dark);
+    }
+
+    .cl-to {
+      font-size: 10pt;
+      color: var(--dark);
+      margin-bottom: 1mm;
+    }
+
+    .cl-name {
+      font-size: 12pt;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .cl-designation {
+      font-size: 10pt;
+      color: var(--dark);
+      margin-bottom: 12mm;
+    }
+
+    .cl-body {
+      font-size: 10pt;
+      line-height: 1.6;
+      color: var(--dark);
+      text-align: justify;
+      display: flex;
+      flex-direction: column;
+      gap: 5mm;
+    }
+
+    .cl-signature-area {
+      position: absolute;
+      bottom: 30mm;
+      left: 14mm;
+    }
+
+    .cl-signature-img {
+      max-height: 25mm;
+      max-width: 60mm;
+      object-fit: contain;
+      margin-bottom: 2mm;
+      background: var(--dark);
+      padding: 2mm;
+    }
+
+    .cl-sign-name {
+      font-size: 11pt;
+      font-weight: 800;
+      color: var(--dark);
+      text-transform: uppercase;
+    }
+
+    .cl-sign-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    /* ===== PROFILE / MISSION / VISION ===== */
+    .profile-text {
+      font-size: 11pt;
+      line-height: 1.5;
+      color: var(--dark);
+    }
+
+    .core-values-label {
+      font-size: 16pt;
+      font-weight: 700;
+      color: var(--dark);
+      margin-top: 15mm;
+      margin-bottom: 8mm;
+    }
+
+    .core-values-label .highlight {
+      color: var(--primary);
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6mm;
+    }
+
+    .value-card {
+      display: flex;
+      flex-direction: column;
+      gap: 3mm;
+    }
+
+    .value-icon {
+      width: 14mm;
+      height: 14mm;
+      color: var(--primary);
+    }
+
+    .value-title {
+      font-size: 11pt;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+
+    .value-desc {
+      font-size: 9pt;
+      color: var(--muted-light);
+      line-height: 1.4;
+    }
+
+    /* ===== SERVICES ===== */
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10mm;
+      margin-top: 15mm;
+    }
+
+    .service-col {
+      border-top: 0.5mm solid var(--line);
+      padding-top: 5mm;
+      position: relative;
+    }
+
+    .service-icon {
+      position: absolute;
+      top: -7mm;
+      left: 0;
+      background: var(--white);
+      padding-right: 2mm;
+    }
+
+    .service-icon img {
+      width: 12mm;
+      height: 12mm;
+      object-fit: contain;
+    }
+
+    .service-title {
+      font-size: 14pt;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 6mm;
+      margin-top: 4mm;
+    }
+
+    .service-item {
+      font-size: 10pt;
+      color: var(--dark);
+      margin-bottom: 2mm;
+      padding-left: 4mm;
+      position: relative;
+    }
+
+    .service-item::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--dark);
+      font-weight: 800;
+    }
+
+    /* ===== PROCESS ===== */
+    .process-intro {
+      font-size: 24pt;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+      width: 60mm;
+      position: absolute;
+      top: 120mm;
+      left: 14mm;
+    }
+
+    .process-list {
+      position: absolute;
+      top: 50mm;
+      left: 90mm;
+      right: 14mm;
+      display: flex;
+      flex-direction: column;
+      gap: 8mm;
+    }
+
+    .process-step {
+      display: flex;
+      gap: 4mm;
+      align-items: flex-start;
+    }
+
+    .process-icon {
+      width: 10mm;
+      height: 10mm;
+      object-fit: contain;
+    }
+
+    .process-text h4 {
+      font-size: 12pt;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1mm;
+    }
+
+    .process-text p {
+      font-size: 10pt;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1.4;
+    }
+
+    /* ===== CLIENTS ===== */
+    .clients-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6mm;
+      margin-top: 20mm;
+      row-gap: 15mm;
+    }
+
+    .client-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 20mm;
+    }
+
+    .client-cell img {
+      max-width: 35mm;
+      max-height: 18mm;
+      object-fit: contain;
+    }
+
+    .client-name-text {
+      font-size: 10pt;
+      font-weight: 800;
+      color: var(--dark);
+      text-align: center;
+    }
+
+    /* ===== PAYMENT ===== */
+    .payment-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10mm;
+      border: 0.3mm solid var(--dark);
+    }
+
+    .payment-table td {
+      padding: 4mm;
+      border: 0.3mm solid var(--dark);
+      font-size: 10pt;
+    }
+
+    .payment-table tr td:first-child {
+      width: 35%;
+      text-transform: uppercase;
+    }
+
+    .payment-qr-section {
+      margin-top: 10mm;
+    }
+
+    .payment-qr-title {
+      font-size: 9pt;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 2mm;
+    }
+
+    .payment-qr-img {
+      width: 30mm;
+      height: 30mm;
+    }
+
+    .payment-upi-title {
+      font-size: 9pt;
+      font-weight: 800;
+      color: var(--dark);
+      margin-top: 8mm;
+      margin-bottom: 1mm;
+    }
+
+    .payment-upi-val {
+      font-size: 10pt;
+      color: var(--dark);
+    }
+
+    /* ===== CLOSING / CONTACT ===== */
+    .contact-bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--dark);
+      height: 50mm;
+      display: flex;
+      padding: 15mm 14mm;
+      gap: 5mm;
+    }
+
+    .contact-logo {
+      max-height: 15mm;
+      max-width: 60mm;
+      object-fit: contain;
+      margin-bottom: 8mm;
+    }
+
+    .contact-branches {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      color: var(--white);
+    }
+
+    .branch-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1mm;
+      width: 30%;
+    }
+
+    .branch-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      margin-bottom: 1mm;
+    }
+
+    .branch-text {
+      font-size: 8.5pt;
+      color: var(--white);
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+
+    .contact-web {
+      text-align: center;
+      color: var(--white);
+      font-size: 9pt;
+      margin-top: 10mm;
+      width: 100%;
+    }
+
+    .closing-title {
+      font-size: 38pt;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.1;
+      margin-top: 20mm;
+    }
+
+    .closing-title .highlight {
+      color: var(--primary);
+    }
+
+    /* ===== STATEMENT OF WORK ===== */
+    .sow-item {
+      margin-bottom: 6mm;
+    }
+
+    .sow-item-title {
+      font-size: 11pt;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 2mm;
+    }
+
+    .sow-item-points {
+      font-size: 10pt;
+      color: var(--dark);
+      line-height: 1.5;
+    }
+
+    .sow-item-points li {
+      margin-bottom: 1mm;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ==================== PAGE 1 : COVER ==================== -->
-<section class="page">
-  <div class="cover-top-half">
-    <div class="cover-header">
-      <div class="cover-closing-tagline">We are not developing the technology,<br>We are technology.</div>
-      <div class="cover-logo-wrapper">
-        {% if logo_src %}
-        <img class="cover-logo" src="{{ logo_src }}" alt="{{ company_name }} logo"/>
-        {% else %}
-        <div class="cover-logo" style="font-size: 20pt; font-weight: 800; color: var(--dark);">{{ company_name }}</div>
-        {% endif %}
-      </div>
-    </div>
-    
-    <div class="cover-illustration">
-      <!-- We will just use a generic illustration or omit if none available, maybe use the logo again if no illustration? -->
-      <svg width="60" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C72.1 90 90 72.1 90 50C90 27.9 72.1 10 50 10ZM50 82C32.3 82 18 67.7 18 50C18 32.3 32.3 18 50 18C67.7 18 82 32.3 82 50C82 67.7 67.7 82 50 82Z" fill="var(--dark)"/>
-        <path d="M50 30C38.9 30 30 38.9 30 50C30 61.1 38.9 70 50 70C61.1 70 70 61.1 70 50C70 38.9 61.1 30 50 30ZM50 62C43.4 62 38 56.6 38 50C38 43.4 43.4 38 50 38C56.6 38 62 43.4 62 50C62 56.6 56.6 62 50 62Z" fill="var(--primary)"/>
-      </svg>
-    </div>
+  {% set ns = namespace(page=0) %}
 
-    <div class="cover-title-area">
-      <div class="cover-title">{{ company_name }}</div>
-      <div class="cover-subtitle">{{ tagline }}</div>
-    </div>
-  </div>
-  
-  <div class="cover-red-band"></div>
-
-  <div class="cover-bottom-half">
-    <div class="cover-bottom-grid">
-      <div class="cover-bottom-col">
-        <div class="cb-block">
-          <div class="cb-label">Prepared For</div>
-          <div class="cb-val-red">Valued Client</div>
-          <div class="cb-val">Executive Director</div>
-        </div>
-        <div class="cb-block" style="margin-top: 15mm;">
-          <div class="cb-val">{{ website }}</div>
-        </div>
-      </div>
-      <div class="cover-bottom-col">
-        <div class="cb-block">
-          <div class="cb-label">Prepared By</div>
-          <div class="cb-val-red">{{ sales_head_name }}</div>
-          <div class="cb-val">{{ sales_head_title }}</div>
-        </div>
-        <div class="cb-block" style="margin-top: 4mm;">
-          <div class="cb-val">{{ company_name }}</div>
-          {% if branches %}
-          <div class="cb-val">{{ branches[0].get('address', '') | nl2br }}</div>
+  <!-- ==================== PAGE 1 : COVER ==================== -->
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="cover-top-half">
+      <div class="cover-header">
+        <div class="cover-closing-tagline">We are not developing the technology,<br>We are technology.</div>
+        <div class="cover-logo-wrapper">
+          {% if logo_src %}
+          <img class="cover-logo" src="{{ logo_src }}" alt="{{ company_name }} logo" />
+          {% else %}
+          <div class="cover-logo" style="font-size: 20pt; font-weight: 800; color: var(--dark);">{{ company_name }}
+          </div>
           {% endif %}
-          <div class="cb-val" style="margin-top:2mm;">P : {{ phone }}</div>
-          <div class="cb-val">E : {{ email }}</div>
         </div>
-        
-        <div style="display: flex; gap: 10mm; margin-top: 4mm;">
+      </div>
+
+      <div class="cover-illustration">
+        <!-- We will just use a generic illustration or omit if none available, maybe use the logo again if no illustration? -->
+        <svg width="60" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C72.1 90 90 72.1 90 50C90 27.9 72.1 10 50 10ZM50 82C32.3 82 18 67.7 18 50C18 32.3 32.3 18 50 18C67.7 18 82 32.3 82 50C82 67.7 67.7 82 50 82Z"
+            fill="var(--dark)" />
+          <path
+            d="M50 30C38.9 30 30 38.9 30 50C30 61.1 38.9 70 50 70C61.1 70 70 61.1 70 50C70 38.9 61.1 30 50 30ZM50 62C43.4 62 38 56.6 38 50C38 43.4 43.4 38 50 38C56.6 38 62 43.4 62 50C62 56.6 56.6 62 50 62Z"
+            fill="var(--primary)" />
+        </svg>
+      </div>
+
+      <div class="cover-title-area">
+        <div class="cover-title">{{ company_name }}</div>
+        <div class="cover-subtitle">{{ tagline }}</div>
+      </div>
+    </div>
+
+    <div class="cover-red-band"></div>
+
+    <div class="cover-bottom-half">
+      <div class="cover-bottom-grid">
+        <div class="cover-bottom-col">
           <div class="cb-block">
-            <div class="cb-label" style="font-weight: 700;">Issued Date</div>
-            <div class="cb-val">{{ current_date | default(current_year|string + '-01-01') }}</div>
+            <div class="cb-label">Prepared For</div>
+            <div class="cb-val-red">Valued Client</div>
+            <div class="cb-val">Executive Director</div>
           </div>
+          <div class="cb-block" style="margin-top: 15mm;">
+            <div class="cb-val">{{ website }}</div>
+          </div>
+        </div>
+        <div class="cover-bottom-col">
           <div class="cb-block">
-            <div class="cb-label" style="font-weight: 700;">Valid Till</div>
-            <div class="cb-val">{{ valid_till | default('') }}</div>
+            <div class="cb-label">Prepared By</div>
+            <div class="cb-val-red">{{ sales_head_name }}</div>
+            <div class="cb-val">{{ sales_head_title }}</div>
+          </div>
+          <div class="cb-block" style="margin-top: 4mm;">
+            <div class="cb-val">{{ company_name }}</div>
+            {% if branches %}
+            <div class="cb-val">{{ branches[0].get('address', '') | nl2br }}</div>
+            {% endif %}
+            <div class="cb-val" style="margin-top:2mm;">P : {{ phone }}</div>
+            <div class="cb-val">E : {{ email }}</div>
+          </div>
+
+          <div style="display: flex; gap: 10mm; margin-top: 4mm;">
+            <div class="cb-block">
+              <div class="cb-label" style="font-weight: 700;">Issued Date</div>
+              <div class="cb-val">{{ current_date | default(current_year|string + '-01-01') }}</div>
+            </div>
+            <div class="cb-block">
+              <div class="cb-label" style="font-weight: 700;">Valid Till</div>
+              <div class="cb-val">{{ valid_till | default('') }}</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ==================== PAGE 2 : COVER LETTER ==================== -->
-<section class="page">
-  <div class="page-header">Project Proposal</div>
-  <div class="pad" style="top: 25mm;">
-    <div class="section-title">Proposal <br/> <span class="highlight">Coverletter</span></div>
-    
-    <div style="margin-top: 30mm;">
-      <div class="cl-date">Date : {{ current_date }}</div>
-      <div class="cl-to">To,</div>
-      <div class="cl-name">Valued Client</div>
-      <div class="cl-designation">Director</div>
-      
-      <div class="cl-body">
-        {% if cover_letter_paragraphs %}
+  <!-- ==================== PAGE 2 : COVER LETTER ==================== -->
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-title">Proposal <br /> <span class="highlight">Coverletter</span></div>
+
+      <div style="margin-top: 30mm;">
+        <div class="cl-date">Date : {{ current_date }}</div>
+        <div class="cl-to">To,</div>
+        <div class="cl-name">Valued Client</div>
+        <div class="cl-designation">Director</div>
+
+        <div class="cl-body">
+          {% if cover_letter_paragraphs %}
           {% for para in cover_letter_paragraphs %}
           <p>{{ para }}</p>
           {% endfor %}
-        {% else %}
-          <p>On behalf of {{ company_name }}, I am pleased to submit our proposal for the development of your project. We understand how crucial your digital presence is in today's competitive environment, and we are excited about the opportunity to bring your vision to life.</p>
-          <p>With our expertise, we design solutions that not only look stunning but also function seamlessly. Our team brings in creativity, technical skills, and industry insights to deliver solutions that truly align with your business goals.</p>
-          <p>Thank you for considering {{ company_name }}. We look forward to the possibility of working together.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  
-  <div class="cl-signature-area">
-    {% if signature_src %}
-    <img class="cl-signature-img" src="{{ signature_src }}" alt="Signature"/>
-    {% endif %}
-    <div class="cl-sign-name">{{ sales_head_name }}</div>
-    <div class="cl-sign-title">{{ sales_head_title }}</div>
-  </div>
-  
-  <div class="page-footer">2{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}</div>
-</section>
-
-<!-- ==================== PAGE 3 : VISION / MISSION ==================== -->
-<section class="page">
-  <div class="page-header">Project Proposal</div>
-  <div class="pad" style="top: 25mm;">
-    <div class="section-title">
-      {{ positioning | default('A Creative, Strategic & <br/> <span class="highlight">Accountable Design Agency.</span>') | safe }}
-    </div>
-    
-    <div class="section-subtitle">Our Mission &raquo;</div>
-    <div class="profile-text">{{ mission }}</div>
-    
-    <div class="section-subtitle">Our Vision &raquo;</div>
-    <div class="profile-text">{{ vision }}</div>
-    
-    {% if core_values %}
-    <div class="core-values-label">Strong core values of our company <span class="highlight">&raquo;</span></div>
-    <div class="values-grid">
-      {% for value in core_values[:4] %}
-      <div class="value-card">
-        {% if value.get('logo') %}
-        <img class="value-icon" src="{{ value.logo }}" alt="{{ value.title }}"/>
-        {% else %}
-        <!-- Default icon if none provided -->
-        <svg class="value-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M12 16v-4"></path>
-          <path d="M12 8h.01"></path>
-        </svg>
-        {% endif %}
-        <div class="value-title">{{ value.get('title', '') }}</div>
-        <div class="value-desc">{{ value.get('description', '') }}</div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-  
-  <div class="page-footer">3{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}</div>
-</section>
-
-<!-- ==================== PAGE 4 : SERVICES ==================== -->
-{% if services %}
-<section class="page">
-  <div class="page-header">Project Proposal</div>
-  <div class="pad" style="top: 25mm;">
-    <div class="section-title">What we <span class="highlight">offer</span> and <br/> how we <span class="highlight">create values</span>.</div>
-    
-    <div class="services-grid">
-      <div style="font-size: 18pt; font-weight: 800; color: var(--dark); line-height: 1.2; padding-right: 5mm; margin-top: 10mm;">
-        We are leading agency.<br/>We have market leading presence in digital market.
-      </div>
-      <div></div> <!-- Empty spacer -->
-      
-      {% for svc in services[:4] %}
-      <div class="service-col">
-        <div class="service-icon">
-          {% if svc.get('logo') %}
-          <img src="{{ svc.logo }}" alt="{{ svc.title }}"/>
           {% else %}
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-          {% endif %}
-        </div>
-        <div class="service-title">{{ svc.get('title', '') }}</div>
-        <div class="service-items">
-          {% if svc.get('description') %}
-            {% for item in svc.get('description').split('\n') %}
-              {% if item.strip() %}
-              <div class="service-item">{{ item.strip() }}</div>
-              {% endif %}
-            {% endfor %}
+          <p>On behalf of {{ company_name }}, I am pleased to submit our proposal for the development of your project.
+            We understand how crucial your digital presence is in today's competitive environment, and we are excited
+            about the opportunity to bring your vision to life.</p>
+          <p>With our expertise, we design solutions that not only look stunning but also function seamlessly. Our team
+            brings in creativity, technical skills, and industry insights to deliver solutions that truly align with
+            your business goals.</p>
+          <p>Thank you for considering {{ company_name }}. We look forward to the possibility of working together.</p>
           {% endif %}
         </div>
       </div>
-      {% endfor %}
     </div>
-  </div>
-  
-  <div class="page-footer">4</div>
-</section>
-{% endif %}
 
-<!-- ==================== PAGE 5 : PROCESS ==================== -->
-<section class="page">
-  <div class="page-header">Project Proposal</div>
-  <div class="pad" style="top: 25mm;">
-    <div class="section-subtitle" style="margin-top: 0; margin-bottom: 2mm;">Our work process -</div>
-    <div class="section-title" style="font-size: 18pt;">From very first<br/>touch point to<br/>launch and beyond.</div>
-    
-    <div class="process-intro">
-      We work with client to develop the right strategy from the very first stage to last stage...
+    <div class="cl-signature-area">
+      {% if signature_src %}
+      <img class="cl-signature-img" src="{{ signature_src }}" alt="Signature" />
+      {% endif %}
+      <div class="cl-sign-name">{{ sales_head_name }}</div>
+      <div class="cl-sign-title">{{ sales_head_title }}</div>
     </div>
-    
-    <div class="process-list">
-      {% for step in [
+
+    <div class="page-footer">{{ ns.page }}{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}
+    </div>
+  </section>
+
+  <!-- ==================== PAGE 3 : VISION / MISSION ==================== -->
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-title">
+        {{ positioning | default('A Creative, Strategic & <br /> <span class="highlight">Accountable Design
+          Agency.</span>') | safe }}
+      </div>
+
+      <div class="section-subtitle">Our Mission &raquo;</div>
+      <div class="profile-text">{{ mission }}</div>
+
+      <div class="section-subtitle">Our Vision &raquo;</div>
+      <div class="profile-text">{{ vision }}</div>
+
+      {% if core_values %}
+      <div class="core-values-label">Strong core values of our company <span class="highlight">&raquo;</span></div>
+      <div class="values-grid">
+        {% for value in core_values[:4] %}
+        <div class="value-card">
+          {% if value.get('logo') %}
+          <img class="value-icon" src="{{ value.logo }}" alt="{{ value.title }}" />
+          {% else %}
+          <!-- Default icon if none provided -->
+          <svg class="value-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4"></path>
+            <path d="M12 8h.01"></path>
+          </svg>
+          {% endif %}
+          <div class="value-title">{{ value.get('title', '') }}</div>
+          <div class="value-desc">{{ value.get('description', '') }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="page-footer">{{ ns.page }}{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}
+    </div>
+  </section>
+
+  <!-- ==================== PAGE 4 : SERVICES ==================== -->
+  {% if services %}
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-title">What we <span class="highlight">offer</span> and <br /> how we <span
+          class="highlight">create values</span>.</div>
+
+      <div class="services-grid">
+        <div
+          style="font-size: 18pt; font-weight: 800; color: var(--dark); line-height: 1.2; padding-right: 5mm; margin-top: 10mm;">
+          We are leading agency.<br />We have market leading presence in digital market.
+        </div>
+        <div></div> <!-- Empty spacer -->
+
+        {% for svc in services[:4] %}
+        <div class="service-col">
+          <div class="service-icon">
+            {% if svc.get('logo') %}
+            <img src="{{ svc.logo }}" alt="{{ svc.title }}" />
+            {% else %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            </svg>
+            {% endif %}
+          </div>
+          <div class="service-title">{{ svc.get('title', '') }}</div>
+          <div class="service-items">
+            {% if svc.get('description') %}
+            {% for item in svc.get('description').split('\n') %}
+            {% if item.strip() %}
+            <div class="service-item">{{ item.strip() }}</div>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="page-footer">{{ ns.page }}</div>
+  </section>
+  {% endif %}
+
+  <!-- ==================== PAGE 5 : PROCESS ==================== -->
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-subtitle" style="margin-top: 0; margin-bottom: 2mm;">Our work process -</div>
+      <div class="section-title" style="font-size: 18pt;">From very first<br />touch point to<br />launch and beyond.
+      </div>
+
+      <div class="process-intro">
+        We work with client to develop the right strategy from the very first stage to last stage...
+      </div>
+
+      <div class="process-list">
+        {% if process_steps %}
+        {% for step in process_steps %}
+        <div class="process-step">
+          <svg class="process-icon" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <div class="process-text">
+            <h4>Step - {{ "{:02d}".format(loop.index) }}</h4>
+            <p><strong>{{ step.title }}</strong>{% if step.description %}<br />{{ step.description }}{% endif %}</p>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        {% for step in [
         {'title': 'Initial meeting / Project / Discussion / Assessment / Agreement', 'num': '01'},
         {'title': 'Research / Project Outline / Wire frame / Artwork / Revisions', 'num': '02'},
         {'title': 'Coding / Development / Validation / Cross Platform Testing', 'num': '03'},
         {'title': 'Implementation / Content Placement / Optimization / Testing', 'num': '04'},
         {'title': 'Final Refinement / Deployment / Maintenance / Training / Support', 'num': '05'}
-      ] %}
-      <div class="process-step">
-        <svg class="process-icon" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-          <polyline points="10 9 9 9 8 9"></polyline>
-        </svg>
-        <div class="process-text">
-          <h4>Step - {{ step.num }}</h4>
-          <p>{{ step.title }}</p>
+        ] %}
+        <div class="process-step">
+          <svg class="process-icon" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <div class="process-text">
+            <h4>Step - {{ step.num }}</h4>
+            <p>{{ step.title }}</p>
+          </div>
         </div>
+        {% endfor %}
+        {% endif %}
       </div>
-      {% endfor %}
     </div>
-  </div>
-  
-  <div class="page-footer">5</div>
-</section>
 
-<!-- ==================== PAGE 6 : TERMS ==================== -->
-{% if terms_sections %}
-<section class="page">
-  <div class="page-header" style="color: var(--white); z-index: 3;">Project Proposal</div>
-  
-  <div class="terms-dark-header">
-    <div class="terms-dark-title">Please read the project terms and conditions</div>
-    <div class="terms-dark-sub">Statement of work and <br/> <span class="highlight">Contract Terms</span></div>
-    
-    <svg class="terms-dark-icon" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-      <polyline points="14 2 14 8 20 8"></polyline>
-      <line x1="16" y1="13" x2="8" y2="13"></line>
-      <line x1="16" y1="17" x2="8" y2="17"></line>
-      <circle cx="12" cy="7" r="2"></circle>
-    </svg>
-  </div>
-  
-  <div class="pad" style="top: 75mm;">
-    <div class="terms-grid">
-      {% set tn = namespace(n=0) %}
-      {% for title, items in terms_sections %}
-      {% set tn.n = tn.n + 1 %}
-      <div class="term-col">
-        <div class="term-num">{{ '%02d' % tn.n }}</div>
-        <div class="term-title">{{ title }}</div>
-        {% for item in items %}
-        <div class="term-item">{{ item }}</div>
+    <div class="page-footer">{{ ns.page }}</div>
+  </section>
+
+  <!-- ==================== PAGE 6 : CLIENTS ==================== -->
+  {% if bni_clients %}
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-title">Our Top Clients</div>
+      <div class="section-title highlight">2025-2026 (BNI MEMBERS)</div>
+
+      <div class="clients-grid">
+        {% for client in bni_clients[:16] %}
+        <div class="client-cell">
+          {% if client.get('logo') %}
+          <img src="{{ client.logo }}" alt="{{ client.name }}" />
+          {% else %}
+          <div class="client-name-text">{{ client.name }}</div>
+          {% endif %}
+        </div>
         {% endfor %}
       </div>
-      {% endfor %}
     </div>
-    
-    <div class="term-divider" style="top: 60mm;"></div>
-    <div class="term-divider" style="top: 130mm;"></div>
-  </div>
-  
-  <div class="page-footer">6</div>
-</section>
-{% endif %}
+    <div class="page-footer">{{ ns.page }}</div>
+  </section>
+  {% endif %}
 
-<!-- ==================== PAGE 7 : CLIENTS ==================== -->
-{% if bni_clients %}
-<section class="page">
-  <div class="page-header">Project Proposal</div>
-  <div class="pad" style="top: 25mm;">
-    <div class="section-title">Our Top Clients</div>
-    <div class="section-title highlight">2025-2026 (BNI MEMBERS)</div>
-    
-    <div class="clients-grid">
-      {% for client in bni_clients[:16] %}
-      <div class="client-cell">
-        {% if client.get('logo') %}
-        <img src="{{ client.logo }}" alt="{{ client.name }}"/>
-        {% else %}
-        <div class="client-name-text">{{ client.name }}</div>
-        {% endif %}
+  <!-- ==================== PAGE 7 : REGIONAL CLIENTS ==================== -->
+  {% if regional_clients %}
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-title">Our Top Clients</div>
+      <div class="section-title highlight">2025-2026 (REGIONAL CLIENTS)</div>
+
+      <div class="clients-grid">
+        {% for client in regional_clients[:16] %}
+        <div class="client-cell">
+          {% if client.get('logo') %}
+          <img src="{{ client.logo }}" alt="{{ client.name }}" />
+          {% else %}
+          <div class="client-name-text">{{ client.name }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="page-footer">{{ ns.page }}</div>
+  </section>
+  {% endif %}
+
+  <!-- ==================== PAGE 8 : INT CLIENTS ==================== -->
+  {% if international_clients %}
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-title">Our Top Clients</div>
+      <div class="section-title highlight">2025-2026 (INTERNATIONAL)</div>
+
+      <div class="clients-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15mm;">
+        {% for client in international_clients[:8] %}
+        <div class="client-cell" style="height: 30mm;">
+          {% if client.get('logo') %}
+          <img src="{{ client.logo }}" alt="{{ client.name }}" style="max-width: 60mm; max-height: 25mm;" />
+          {% else %}
+          <div class="client-name-text" style="font-size: 14pt;">{{ client.name }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="page-footer">{{ ns.page }}</div>
+  </section>
+  {% endif %}
+
+  <!-- ==================== PAGE : STATEMENT OF WORK ==================== -->
+  {% if statement_of_work %}
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-title">Statement of <span class="highlight">Work</span> &amp; <br />Contract <span
+          class="highlight">Terms</span></div>
+
+      {% for item in statement_of_work %}
+      <div class="sow-item">
+        <div class="sow-item-title">{{ item.title }}</div>
+        <ul class="sow-item-points">
+          {% if item.description %}
+          {% for line in item.description.split('\n') %}
+          {% if line.strip() %}
+          <li>{{ line.strip() }}</li>
+          {% endif %}
+          {% endfor %}
+          {% endif %}
+        </ul>
       </div>
       {% endfor %}
     </div>
-  </div>
-  <div class="page-footer">7</div>
-</section>
-{% endif %}
 
-<!-- ==================== PAGE 8 : INT CLIENTS ==================== -->
-{% if international_clients %}
-<section class="page">
-  <div class="page-header">Project Proposal</div>
-  <div class="pad" style="top: 25mm;">
-    <div class="section-title">Our Top Clients</div>
-    <div class="section-title highlight">2025-2026 (INTERNATIONAL)</div>
-    
-    <div class="clients-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15mm;">
-      {% for client in international_clients[:8] %}
-      <div class="client-cell" style="height: 30mm;">
-        {% if client.get('logo') %}
-        <img src="{{ client.logo }}" alt="{{ client.name }}" style="max-width: 60mm; max-height: 25mm;"/>
+    <div class="page-footer">{{ ns.page }}</div>
+  </section>
+  {% endif %}
+
+  <!-- ==================== PAGE 8 : PAYMENT ==================== -->
+  {% if payment and (payment.bank_name or payment.upi_id) %}
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="section-title">Payment <br /> <span class="highlight">Methods</span></div>
+
+      <table class="payment-table">
+        <tbody>
+          <tr>
+            <td>Bank Name</td>
+            <td>{{ payment.bank_name | default('', true) }}</td>
+          </tr>
+          <tr>
+            <td>Account No.</td>
+            <td>{{ payment.account_number | default('', true) }}</td>
+          </tr>
+          <tr>
+            <td>Branch Name</td>
+            <td>{{ payment.branch_name | default('', true) }}</td>
+          </tr>
+          <tr>
+            <td>IFSC Code</td>
+            <td>{{ payment.ifsc | default('', true) }}</td>
+          </tr>
+          <tr>
+            <td>UPI ID</td>
+            <td>{{ payment.upi_id | default('', true) }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="payment-qr-section">
+        <div class="payment-qr-title">Via QR CODE</div>
+        {% if payment.qr_src %}
+        <img class="payment-qr-img" src="{{ payment.qr_src }}" alt="QR" />
         {% else %}
-        <div class="client-name-text" style="font-size: 14pt;">{{ client.name }}</div>
+        <div class="payment-qr-img" style="border: 1px solid #ccc;"></div>
         {% endif %}
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  <div class="page-footer">8</div>
-</section>
-{% endif %}
 
-<!-- ==================== PAGE 9 : PAYMENT ==================== -->
-{% if payment and (payment.bank_name or payment.upi_id) %}
-<section class="page">
-  <div class="page-header">Project Proposal</div>
-  <div class="pad" style="top: 25mm;">
-    <div class="section-title">Payment <br/> <span class="highlight">Methods</span></div>
-    
-    <table class="payment-table">
-      <tbody>
-        <tr><td>Bank Name</td><td>{{ payment.bank_name | default('', true) }}</td></tr>
-        <tr><td>Account No.</td><td>{{ payment.account_number | default('', true) }}</td></tr>
-        <tr><td>Branch Name</td><td>{{ payment.branch_name | default('', true) }}</td></tr>
-        <tr><td>IFSC Code</td><td>{{ payment.ifsc | default('', true) }}</td></tr>
-        <tr><td>UPI ID</td><td>{{ payment.upi_id | default('', true) }}</td></tr>
-      </tbody>
-    </table>
-    
-    <div class="payment-qr-section">
-      <div class="payment-qr-title">Via QR CODE</div>
-      {% if payment.qr_src %}
-      <img class="payment-qr-img" src="{{ payment.qr_src }}" alt="QR"/>
-      {% else %}
-      <div class="payment-qr-img" style="border: 1px solid #ccc;"></div>
+        <div class="payment-upi-title">Via UPI-ID</div>
+        <div class="payment-upi-val">{{ payment.upi_id | default('', true) }}</div>
+      </div>
+
+      {% if quote_acceptance_message %}
+      <div style="margin-top: 15mm; padding: 5mm; background: var(--light); border-left: 3mm solid var(--primary);">
+        <div style="font-size: 10pt; font-weight: 700; color: var(--dark); margin-bottom: 3mm;">Quote Acceptance</div>
+        <div style="font-size: 9pt; color: var(--dark); line-height: 1.6;">{{ quote_acceptance_message }}</div>
+      </div>
       {% endif %}
-      
-      <div class="payment-upi-title">Via UPI-ID</div>
-      <div class="payment-upi-val">{{ payment.upi_id | default('', true) }}</div>
+    </div>
+    <div class="page-footer">{{ ns.page }}</div>
+  </section>
+  {% endif %}
+
+  <!-- ==================== PAGE 9 : CLOSING ==================== -->
+  {% set ns.page = ns.page + 1 %}
+  <section class="page">
+    <div class="page-header">Project Proposal</div>
+    <div class="pad" style="top: 25mm;">
+      <div class="closing-title">Take your<br />business to<br />the <span class="highlight">next level.</span></div>
     </div>
 
-    {% if quote_acceptance_message %}
-    <div style="margin-top: 15mm; padding: 5mm; background: var(--light); border-left: 3mm solid var(--primary);">
-      <div style="font-size: 10pt; font-weight: 700; color: var(--dark); margin-bottom: 3mm;">Quote Acceptance</div>
-      <div style="font-size: 9pt; color: var(--dark); line-height: 1.6;">{{ quote_acceptance_message }}</div>
-    </div>
-    {% endif %}
-  </div>
-  <div class="page-footer">9</div>
-</section>
-{% endif %}
+    <div class="contact-bottom-bar">
+      <div style="width: 100%;">
+        <img class="contact-logo" src="{{ logo_src }}" alt="{{ company_name }}" />
 
-<!-- ==================== PAGE 10 : CLOSING ==================== -->
-<section class="page">
-  <div class="page-header">Project Proposal</div>
-  <div class="pad" style="top: 25mm;">
-    <div class="closing-title">Take your<br/>business to<br/>the <span class="highlight">next level.</span></div>
-  </div>
-  
-  <div class="contact-bottom-bar">
-    <div style="width: 100%;">
-      <img class="contact-logo" src="{{ logo_src }}" alt="{{ company_name }}"/>
-      
-      <div class="contact-branches">
-        {% if branches %}
+        <div class="contact-branches">
+          {% if branches %}
           {% for branch in branches[:3] %}
           <div class="branch-col">
-            <div class="branch-title">{% if loop.index == 1 %}MAIN BRANCH{% elif loop.index == 2 %}SECOND BRANCH{% else %}THIRD BRANCH{% endif %}</div>
+            <div class="branch-title">{% if loop.index == 1 %}MAIN BRANCH{% elif loop.index == 2 %}SECOND BRANCH{% else
+              %}THIRD BRANCH{% endif %}</div>
             <div class="branch-text">{{ branch.get('address', '') | nl2br }}</div>
             <div class="branch-text" style="margin-top: 2mm;">P : {{ branch.get('phone', phone) }}</div>
             <div class="branch-text">E : {{ branch.get('email', email) }}</div>
           </div>
           {% endfor %}
-        {% else %}
+          {% else %}
           <div class="branch-col">
             <div class="branch-title">MAIN BRANCH</div>
             <div class="branch-text">Contact us directly.</div>
             <div class="branch-text" style="margin-top: 2mm;">P : {{ phone }}</div>
             <div class="branch-text">E : {{ email }}</div>
           </div>
-        {% endif %}
+          {% endif %}
+        </div>
+
+        <div class="contact-web">{{ website }}</div>
       </div>
-      
-      <div class="contact-web">{{ website }}</div>
     </div>
-  </div>
-  
-  <div class="page-footer">10</div>
-</section>
+
+    <div class="page-footer">{{ ns.page }}</div>
+  </section>
 
 </body>
+
 </html>

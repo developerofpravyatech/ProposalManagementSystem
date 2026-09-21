@@ -187,7 +187,7 @@ export function ProposalDetailPage() {
       <div className={`p-4 rounded-2xl border ${statusColors[proposal.status] || statusColors.sent} flex items-center justify-between`}>
         <div className="flex items-center gap-3">
           <span className="font-bold text-sm uppercase tracking-wider">Status:</span>
-          <Badge status={proposal.status} />
+          <Badge status={proposal.status} type={proposal.type} count={proposal.view_count} />
         </div>
         <span className="text-xs font-medium opacity-80">
           Created {proposal.created_at ? new Date(proposal.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
@@ -265,16 +265,6 @@ export function ProposalDetailPage() {
                     Download PDF
                   </Button>
                 </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Terms Section */}
-          {proposal.terms && (
-            <Card className="p-6 bg-white">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Terms & Conditions</h3>
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700 whitespace-pre-line leading-relaxed">
-                {proposal.terms}
               </div>
             </Card>
           )}

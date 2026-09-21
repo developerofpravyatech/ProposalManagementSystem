@@ -128,6 +128,7 @@ export function IconSelector({
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Select Icon"
+        subtitle={undefined}
         maxWidth="max-w-3xl"
         showClose={false}
       >

@@ -17,7 +17,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.models.company_profile import CompanyProfile
-from app.models.company_profile_normalized import ContractTerm
 from app.models.proposal import Proposal
 from app.utils.security import settings
 
@@ -123,14 +122,7 @@ REFERENCE_CONTENT = {
             {"number": "05", "title": "Finalization", "description": "Final refinement, deployment, maintenance, training, and support."},
         ],
     },
-    "terms": {
-        "payment_terms": ["50% Advanced", "50% Immediately After Deployment", "18% GST will be applicable as per government regulations."],
-        "annual_maintenance_contract": ["25% of project value as per bill.", "AMC applies when existing features are not working or technical bugs occur.", "New features and requirements are not included in AMC."],
-        "services_limitations": ["PRAVYA TECH is not liable for issues occurring in integrated third-party services including Cloud, Backups, E-Mail, SMS, WhatsApp, IVR, and other integrated software or services."],
-        "exclusions": ["Anything not specified in the approved specification and demo system.", "Third-party software and API integrations not specifically mentioned.", "Cloud hosting charges.", "Future updates in App, Web, or Software."],
-        "client_side_support": ["One decision-maker is required from the client side.", "PRAVYA TECH will communicate with that person and their decisions will be final for the engagement."],
-        "project_cancellation": ["Payment is non-refundable once work has started from PRAVYA TECH's side."],
-    },
+
     "clients": {
         "bni": [
             {"name": "Shree Cement"},
@@ -291,26 +283,6 @@ def _normalize_branches_rel(branches_rel: list) -> list[dict[str, Any]]:
     return result
 
 
-def _normalize_contract_terms(terms: Any) -> list[dict[str, Any]]:
-    """Normalize contract terms from either JSON or relational data."""
-    result = []
-    for item in _as_list(terms):
-        if isinstance(item, dict):
-            result.append({
-                "title": str(item.get("title") or "Section"),
-                "bullets": _as_list(item.get("bullets")),
-            })
-        elif hasattr(item, "title"):
-            # Relational ContractTerm object
-            result.append({
-                "title": str(getattr(item, "title", "Section")),
-                "bullets": _as_list(getattr(item, "bullets", [])),
-            })
-        else:
-            result.append({"title": str(item), "bullets": []})
-    return result
-
-
 def _normalize_clients(value: Any) -> list[dict[str, Any]]:
     result = []
     for item in _as_list(value):
@@ -448,23 +420,19 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
     else:
         process_data.setdefault("steps", copy.deepcopy(REFERENCE_CONTENT["process"]["steps"]))
 
-    terms_data = content.setdefault("terms", {})
-    raw_terms = raw.get("terms_sections")
-    if isinstance(raw_terms, dict):
-        terms_data.update(raw_terms)
-    elif not raw.get("terms") and getattr(company_profile, "terms", None):
-        terms_data.update(_terms_from_text(company_profile.terms))
-
-    # Contract terms from relational table
-    if getattr(company_profile, "contract_terms_rel", None):
-        content["contract_terms"] = _normalize_contract_terms(company_profile.contract_terms_rel)
-
     clients_data = content.setdefault("clients", {})
-    if not raw.get("clients"):
-        if getattr(company_profile, "bni_clients_rel", None):
-            clients_data["bni"] = _normalize_clients_rel(company_profile.bni_clients_rel)
-        if getattr(company_profile, "international_clients_rel", None):
-            clients_data["international"] = _normalize_clients_rel(company_profile.international_clients_rel)
+    if getattr(company_profile, "bni_clients_rel", None):
+        clients_data["bni"] = _normalize_clients_rel(company_profile.bni_clients_rel)
+    elif raw_clients := raw.get("clients", {}).get("bni"):
+        clients_data["bni"] = _normalize_clients(raw_clients)
+    if getattr(company_profile, "regional_clients_rel", None):
+        clients_data["regional"] = _normalize_clients_rel(company_profile.regional_clients_rel)
+    elif raw_clients := raw.get("clients", {}).get("regional"):
+        clients_data["regional"] = _normalize_clients(raw_clients)
+    if getattr(company_profile, "international_clients_rel", None):
+        clients_data["international"] = _normalize_clients_rel(company_profile.international_clients_rel)
+    elif raw_clients := raw.get("clients", {}).get("international"):
+        clients_data["international"] = _normalize_clients(raw_clients)
 
     pricing_data = content.setdefault("pricing", {})
     line_items = _as_list(getattr(proposal, "line_items", None))
@@ -484,45 +452,40 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
 
     payment_data = content.setdefault("payment_methods", {})
     if company_profile:
-        payment_data.setdefault("qr_code", getattr(company_profile, "qr_code", None) or getattr(company_profile, "payment_qr_code", None))
-        payment_data.setdefault("upi_id", getattr(company_profile, "upi_id", None) or "PRAVYA2618@OKSBI")
-        payment_data.setdefault("bank_name", getattr(company_profile, "bank_name", None) or "STATE BANK OF INDIA")
-        payment_data.setdefault("account_number", getattr(company_profile, "bank_account_number", None) or "40410281486")
-        payment_data.setdefault("branch_name", getattr(company_profile, "bank_branch", None) or "Rajkot")
-        payment_data.setdefault("ifsc", getattr(company_profile, "bank_ifsc", None) or "SBIN0001851")
-        payment_data.setdefault("swift_code", getattr(company_profile, "swift_code", None) or "")
-        payment_data.setdefault("iban", getattr(company_profile, "iban", None) or "")
+        bank_details = getattr(company_profile, "bank_details_rel", None)
+        payment_method = getattr(company_profile, "payment_method_rel", None)
+        if bank_details:
+            payment_data.setdefault("qr_code", getattr(bank_details, "qr_code", None) or getattr(company_profile, "qr_code", None))
+            payment_data.setdefault("upi_id", getattr(bank_details, "upi_id", None) or getattr(company_profile, "upi_id", None) or "PRAVYA2618@OKSBI")
+            payment_data.setdefault("bank_name", getattr(bank_details, "bank_name", None) or getattr(company_profile, "bank_name", None) or "STATE BANK OF INDIA")
+            payment_data.setdefault("account_number", getattr(bank_details, "account_number", None) or getattr(company_profile, "bank_account_number", None) or "40410281486")
+            payment_data.setdefault("branch_name", getattr(bank_details, "branch", None) or getattr(company_profile, "bank_branch", None) or "Bhanktinagar Station Main Road")
+            payment_data.setdefault("ifsc", getattr(bank_details, "ifsc", None) or getattr(company_profile, "bank_ifsc", None) or "SBIN0001851")
+            payment_data.setdefault("swift_code", getattr(bank_details, "swift_code", None) or "")
+            payment_data.setdefault("iban", getattr(bank_details, "iban", None) or "")
+        elif payment_method:
+            payment_data.setdefault("qr_code", getattr(payment_method, "qr_code", None) or getattr(company_profile, "qr_code", None))
+            payment_data.setdefault("upi_id", getattr(payment_method, "upi_id", None) or getattr(company_profile, "upi_id", None) or "PRAVYA2618@OKSBI")
+            payment_data.setdefault("bank_name", getattr(payment_method, "bank_name", None) or getattr(company_profile, "bank_name", None) or "STATE BANK OF INDIA")
+            payment_data.setdefault("account_number", getattr(payment_method, "account_number", None) or getattr(company_profile, "bank_account_number", None) or "40410281486")
+            payment_data.setdefault("branch_name", getattr(payment_method, "branch", None) or getattr(company_profile, "bank_branch", None) or "Bhanktinagar Station Main Road")
+            payment_data.setdefault("ifsc", getattr(payment_method, "ifsc", None) or getattr(company_profile, "bank_ifsc", None) or "SBIN0001851")
+            payment_data.setdefault("swift_code", getattr(payment_method, "swift_code", None) or "")
+            payment_data.setdefault("iban", getattr(payment_method, "iban", None) or "")
+        else:
+            payment_data.setdefault("qr_code", getattr(company_profile, "qr_code", None) or getattr(company_profile, "payment_qr_code", None))
+            payment_data.setdefault("upi_id", getattr(company_profile, "upi_id", None) or "PRAVYA2618@OKSBI")
+            payment_data.setdefault("bank_name", getattr(company_profile, "bank_name", None) or "STATE BANK OF INDIA")
+            payment_data.setdefault("account_number", getattr(company_profile, "bank_account_number", None) or "40410281486")
+            payment_data.setdefault("branch_name", getattr(company_profile, "bank_branch", None) or "Bhanktinagar Station Main Road")
+            payment_data.setdefault("ifsc", getattr(company_profile, "bank_ifsc", None) or "SBIN0001851")
+            payment_data.setdefault("swift_code", getattr(company_profile, "swift_code", None) or "")
+            payment_data.setdefault("iban", getattr(company_profile, "iban", None) or "")
 
     if not raw.get("branches") and getattr(company_profile, "branch_offices_rel", None):
         content["branches"] = _normalize_branches_rel(company_profile.branch_offices_rel)
 
     return content
-
-
-def _terms_from_text(terms_text: str | None) -> dict[str, list[str]]:
-    if not terms_text:
-        return {}
-    section_keywords = {
-        "payment_terms": ["payment", "advance", "milestone", "final delivery", "gst"],
-        "annual_maintenance_contract": ["maintenance", "amc"],
-        "services_limitations": ["limitation", "liable", "not responsible"],
-        "exclusions": ["exclusion", "not included", "not covered"],
-        "client_side_support": ["client side", "decision-maker", "decision maker"],
-        "project_cancellation": ["cancellation", "non-refundable", "refund"],
-    }
-    result: dict[str, list[str]] = {}
-    lines = [line.strip() for line in str(terms_text).strip().split("\n") if line.strip()]
-    for line in lines:
-        line_lower = line.lower()
-        matched = False
-        for key, keywords in section_keywords.items():
-            if any(kw in line_lower for kw in keywords):
-                result.setdefault(key, []).append(line)
-                matched = True
-                break
-        if not matched:
-            result.setdefault("general_terms", []).append(line)
-    return result
 
 
 def _nl2br_filter(value: Any) -> Markup:
@@ -549,15 +512,6 @@ def _template_context(content: dict[str, Any], company_profile: CompanyProfile |
     dark = "#2A2C35"
     accent = "#C81D31"
 
-    terms = content.get("terms", {})
-    terms_sections = [
-        ("Payment Terms", terms.get("payment_terms", [])),
-        ("Annual Maintenance Contract", terms.get("annual_maintenance_contract", [])),
-        ("Services Limitations", terms.get("services_limitations", [])),
-        ("Exclusions", terms.get("exclusions", [])),
-        ("Client Side Support", terms.get("client_side_support", [])),
-        ("Project Cancellation", terms.get("project_cancellation", [])),
-    ]
 
     payment = dict(content.get("payment_methods", {}))
     payment["qr_src"] = _qr_src(payment.get("qr_code") or payment.get("upi_id") or "www.pravyatech.com")
@@ -577,8 +531,6 @@ def _template_context(content: dict[str, Any], company_profile: CompanyProfile |
         "company_profile": content.get("company_profile", {}),
         "services": content.get("services", {}),
         "process": content.get("process", {}),
-        "terms_sections": terms_sections,
-        "contract_terms": content.get("contract_terms", []),
         "clients": content.get("clients", {}),
         "pricing": content.get("pricing", {}),
         "payment": payment,
@@ -703,6 +655,13 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
             "logo": _logo_path_to_base64(c.logo) if c.logo else None
         })
 
+    regional_clients = []
+    for c in getattr(cp, "regional_clients_rel", []):
+        regional_clients.append({
+            "name": c.name,
+            "logo": _logo_path_to_base64(c.logo) if c.logo else None
+        })
+
     international_clients = []
     for c in getattr(cp, "international_clients_rel", []):
         international_clients.append({
@@ -721,12 +680,13 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
             "website": ""
         })
 
-    # Contract Terms – use relational data
-    contract_terms = []
-    for t in getattr(cp, "contract_terms_rel", []):
-        contract_terms.append({
-            "title": t.title,
-            "bullets": t.bullets or []
+    # Work Process - use relational data
+    process_steps = []
+    for step in getattr(cp, "work_process_steps_rel", []):
+        process_steps.append({
+            "title": step.title,
+            "description": step.description or "",
+            "icon": step.icon or "",
         })
 
     # Profile paragraphs - use saved content
@@ -741,11 +701,13 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
     quote_acceptance_message = getattr(cp, "quote_acceptance_message", None)
     footer_tagline = getattr(cp, "footer_tagline", None)
 
-    # Terms (legacy)
-    terms_text = str(getattr(cp, "terms", None) or "")
-    # terms_dict = _terms_from_text(terms_text) if terms_text else {}
-    terms_dict = {}
-    terms_sections = [(t["title"], t["bullets"]) for t in contract_terms] if contract_terms else []
+    # Statement of Work & Contract Terms - use relational data
+    statement_of_work = []
+    for sow in getattr(cp, "statement_of_work_rel", []) or []:
+        statement_of_work.append({
+            "title": sow.heading,
+            "description": sow.description or "",
+        })
 
     # Payment - use normalized bank_details_rel or payment_method_rel
     payment: dict[str, Any] = {}
@@ -786,15 +748,17 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         payment["swift_iban"] = payment["swift_code"] or payment["iban"] or "-"
         payment["qr_src"] = _qr_src(payment["qr_code"] or payment["upi_id"] or website or "")
 
-    # Calculate total pages: Cover + Cover Letter + Profile + Services? + Terms? + BNI? + Intl? + Payment? + Branches
-    total_pages = 3  # cover + cover letter + profile always
+    # Total pages: Cover + Cover Letter + Profile always
+    total_pages = 3
     if services:
-        total_pages += 1
-    if terms_sections:
         total_pages += 1
     if bni_clients:
         total_pages += 1
+    if regional_clients:
+        total_pages += 1
     if international_clients:
+        total_pages += 1
+    if statement_of_work:
         total_pages += 1
     if payment and (payment.get("bank_name") or payment.get("upi_id")):
         total_pages += 1
@@ -836,9 +800,8 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         mission=str(getattr(cp, "mission", None) or ""),
         core_values=core_values,
         services=services,
-        terms_sections=terms_sections,
-        contract_terms=contract_terms,
         bni_clients=bni_clients,
+        regional_clients=regional_clients,
         international_clients=international_clients,
         payment=payment,
         branches=branches,
@@ -852,8 +815,10 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         cover_letter_paragraphs=cover_letter_paragraphs,
         cover_letter_signoff=cover_letter_signoff,
         profile_paragraphs=profile_paragraphs,
+        process_steps=process_steps,
         quote_acceptance_message=quote_acceptance_message,
         footer_tagline=footer_tagline,
+        statement_of_work=statement_of_work,
     )
     _render_html_to_pdf(html, filepath)
 
