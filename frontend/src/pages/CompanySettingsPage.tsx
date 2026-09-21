@@ -558,6 +558,9 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
           ))}
         </div>
       )}
+      {localError && items.length === 0 && (
+        <p className="text-xs text-rose-600 font-medium">{localError}</p>
+      )}
     </div>
   );
 }

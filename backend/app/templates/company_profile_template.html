@@ -1,1155 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8" />
-  <title>{{ company_name }} – Company Profile</title>
-  <style>
-    :root {
-      --primary: {
-          {
-          colors.primary
-        }
-      }
-
-      ;
-
-      --dark: {
-          {
-          colors.dark
-        }
-      }
-
-      ;
-
-      --accent: {
-          {
-          colors.accent
-        }
-      }
-
-      ;
-
-      --light: {
-          {
-          colors.light
-        }
-      }
-
-      ;
-
-      --line: {
-          {
-          colors.line
-        }
-      }
-
-      ;
-      --muted: #8b99af;
-      /* Light muted text for dark background */
-      --muted-light: #64748B;
-      /* Muted text for light background */
-      --white: #ffffff;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-      color: var(--dark);
-      font-size: 9.2pt;
-      line-height: 1.5;
-    }
-
-    @page {
-      size: A4;
-      margin: 0;
-    }
-
-    .page {
-      width: 210mm;
-      height: 297mm;
-      position: relative;
-      page-break-after: always;
-      background: var(--white);
-      overflow: hidden;
-    }
-
-    .page:last-child {
-      page-break-after: auto;
-    }
-
-    .pad {
-      position: absolute;
-      top: 17mm;
-      left: 14mm;
-      right: 14mm;
-      bottom: 12mm;
-    }
-
-    .b {
-      font-weight: 700;
-    }
-
-    .up {
-      text-transform: uppercase;
-    }
-
-    /* ===== COVER PAGE ===== */
-    .cover-top-half {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 180mm;
-      background: var(--white);
-      padding: 18mm 14mm 0 14mm;
-    }
-
-    .cover-bottom-half {
-      position: absolute;
-      top: 183mm;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--dark);
-      padding: 18mm 14mm 0 14mm;
-    }
-
-    .cover-red-band {
-      position: absolute;
-      top: 180mm;
-      left: 0;
-      right: 0;
-      height: 3mm;
-      background: var(--primary);
-    }
-
-    .cover-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .cover-closing-tagline {
-      font-size: 11pt;
-      font-weight: 700;
-      color: var(--dark);
-      line-height: 1.3;
-      max-width: 80mm;
-    }
-
-    .cover-logo-wrapper {
-      text-align: right;
-    }
-
-    .cover-logo {
-      max-height: 12mm;
-      max-width: 60mm;
-      object-fit: contain;
-    }
-
-    .cover-illustration {
-      margin-top: 20mm;
-      text-align: left;
-    }
-
-    .cover-illustration img {
-      max-width: 60mm;
-      max-height: 50mm;
-      object-fit: contain;
-    }
-
-    .cover-title-area {
-      margin-top: 15mm;
-    }
-
-    .cover-title {
-      font-size: 32pt;
-      font-weight: 800;
-      letter-spacing: -1pt;
-      color: var(--dark);
-      line-height: 1.1;
-      max-width: 130mm;
-    }
-
-    .cover-subtitle {
-      font-size: 14pt;
-      font-weight: 700;
-      color: var(--primary);
-      margin-top: 4mm;
-    }
-
-    .cover-bottom-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8mm;
-      color: var(--white);
-    }
-
-    .cover-bottom-col {
-      display: flex;
-      flex-direction: column;
-      gap: 6mm;
-    }
-
-    .cb-block {
-      display: flex;
-      flex-direction: column;
-      gap: 1mm;
-    }
-
-    .cb-label {
-      font-size: 9pt;
-      color: var(--white);
-      opacity: 0.9;
-    }
-
-    .cb-val-red {
-      font-size: 11pt;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .cb-val {
-      font-size: 9pt;
-      color: var(--white);
-      line-height: 1.4;
-      opacity: 0.9;
-    }
-
-    /* ===== INNER PAGES HEADER/FOOTER ===== */
-    .page-header {
-      position: absolute;
-      top: 10mm;
-      left: 14mm;
-      right: 14mm;
-      text-align: right;
-      font-size: 8pt;
-      color: var(--muted-light);
-    }
-
-    .page-footer {
-      position: absolute;
-      bottom: 10mm;
-      left: 14mm;
-      right: 14mm;
-      text-align: right;
-      font-size: 10pt;
-      font-weight: 700;
-      color: var(--muted-light);
-    }
-
-    .page-footer .footer-tagline {
-      display: block;
-      font-size: 8pt;
-      font-weight: 400;
-      color: var(--muted);
-      margin-top: 2mm;
-    }
-
-    /* Typography */
-    .section-title {
-      font-size: 26pt;
-      font-weight: 800;
-      color: var(--dark);
-      letter-spacing: -0.5pt;
-      line-height: 1.1;
-      margin-bottom: 2mm;
-    }
-
-    .section-title .highlight {
-      color: var(--primary);
-    }
-
-    .section-subtitle {
-      font-size: 14pt;
-      font-weight: 700;
-      color: var(--primary);
-      margin-top: 15mm;
-      margin-bottom: 5mm;
-    }
-
-    /* ===== COVER LETTER ===== */
-    .cl-date {
-      text-align: right;
-      font-size: 10pt;
-      margin-bottom: 8mm;
-      color: var(--dark);
-    }
-
-    .cl-to {
-      font-size: 10pt;
-      color: var(--dark);
-      margin-bottom: 1mm;
-    }
-
-    .cl-name {
-      font-size: 12pt;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .cl-designation {
-      font-size: 10pt;
-      color: var(--dark);
-      margin-bottom: 12mm;
-    }
-
-    .cl-body {
-      font-size: 10pt;
-      line-height: 1.6;
-      color: var(--dark);
-      text-align: justify;
-      display: flex;
-      flex-direction: column;
-      gap: 5mm;
-    }
-
-    .cl-signature-area {
-      position: absolute;
-      bottom: 30mm;
-      left: 14mm;
-    }
-
-    .cl-signature-img {
-      max-height: 25mm;
-      max-width: 60mm;
-      object-fit: contain;
-      margin-bottom: 2mm;
-      background: var(--dark);
-      padding: 2mm;
-    }
-
-    .cl-sign-name {
-      font-size: 11pt;
-      font-weight: 800;
-      color: var(--dark);
-      text-transform: uppercase;
-    }
-
-    .cl-sign-title {
-      font-size: 9pt;
-      font-weight: 700;
-      color: var(--primary);
-      text-transform: uppercase;
-    }
-
-    /* ===== PROFILE / MISSION / VISION ===== */
-    .profile-text {
-      font-size: 11pt;
-      line-height: 1.5;
-      color: var(--dark);
-    }
-
-    .core-values-label {
-      font-size: 16pt;
-      font-weight: 700;
-      color: var(--dark);
-      margin-top: 15mm;
-      margin-bottom: 8mm;
-    }
-
-    .core-values-label .highlight {
-      color: var(--primary);
-    }
-
-    .values-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6mm;
-    }
-
-    .value-card {
-      display: flex;
-      flex-direction: column;
-      gap: 3mm;
-    }
-
-    .value-icon {
-      width: 14mm;
-      height: 14mm;
-      color: var(--primary);
-    }
-
-    .value-title {
-      font-size: 11pt;
-      font-weight: 800;
-      color: var(--dark);
-      line-height: 1.2;
-    }
-
-    .value-desc {
-      font-size: 9pt;
-      color: var(--muted-light);
-      line-height: 1.4;
-    }
-
-    /* ===== SERVICES ===== */
-    .services-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10mm;
-      margin-top: 15mm;
-    }
-
-    .service-col {
-      border-top: 0.5mm solid var(--line);
-      padding-top: 5mm;
-      position: relative;
-    }
-
-    .service-icon {
-      position: absolute;
-      top: -7mm;
-      left: 0;
-      background: var(--white);
-      padding-right: 2mm;
-    }
-
-    .service-icon img {
-      width: 12mm;
-      height: 12mm;
-      object-fit: contain;
-    }
-
-    .service-title {
-      font-size: 14pt;
-      font-weight: 800;
-      color: var(--dark);
-      margin-bottom: 6mm;
-      margin-top: 4mm;
-    }
-
-    .service-item {
-      font-size: 10pt;
-      color: var(--dark);
-      margin-bottom: 2mm;
-      padding-left: 4mm;
-      position: relative;
-    }
-
-    .service-item::before {
-      content: '•';
-      position: absolute;
-      left: 0;
-      top: 0;
-      color: var(--dark);
-      font-weight: 800;
-    }
-
-    /* ===== PROCESS ===== */
-    .process-intro {
-      font-size: 24pt;
-      font-weight: 800;
-      color: var(--dark);
-      line-height: 1.2;
-      width: 60mm;
-      position: absolute;
-      top: 120mm;
-      left: 14mm;
-    }
-
-    .process-list {
-      position: absolute;
-      top: 50mm;
-      left: 90mm;
-      right: 14mm;
-      display: flex;
-      flex-direction: column;
-      gap: 8mm;
-    }
-
-    .process-step {
-      display: flex;
-      gap: 4mm;
-      align-items: flex-start;
-    }
-
-    .process-icon {
-      width: 10mm;
-      height: 10mm;
-      object-fit: contain;
-    }
-
-    .process-text h4 {
-      font-size: 12pt;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 1mm;
-    }
-
-    .process-text p {
-      font-size: 10pt;
-      font-weight: 700;
-      color: var(--dark);
-      line-height: 1.4;
-    }
-
-    /* ===== CLIENTS ===== */
-    .clients-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6mm;
-      margin-top: 20mm;
-      row-gap: 15mm;
-    }
-
-    .client-cell {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 20mm;
-    }
-
-    .client-cell img {
-      max-width: 35mm;
-      max-height: 18mm;
-      object-fit: contain;
-    }
-
-    .client-name-text {
-      font-size: 10pt;
-      font-weight: 800;
-      color: var(--dark);
-      text-align: center;
-    }
-
-    /* ===== PAYMENT ===== */
-    .payment-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10mm;
-      border: 0.3mm solid var(--dark);
-    }
-
-    .payment-table td {
-      padding: 4mm;
-      border: 0.3mm solid var(--dark);
-      font-size: 10pt;
-    }
-
-    .payment-table tr td:first-child {
-      width: 35%;
-      text-transform: uppercase;
-    }
-
-    .payment-qr-section {
-      margin-top: 10mm;
-    }
-
-    .payment-qr-title {
-      font-size: 9pt;
-      font-weight: 800;
-      color: var(--dark);
-      margin-bottom: 2mm;
-    }
-
-    .payment-qr-img {
-      width: 30mm;
-      height: 30mm;
-    }
-
-    .payment-upi-title {
-      font-size: 9pt;
-      font-weight: 800;
-      color: var(--dark);
-      margin-top: 8mm;
-      margin-bottom: 1mm;
-    }
-
-    .payment-upi-val {
-      font-size: 10pt;
-      color: var(--dark);
-    }
-
-    /* ===== CLOSING / CONTACT ===== */
-    .contact-bottom-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--dark);
-      height: 50mm;
-      display: flex;
-      padding: 15mm 14mm;
-      gap: 5mm;
-    }
-
-    .contact-logo {
-      max-height: 15mm;
-      max-width: 60mm;
-      object-fit: contain;
-      margin-bottom: 8mm;
-    }
-
-    .contact-branches {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      color: var(--white);
-    }
-
-    .branch-col {
-      display: flex;
-      flex-direction: column;
-      gap: 1mm;
-      width: 30%;
-    }
-
-    .branch-title {
-      font-size: 9pt;
-      font-weight: 700;
-      color: var(--primary);
-      text-transform: uppercase;
-      margin-bottom: 1mm;
-    }
-
-    .branch-text {
-      font-size: 8.5pt;
-      color: var(--white);
-      line-height: 1.4;
-      opacity: 0.9;
-    }
-
-    .contact-web {
-      text-align: center;
-      color: var(--white);
-      font-size: 9pt;
-      margin-top: 10mm;
-      width: 100%;
-    }
-
-    .closing-title {
-      font-size: 38pt;
-      font-weight: 800;
-      color: var(--dark);
-      line-height: 1.1;
-      margin-top: 20mm;
-    }
-
-    .closing-title .highlight {
-      color: var(--primary);
-    }
-
-    /* ===== STATEMENT OF WORK ===== */
-    .sow-item {
-      margin-bottom: 6mm;
-    }
-
-    .sow-item-title {
-      font-size: 11pt;
-      font-weight: 800;
-      color: var(--dark);
-      margin-bottom: 2mm;
-    }
-
-    .sow-item-points {
-      font-size: 10pt;
-      color: var(--dark);
-      line-height: 1.5;
-    }
-
-    .sow-item-points li {
-      margin-bottom: 1mm;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ company_name }} – Company Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Montserrat:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#231f20;
+    --navy:#233242;
+    --navy-deep:#141c26;
+    --red:#ee2a27;
+    --red-logo:#c1272d;
+    --grey-logo:#333333;
+    --grey-soft:#f1f1f1;
+    --rule:#222;
+    --page-bg:#d9dbde;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--page-bg)}
+  body{font-family:'Lato','Segoe UI',Helvetica,Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;padding:8mm 0}
+  .page{position:relative;width:210mm;height:297mm;margin:0 auto 8mm;background:#fff;overflow:hidden;box-shadow:0 2mm 8mm rgba(0,0,0,.18);page-break-after:always;break-after:page}
+  .abs{position:absolute}
+  .pno{position:absolute;right:15mm;bottom:6mm;font-size:3.4mm;color:#222}
+  .red{color:var(--red)}
+  h1,h2,h3{font-weight:900;line-height:1.05}
+
+  /* ---------- Logo ---------- */
+  .logo{display:inline-block;line-height:1}
+  .logo .word{font-family:'Montserrat','Lato',sans-serif;font-weight:800;letter-spacing:.2mm;white-space:nowrap}
+  .logo .word .a{color:var(--grey-logo)}
+  .logo .word .b{color:var(--red-logo)}
+  .logo .tag{font-family:'Montserrat','Lato',sans-serif;font-weight:400;letter-spacing:2.1mm;white-space:nowrap;display:block;margin-top:1.4mm}
+  .logo.light .word .a{color:#fff}
+  .logo.light .tag{color:#fff}
+  .logo .tag{color:#444}
+  .logo img.logo-img{max-height:15mm;max-width:82mm;object-fit:contain;display:inline-block}
+  .logo.light img.logo-img{max-height:22mm;max-width:82mm;object-fit:contain;display:inline-block}
+
+  /* ---------- Page 1 cover ---------- */
+  .cover .tagline{left:19mm;top:22.5mm;font-size:5.1mm;font-weight:700;line-height:1.3;color:var(--ink)}
+  .cover .logo{position:absolute;left:117mm;top:20mm;width:82mm}
+  .cover .logo .word{font-size:12.6mm}
+  .cover .logo .tag{font-size:2.6mm;letter-spacing:1.95mm}
+  .cover .icon{left:18mm;top:67mm;width:52mm;height:52mm}
+  .cover h1{left:19mm;top:121.5mm;font-size:13.6mm;line-height:1.18;font-weight:700;color:var(--ink)}
+  .cover .sub{left:19mm;top:157.5mm;font-size:5mm;font-weight:700;color:var(--red)}
+  .cover .bar{left:0;top:181mm;width:100%;height:3.6mm;background:var(--red)}
+  .cover .panel{left:0;top:184.6mm;width:100%;height:93.6mm;background:var(--navy);color:#fff;font-weight:400}
+  .cover .panel p{position:absolute;left:19mm;font-size:3.8mm;line-height:1.55}
+  .cover .hatch{left:0;bottom:0;width:100%;height:19mm;background:
+     repeating-linear-gradient(135deg,#dcdcdc 0 .25mm,#f4f4f4 .25mm .95mm)}
+
+  /* ---------- Page 2 cover letter ---------- */
+  .letter h2{position:absolute;left:32.5mm;top:29.5mm;font-size:11.2mm;line-height:1.08;font-weight:700}
+  .letter .row{position:absolute;left:32.5mm;right:37mm;top:86.5mm;display:flex;justify-content:space-between;font-size:3.9mm}
+  .letter .body{position:absolute;left:32.5mm;width:141mm;font-size:3.9mm;line-height:1.55;color:#222}
+  .letter .sig{position:absolute;left:32.3mm;top:238mm;width:43.4mm;height:17.5mm;background:#262626;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .letter .sig svg{width:92%;height:88%}
+  .letter .sig img{max-width:92%;max-height:88%;object-fit:contain}
+  .letter .name{position:absolute;left:32.5mm;top:258.5mm;font-size:3.9mm;font-weight:700;letter-spacing:.05mm}
+  .letter .role{position:absolute;left:32.5mm;top:263.8mm;font-size:3.9mm;color:var(--red)}
+
+  /* ---------- Page 3 vision ---------- */
+  .vision .big{position:absolute;left:19mm;top:24mm;width:110mm;font-size:11mm;font-weight:900;line-height:1.08}
+  .vision .block{position:absolute;left:19mm;width:112mm}
+  .vision .block h3{font-size:5.6mm;font-weight:900;margin-bottom:3mm}
+  .vision .block h3 span{color:var(--red)}
+  .vision .block p{font-size:3.9mm;line-height:1.6;color:#222}
+  .vision .values{position:absolute;left:19mm;right:19mm;top:184mm}
+  .vision .values h3{font-size:5.6mm;font-weight:900;margin-bottom:6mm}
+  .vision .values h3 span{color:var(--red)}
+  .vision .vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}
+  .vision .vcard{background:var(--navy);color:#fff;border-bottom:1.4mm solid var(--red);padding:9mm 4mm 7mm;text-align:center;font-size:4.2mm;font-weight:700;line-height:1.25;min-height:34mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4mm}
+  .vision .vcard svg{width:11mm;height:11mm;stroke:#fff;fill:none;stroke-width:1.6}
+  .vision .vcard img{width:11mm;height:11mm;object-fit:contain}
+  .vision .side{position:absolute;right:0;top:0;width:14mm;height:100%;background:var(--navy)}
+  .vision .side::after{content:"";position:absolute;left:0;top:0;width:100%;height:3.6mm;background:var(--red)}
+
+  /* ---------- Page 4 services ---------- */
+  .services .head{position:absolute;left:19mm;top:24mm;width:105mm}
+  .services .head h2{font-size:9mm;font-weight:900;line-height:1.1}
+  .services .head p{margin-top:4mm;font-size:4.4mm;line-height:1.4;font-weight:700;color:var(--red)}
+  .services .lead{position:absolute;right:19mm;top:26mm;width:60mm;font-size:3.8mm;line-height:1.5;text-align:right}
+  .services .lead b{font-weight:900}
+  .services .grid{position:absolute;left:19mm;right:19mm;top:78mm;display:grid;grid-template-columns:1fr 1fr;gap:9mm 10mm}
+  .services .box{border-top:.9mm solid var(--ink);padding-top:4mm}
+  .services .box.r{border-top-color:var(--red)}
+  .services .box h3{font-size:5.2mm;font-weight:900;margin-bottom:3.5mm}
+  .services .box ul{list-style:none}
+  .services .box li{font-size:3.9mm;line-height:1.55;padding-left:4.5mm;position:relative}
+  .services .box li::before{content:"";position:absolute;left:0;top:2.4mm;width:1.6mm;height:1.6mm;background:var(--red);border-radius:50%}
+  .services .foot{position:absolute;left:0;bottom:0;width:100%;height:12mm;background:var(--navy)}
+  .services .foot::before{content:"";position:absolute;left:0;top:0;width:100%;height:2mm;background:var(--red)}
+
+  /* ---------- Page 5 process ---------- */
+  .process .head{position:absolute;left:19mm;top:24mm;width:110mm}
+  .process .head h2{font-size:9mm;font-weight:900;line-height:1.1}
+  .process .head p{margin-top:4mm;font-size:4.2mm;line-height:1.45;font-weight:700;color:var(--red)}
+  .process .lead{position:absolute;right:19mm;top:26mm;width:58mm;font-size:3.8mm;line-height:1.5;text-align:right}
+  .process .steps{position:absolute;left:19mm;right:19mm;top:82mm}
+  .process .steps::before{content:"";position:absolute;left:7mm;top:5mm;bottom:20mm;width:.6mm;background:var(--red)}
+  .process .step{position:relative;display:flex;gap:8mm;align-items:flex-start;margin-bottom:9mm}
+  .process .dot{flex:0 0 14.5mm;height:14.5mm;border-radius:50%;background:var(--navy);color:#fff;font-weight:900;font-size:5mm;display:flex;align-items:center;justify-content:center;border:1.2mm solid #fff;box-shadow:0 0 0 .7mm var(--red);position:relative;z-index:1}
+  .process .txt h3{font-size:5.4mm;font-weight:900;margin-bottom:1.6mm}
+  .process .txt p{font-size:3.9mm;line-height:1.5;color:#333}
+  .process .foot{position:absolute;left:0;bottom:0;width:100%;height:12mm;background:var(--navy)}
+  .process .foot::before{content:"";position:absolute;left:0;top:0;width:100%;height:2mm;background:var(--red)}
+
+  /* ---------- Page 6/7/8 clients ---------- */
+  .clients h2{position:absolute;left:18.5mm;top:27mm;font-size:9.6mm;line-height:1.15;font-weight:900;color:var(--ink)}
+  .clients h2 span{display:block;color:#dd2c0c;font-weight:900}
+  .clients .row{position:absolute;left:8mm;right:8mm;display:flex;align-items:center;justify-content:space-between}
+  .cl{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;color:#333}
+  .cl small{display:block}
+  .clients .tile{width:100%;height:28mm;background:#f7f7f7;border:.35mm solid #e3e3e3;border-radius:1.6mm;display:flex;align-items:center;justify-content:center;text-align:center;padding:2mm;overflow:hidden}
+  .clients .tile img{max-width:90%;max-height:88%;object-fit:contain}
+  .clients .tile .tname{font-family:'Montserrat',sans-serif;font-weight:800;font-size:3.6mm;letter-spacing:.2mm;color:#333;line-height:1.12;text-transform:uppercase;word-break:break-word}
+
+  /* decorative elements kept from original brand design */
+  .bni{font-family:'Montserrat',sans-serif;font-weight:800}
+  .bni b{display:block;color:#d3212f;font-size:11mm;letter-spacing:.4mm}
+  .bni i{display:block;font-style:normal;color:#555;font-size:4.4mm;letter-spacing:.6mm;margin-top:1mm}
+  .intl{position:absolute;left:0;width:100%;text-align:center}
+
+  /* ---------- Page 9 terms ---------- */
+  .terms .top{position:absolute;left:0;top:0;width:100%;height:107.5mm;background:var(--navy-deep);color:#fff;overflow:hidden}
+  .terms .top::before,.terms .top::after{content:"";position:absolute;left:-10%;top:50%;width:140%;height:.3mm;background:rgba(255,255,255,.08)}
+  .terms .top::before{transform:rotate(23deg)}
+  .terms .top::after{transform:rotate(-23deg)}
+  .terms .top h2{position:absolute;left:16.3mm;font-size:9.3mm;line-height:1.18;font-weight:700}
+  .terms .top .h1{top:21mm}
+  .terms .top .h2{top:70mm}
+  .terms .top .h2 span{color:var(--red);display:block}
+  .terms .scroll{position:absolute;left:151.5mm;top:22mm;width:37mm;height:38mm}
+  .terms .cell{position:absolute;width:82mm}
+  .terms .cell .n{color:var(--red);font-size:5.4mm;font-weight:900}
+  .terms .cell h3{font-size:5.4mm;font-weight:900;margin-bottom:4mm}
+  .terms .cell li{list-style:none;font-size:3.5mm;line-height:1.5;padding-left:3.2mm;position:relative;margin-bottom:.4mm}
+  .terms .cell li::before{content:"•";position:absolute;left:0}
+  .terms .hr{position:absolute;height:.25mm;background:#222;width:63mm}
+  .terms .pno{right:15mm}
+
+  /* ---------- Page 10 back ---------- */
+  .back h2{position:absolute;left:19mm;top:22.5mm;font-size:9.6mm;line-height:1.15;font-weight:900}
+  .back .bar{position:absolute;left:0;top:181mm;width:100%;height:3.6mm;background:var(--red)}
+  .back .panel{position:absolute;left:0;top:184.6mm;width:100%;height:93.6mm;background:var(--navy);color:#fff}
+  .back .panel .logo{position:absolute;left:19mm;top:19mm;width:82mm}
+  .back .panel .logo .word{font-size:9.6mm}
+  .back .panel .logo .tag{font-size:2.2mm;letter-spacing:2.2mm}
+  .back .col{position:absolute;top:57mm;width:58mm;font-size:3.5mm;line-height:1.35}
+  .back .col h4{font-size:3.4mm;font-weight:700;color:var(--red-logo);margin-bottom:.6mm}
+  .back .col p+p{margin-top:2.4mm}
+  .back .web{position:absolute;left:0;width:100%;top:81mm;text-align:center;font-size:3.5mm}
+  .back .hatch{position:absolute;left:0;bottom:0;width:100%;height:19mm;background:repeating-linear-gradient(135deg,#dcdcdc 0 .25mm,#f4f4f4 .25mm .95mm)}
+
+  @media (max-width:800px){ .page{zoom:.42} body{padding:2mm 0} }
+  @media print{
+    html,body{background:#fff;padding:0}
+    .page{margin:0;box-shadow:none}
+    @page{size:A4;margin:0}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
 </head>
-
 <body>
 
-  {% set ns = namespace(page=0) %}
+<!-- ================= PAGE 1 : COVER ================= -->
+<section class="page cover">
+  <div class="abs tagline">{{ cover_tagline | nl2br }}</div>
 
-  <!-- ==================== PAGE 1 : COVER ==================== -->
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="cover-top-half">
-      <div class="cover-header">
-        <div class="cover-closing-tagline">We are not developing the technology,<br>We are technology.</div>
-        <div class="cover-logo-wrapper">
-          {% if logo_src %}
-          <img class="cover-logo" src="{{ logo_src }}" alt="{{ company_name }} logo" />
-          {% else %}
-          <div class="cover-logo" style="font-size: 20pt; font-weight: 800; color: var(--dark);">{{ company_name }}
-          </div>
-          {% endif %}
-        </div>
-      </div>
+  <div class="logo">
+    {% if logo_src %}
+      <img class="logo-img" src="{{ logo_src }}" alt="{{ company_name }}">
+    {% else %}
+      <div class="word"><span class="a">{{ company_label_a }}</span><span class="b">{{ company_label_b }}</span></div>
+    {% endif %}
+    <span class="tag">{{ tagline | upper }}</span>
+  </div>
 
-      <div class="cover-illustration">
-        <!-- We will just use a generic illustration or omit if none available, maybe use the logo again if no illustration? -->
-        <svg width="60" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C72.1 90 90 72.1 90 50C90 27.9 72.1 10 50 10ZM50 82C32.3 82 18 67.7 18 50C18 32.3 32.3 18 50 18C67.7 18 82 32.3 82 50C82 67.7 67.7 82 50 82Z"
-            fill="var(--dark)" />
-          <path
-            d="M50 30C38.9 30 30 38.9 30 50C30 61.1 38.9 70 50 70C61.1 70 70 61.1 70 50C70 38.9 61.1 30 50 30ZM50 62C43.4 62 38 56.6 38 50C38 43.4 43.4 38 50 38C56.6 38 62 43.4 62 50C62 56.6 56.6 62 50 62Z"
-            fill="var(--primary)" />
-        </svg>
-      </div>
+  <!-- illustration -->
+  <svg class="abs icon" viewBox="0 0 220 220" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="82" cy="150" r="82" fill="#f1f1f1" stroke="none"/>
+    <rect x="40" y="30" width="148" height="128" rx="8" stroke="#1e2b3a" stroke-width="5" fill="#fff"/>
+    <line x1="40" y1="52" x2="188" y2="52" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="118" y1="41" x2="128" y2="41" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="138" y1="41" x2="148" y2="41" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="158" y1="41" x2="168" y2="41" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="50" y1="88" x2="86" y2="88" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="50" y1="106" x2="86" y2="106" stroke="#1e2b3a" stroke-width="5"/>
+    <path d="M56 133 L48 139 L56 145 M76 133 L84 139 L76 145 M69 130 L63 148" stroke="#ee2a27" stroke-width="5"/>
+    <rect x="98" y="72" width="64" height="112" rx="9" stroke="#1e2b3a" stroke-width="5" fill="#fff"/>
+    <line x1="120" y1="80" x2="130" y2="80" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="120" y1="176" x2="130" y2="176" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="132" y1="98" x2="152" y2="98" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="132" y1="112" x2="152" y2="112" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="112" y1="146" x2="128" y2="146" stroke="#1e2b3a" stroke-width="5"/>
+    <line x1="112" y1="160" x2="122" y2="160" stroke="#1e2b3a" stroke-width="5"/>
+    <rect x="96" y="90" width="36" height="30" rx="3" stroke="#1e2b3a" stroke-width="5" fill="#fff"/>
+    <path d="M108 98 L120 105 L108 112 Z" stroke="#1e2b3a" stroke-width="4"/>
+    <g stroke="#1e2b3a" stroke-width="5" fill="#fff">
+      <circle cx="42" cy="34" r="27"/>
+      <circle cx="42" cy="34" r="12"/>
+      <circle cx="42" cy="34" r="4"/>
+    </g>
+    <g stroke="#1e2b3a" stroke-width="7">
+      <line x1="42" y1="2" x2="42" y2="8"/><line x1="42" y1="60" x2="42" y2="66"/>
+      <line x1="10" y1="34" x2="16" y2="34"/><line x1="68" y1="34" x2="74" y2="34"/>
+      <line x1="19" y1="11" x2="23" y2="15"/><line x1="61" y1="53" x2="65" y2="57"/>
+      <line x1="65" y1="11" x2="61" y2="15"/><line x1="23" y1="53" x2="19" y2="57"/>
+    </g>
+    <g stroke="#ee2a27" stroke-width="5" fill="#fff">
+      <circle cx="176" cy="150" r="22"/><circle cx="176" cy="150" r="9"/>
+    </g>
+    <g stroke="#ee2a27" stroke-width="7">
+      <line x1="176" y1="122" x2="176" y2="127"/><line x1="176" y1="173" x2="176" y2="178"/>
+      <line x1="148" y1="150" x2="153" y2="150"/><line x1="199" y1="150" x2="204" y2="150"/>
+      <line x1="156" y1="130" x2="160" y2="134"/><line x1="192" y1="166" x2="196" y2="170"/>
+      <line x1="196" y1="130" x2="192" y2="134"/><line x1="160" y1="166" x2="156" y2="170"/>
+    </g>
+    <circle cx="207" cy="40" r="7" stroke="#ee2a27" stroke-width="4" fill="none"/>
+    <path d="M216 76 v10 M211 81 h10" stroke="#1e2b3a" stroke-width="4"/>
+    <path d="M14 138 v8 M10 142 h8" stroke="#ee2a27" stroke-width="4"/>
+    <circle cx="80" cy="190" r="7" stroke="#1e2b3a" stroke-width="4" fill="#fff"/>
+  </svg>
 
-      <div class="cover-title-area">
-        <div class="cover-title">{{ company_name }}</div>
-        <div class="cover-subtitle">{{ tagline }}</div>
-      </div>
-    </div>
+  <h1 class="abs">Company<br>Profile</h1>
+  <div class="abs sub">{{ cover_subtitle }}</div>
 
-    <div class="cover-red-band"></div>
+  <div class="abs bar"></div>
+  <div class="abs panel">
+    <p style="top:16mm">Prepared By</p>
+    <p style="top:28mm;color:var(--red);font-weight:700;font-size:4.2mm">{{ sales_head_name | upper }}</p>
+    <p style="top:34mm">{{ sales_head_title | upper }}</p>
+    <p style="top:44mm">{{ company_name | nl2br }}
+      {% if office_address %}<br>{{ office_address | nl2br }}{% endif %}</p>
+    <p style="top:69mm">P : {{ phone }}<br>E : {{ email }}</p>
+  </div>
+  <div class="abs hatch"></div>
+</section>
 
-    <div class="cover-bottom-half">
-      <div class="cover-bottom-grid">
-        <div class="cover-bottom-col">
-          <div class="cb-block">
-            <div class="cb-label">Prepared For</div>
-            <div class="cb-val-red">Valued Client</div>
-            <div class="cb-val">Executive Director</div>
-          </div>
-          <div class="cb-block" style="margin-top: 15mm;">
-            <div class="cb-val">{{ website }}</div>
-          </div>
-        </div>
-        <div class="cover-bottom-col">
-          <div class="cb-block">
-            <div class="cb-label">Prepared By</div>
-            <div class="cb-val-red">{{ sales_head_name }}</div>
-            <div class="cb-val">{{ sales_head_title }}</div>
-          </div>
-          <div class="cb-block" style="margin-top: 4mm;">
-            <div class="cb-val">{{ company_name }}</div>
-            {% if branches %}
-            <div class="cb-val">{{ branches[0].get('address', '') | nl2br }}</div>
-            {% endif %}
-            <div class="cb-val" style="margin-top:2mm;">P : {{ phone }}</div>
-            <div class="cb-val">E : {{ email }}</div>
-          </div>
+<!-- ================= PAGE 2 : COVER LETTER ================= -->
+<section class="page letter">
+  <h2>Profile<br><span class="red">Coverletter</span></h2>
+  <div class="row"><span>HELLO,</span><span>Date : {{ letter_date }}</span></div>
 
-          <div style="display: flex; gap: 10mm; margin-top: 4mm;">
-            <div class="cb-block">
-              <div class="cb-label" style="font-weight: 700;">Issued Date</div>
-              <div class="cb-val">{{ current_date | default(current_year|string + '-01-01') }}</div>
-            </div>
-            <div class="cb-block">
-              <div class="cb-label" style="font-weight: 700;">Valid Till</div>
-              <div class="cb-val">{{ valid_till | default('') }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  {% for para in cover_letter_paragraphs %}
+  <div class="body" style="top:{{ 100 + loop.index0 * letter_spacing }}mm">{{ para }}</div>
+  {% endfor %}
 
-  <!-- ==================== PAGE 2 : COVER LETTER ==================== -->
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-title">Proposal <br /> <span class="highlight">Coverletter</span></div>
+  <div class="sig">
+    {% if signature_src %}
+      <img src="{{ signature_src }}" alt="Signature">
+    {% else %}
+      <svg viewBox="0 0 190 76" fill="none" stroke="#e8e8e8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 56 C30 44 40 30 54 34 C64 37 58 52 46 54 C42 55 40 62 44 66"/>
+        <path d="M56 50 C66 40 74 46 80 50 C86 40 96 40 100 48 C104 42 112 40 116 48 C122 40 130 40 136 46 C142 38 150 38 154 46"/>
+        <path d="M150 42 C156 34 160 36 158 44 M160 42 C168 36 174 40 172 48"/>
+      </svg>
+    {% endif %}
+  </div>
+  <div class="name">{{ signer_name | upper }}</div>
+  <div class="role">{{ signer_designation | upper }}</div>
+  <div class="pno">{{ page_letter }}</div>
+</section>
 
-      <div style="margin-top: 30mm;">
-        <div class="cl-date">Date : {{ current_date }}</div>
-        {% if cover_letter_salutation %}
-        <div class="cl-to">{{ cover_letter_salutation }}</div>
+<!-- ================= PAGE 3 : VISION / MISSION / VALUES ================= -->
+<section class="page vision">
+  <div class="side"></div>
+  <div class="big">{{ positioning }}</div>
+
+  <div class="block" style="top:80mm">
+    <h3>Our Vision <span>»</span></h3>
+    <p>{{ vision }}</p>
+  </div>
+  <div class="block" style="top:118mm">
+    <h3>Our Mission <span>»</span></h3>
+    <p>{{ mission }}</p>
+  </div>
+
+  <div class="values" style="right:{{ 19 if core_values | length > 4 else 33 }}mm">
+    <h3>Strong core values of our company <span>»</span></h3>
+    <div class="vgrid" style="grid-template-columns:repeat({{ 4 if core_values | length >= 4 else core_values | length }},1fr)">
+      {% for v in core_values %}
+      <div class="vcard">
+        {% if v.logo %}
+          <img src="{{ v.logo }}" alt="{{ v.title }}">
         {% else %}
-        <div class="cl-to">To,</div>
-        {% endif %}
-        <div class="cl-name">Valued Client</div>
-        <div class="cl-designation">Director</div>
-
-        <div class="cl-body">
-          {% if cover_letter_paragraphs %}
-          {% for para in cover_letter_paragraphs %}
-          <p>{{ para }}</p>
-          {% endfor %}
-          {% else %}
-          <p>On behalf of {{ company_name }}, I am pleased to submit our proposal for the development of your project.
-            We understand how crucial your digital presence is in today's competitive environment, and we are excited
-            about the opportunity to bring your vision to life.</p>
-          <p>With our expertise, we design solutions that not only look stunning but also function seamlessly. Our team
-            brings in creativity, technical skills, and industry insights to deliver solutions that truly align with
-            your business goals.</p>
-          <p>Thank you for considering {{ company_name }}. We look forward to the possibility of working together.</p>
-          {% endif %}
-        </div>
-
-        {% if cover_letter_signoff %}
-        <div style="margin-top: 20mm;">{{ cover_letter_signoff }}</div>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="cl-signature-area">
-      {% if signature_src %}
-      <img class="cl-signature-img" src="{{ signature_src }}" alt="Signature" />
-      {% endif %}
-      <div class="cl-sign-name">{{ cover_letter_signature_name or sales_head_name }}</div>
-      <div class="cl-sign-title">{{ cover_letter_signature_designation or sales_head_title }}</div>
-    </div>
-
-    <div class="page-footer">{{ ns.page }}{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}
-    </div>
-  </section>
-
-  <!-- ==================== PAGE 3 : VISION / MISSION ==================== -->
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-title">
-        {{ positioning | default('A Creative, Strategic & <br /> <span class="highlight">Accountable Design
-          Agency.</span>') | safe }}
-      </div>
-
-      <div class="section-subtitle">Our Mission &raquo;</div>
-      <div class="profile-text">{{ mission }}</div>
-
-      <div class="section-subtitle">Our Vision &raquo;</div>
-      <div class="profile-text">{{ vision }}</div>
-
-      {% if core_values %}
-      <div class="core-values-label">Strong core values of our company <span class="highlight">&raquo;</span></div>
-      <div class="values-grid">
-        {% for value in core_values[:4] %}
-        <div class="value-card">
-          {% if value.get('logo') %}
-          <img class="value-icon" src="{{ value.logo }}" alt="{{ value.title }}" />
-          {% else %}
-          <!-- Default icon if none provided -->
-          <svg class="value-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 16v-4"></path>
-            <path d="M12 8h.01"></path>
-          </svg>
-          {% endif %}
-          <div class="value-title">{{ value.get('title', '') }}</div>
-          <div class="value-desc">{{ value.get('description', '') }}</div>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-    </div>
-
-    <div class="page-footer">{{ ns.page }}{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}
-    </div>
-  </section>
-
-  <!-- ==================== PAGE 4 : SERVICES ==================== -->
-  {% if services %}
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-title">What we <span class="highlight">offer</span> and <br /> how we <span
-          class="highlight">create values</span>.</div>
-
-      <div class="services-grid">
-        <div
-          style="font-size: 18pt; font-weight: 800; color: var(--dark); line-height: 1.2; padding-right: 5mm; margin-top: 10mm;">
-          We are leading agency.<br />We have market leading presence in digital market.
-        </div>
-        <div></div> <!-- Empty spacer -->
-
-        {% for svc in services[:4] %}
-        <div class="service-col">
-          <div class="service-icon">
-            {% if svc.get('logo') %}
-            <img src="{{ svc.logo }}" alt="{{ svc.title }}" />
-            {% else %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            </svg>
+          <svg viewBox="0 0 24 24">
+            {% if loop.index0 == 0 %}<path d="M12 21s-7-4.6-9.3-9.2C1 8 3.2 4.5 6.8 4.5c2 0 3.6 1 5.2 3 1.6-2 3.2-3 5.2-3 3.6 0 5.8 3.5 4.1 7.3C19 16.4 12 21 12 21z"/>
+            {% elif loop.index0 == 1 %}<path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>
+            {% elif loop.index0 == 2 %}<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M2.5 19c.6-3.6 3-5.2 5.5-5.2s4.9 1.6 5.5 5.2M14.5 14.4c2.6-.6 5.6.6 6.5 4.2"/>
+            {% else %}<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>
             {% endif %}
-          </div>
-          <div class="service-title">{{ svc.get('title', '') }}</div>
-          <div class="service-items">
-            {% if svc.get('description') %}
-            {% for item in svc.get('description').split('\n') %}
-            {% if item.strip() %}
-            <div class="service-item">{{ item.strip() }}</div>
-            {% endif %}
-            {% endfor %}
-            {% endif %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="page-footer">{{ ns.page }}</div>
-  </section>
-  {% endif %}
-
-  <!-- ==================== PAGE 5 : PROCESS ==================== -->
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-subtitle" style="margin-top: 0; margin-bottom: 2mm;">Our work process -</div>
-      <div class="section-title" style="font-size: 18pt;">From very first<br />touch point to<br />launch and beyond.
-      </div>
-
-      <div class="process-intro">
-        We work with client to develop the right strategy from the very first stage to last stage...
-      </div>
-
-      <div class="process-list">
-        {% if process_steps %}
-        {% for step in process_steps %}
-        <div class="process-step">
-          <svg class="process-icon" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
-          <div class="process-text">
-            <h4>Step - {{ "{:02d}".format(loop.index) }}</h4>
-            <p><strong>{{ step.title }}</strong>{% if step.description %}<br />{{ step.description }}{% endif %}</p>
-          </div>
-        </div>
-        {% endfor %}
-        {% else %}
-        {% for step in [
-        {'title': 'Initial meeting / Project / Discussion / Assessment / Agreement', 'num': '01'},
-        {'title': 'Research / Project Outline / Wire frame / Artwork / Revisions', 'num': '02'},
-        {'title': 'Coding / Development / Validation / Cross Platform Testing', 'num': '03'},
-        {'title': 'Implementation / Content Placement / Optimization / Testing', 'num': '04'},
-        {'title': 'Final Refinement / Deployment / Maintenance / Training / Support', 'num': '05'}
-        ] %}
-        <div class="process-step">
-          <svg class="process-icon" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-          <div class="process-text">
-            <h4>Step - {{ step.num }}</h4>
-            <p>{{ step.title }}</p>
-          </div>
-        </div>
-        {% endfor %}
         {% endif %}
-      </div>
-    </div>
-
-    <div class="page-footer">{{ ns.page }}</div>
-  </section>
-
-  <!-- ==================== PAGE 6 : CLIENTS ==================== -->
-  {% if bni_clients %}
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-title">Our Top Clients</div>
-      <div class="section-title highlight">2025-2026 (BNI MEMBERS)</div>
-
-      <div class="clients-grid">
-        {% for client in bni_clients[:16] %}
-        <div class="client-cell">
-          {% if client.get('logo') %}
-          <img src="{{ client.logo }}" alt="{{ client.name }}" />
-          {% else %}
-          <div class="client-name-text">{{ client.name }}</div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    <div class="page-footer">{{ ns.page }}</div>
-  </section>
-  {% endif %}
-
-  <!-- ==================== PAGE 7 : REGIONAL CLIENTS ==================== -->
-  {% if regional_clients %}
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-title">Our Top Clients</div>
-      <div class="section-title highlight">2025-2026 (REGIONAL CLIENTS)</div>
-
-      <div class="clients-grid">
-        {% for client in regional_clients[:16] %}
-        <div class="client-cell">
-          {% if client.get('logo') %}
-          <img src="{{ client.logo }}" alt="{{ client.name }}" />
-          {% else %}
-          <div class="client-name-text">{{ client.name }}</div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    <div class="page-footer">{{ ns.page }}</div>
-  </section>
-  {% endif %}
-
-  <!-- ==================== PAGE 8 : INT CLIENTS ==================== -->
-  {% if international_clients %}
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-title">Our Top Clients</div>
-      <div class="section-title highlight">2025-2026 (INTERNATIONAL)</div>
-
-      <div class="clients-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15mm;">
-        {% for client in international_clients[:8] %}
-        <div class="client-cell" style="height: 30mm;">
-          {% if client.get('logo') %}
-          <img src="{{ client.logo }}" alt="{{ client.name }}" style="max-width: 60mm; max-height: 25mm;" />
-          {% else %}
-          <div class="client-name-text" style="font-size: 14pt;">{{ client.name }}</div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    <div class="page-footer">{{ ns.page }}</div>
-  </section>
-  {% endif %}
-
-  <!-- ==================== PAGE : STATEMENT OF WORK ==================== -->
-  {% if statement_of_work %}
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-title">Statement of <span class="highlight">Work</span> &amp; <br />Contract <span
-          class="highlight">Terms</span></div>
-
-      {% for item in statement_of_work %}
-      <div class="sow-item">
-        <div class="sow-item-title">{{ item.title }}</div>
-        <ul class="sow-item-points">
-          {% if item.description %}
-          {% for line in item.description.split('\n') %}
-          {% if line.strip() %}
-          <li>{{ line.strip() }}</li>
-          {% endif %}
-          {% endfor %}
-          {% endif %}
-        </ul>
+        {{ v.title }}
       </div>
       {% endfor %}
     </div>
+  </div>
+  <div class="pno" style="right:19mm">{{ page_vision }}</div>
+</section>
 
-    <div class="page-footer">{{ ns.page }}</div>
-  </section>
-  {% endif %}
+<!-- ================= PAGE 4 : SERVICES ================= -->
+<section class="page services">
+  <div class="head">
+    <h2>{{ services_heading }}</h2>
+    <p>{{ services_subheading }}</p>
+  </div>
+  <div class="lead">{{ services_lead }}</div>
 
-  <!-- ==================== PAGE 8 : PAYMENT ==================== -->
-  {% if payment and (payment.bank_name or payment.upi_id) %}
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="section-title">Payment <br /> <span class="highlight">Methods</span></div>
+  <div class="grid">
+    {% for s in services %}
+    <div class="box {% if loop.index0 % 4 in (0, 3) %}r{% endif %}">
+      <h3>{{ s.title }}</h3>
+      <ul>
+        {% for item in s['items'] %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="foot"></div>
+  <div class="pno" style="bottom:15mm">{{ page_services }}</div>
+</section>
 
-      <table class="payment-table">
-        <tbody>
-          <tr>
-            <td>Bank Name</td>
-            <td>{{ payment.bank_name | default('', true) }}</td>
-          </tr>
-          <tr>
-            <td>Account No.</td>
-            <td>{{ payment.account_number | default('', true) }}</td>
-          </tr>
-          <tr>
-            <td>Branch Name</td>
-            <td>{{ payment.branch_name | default('', true) }}</td>
-          </tr>
-          <tr>
-            <td>IFSC Code</td>
-            <td>{{ payment.ifsc | default('', true) }}</td>
-          </tr>
-          <tr>
-            <td>UPI ID</td>
-            <td>{{ payment.upi_id | default('', true) }}</td>
-          </tr>
-        </tbody>
-      </table>
+<!-- ================= PAGE 5 : WORK PROCESS ================= -->
+<section class="page process">
+  <div class="head">
+    <h2>{{ process_heading }}</h2>
+  </div>
+  <div class="lead">{{ process_lead }}</div>
 
-      <div class="payment-qr-section">
-        <div class="payment-qr-title">Via QR CODE</div>
-        {% if payment.qr_src %}
-        <img class="payment-qr-img" src="{{ payment.qr_src }}" alt="QR" />
-        {% else %}
-        <div class="payment-qr-img" style="border: 1px solid #ccc;"></div>
-        {% endif %}
+  <div class="steps">
+    {% for step in process_steps %}
+    <div class="step"><div class="dot">{{ "%02d"|format(loop.index) }}</div><div class="txt"><h3>{{ step.title }}</h3><p>{{ step.description }}</p></div></div>
+    {% endfor %}
+  </div>
+  <div class="foot"></div>
+  <div class="pno" style="bottom:15mm">{{ page_process }}</div>
+</section>
 
-        <div class="payment-upi-title">Via UPI-ID</div>
-        <div class="payment-upi-val">{{ payment.upi_id | default('', true) }}</div>
-      </div>
+<!-- ================= PAGE 6 : CLIENTS (BNI) ================= -->
+{% if bni_clients %}
+<section class="page clients">
+  <h2>Our Top Clients<span>{{ clients_year }} (BNI MEMBERS)</span></h2>
 
-      {% if quote_acceptance_message %}
-      <div style="margin-top: 15mm; padding: 5mm; background: var(--light); border-left: 3mm solid var(--primary);">
-        <div style="font-size: 10pt; font-weight: 700; color: var(--dark); margin-bottom: 3mm;">Quote Acceptance</div>
-        <div style="font-size: 9pt; color: var(--dark); line-height: 1.6;">{{ quote_acceptance_message }}</div>
-      </div>
+  {% for row in bni_rows %}
+  <div class="row" style="top:{{ 76 + loop.index0 * 30 }}mm;left:10mm;right:10mm">
+    {% for c in row %}
+    <div class="cl" style="width:{{ 100 // row | length }}%">
+      {% if c.logo %}
+        <div class="tile"><img src="{{ c.logo }}" alt="{{ c.name }}"></div>
+      {% else %}
+        <div class="tile"><span class="tname">{{ c.name }}</span></div>
       {% endif %}
     </div>
-    <div class="page-footer">{{ ns.page }}</div>
-  </section>
-  {% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <div class="pno" style="right:16mm;bottom:8mm">{{ page_bni }}</div>
+</section>
+{% endif %}
 
-  <!-- ==================== PAGE 9 : CLOSING ==================== -->
-  {% set ns.page = ns.page + 1 %}
-  <section class="page">
-    <div class="page-header">Project Proposal</div>
-    <div class="pad" style="top: 25mm;">
-      <div class="closing-title">{{ closing_statement }}</div>
+<!-- ================= PAGE 7 : CLIENTS (REGIONAL) ================= -->
+{% if regional_clients %}
+<section class="page clients">
+  <h2>Our Top Clients<span>{{ clients_year }} (REGIONAL)</span></h2>
+
+  {% for row in regional_rows %}
+  <div class="row" style="top:{{ 76 + loop.index0 * 30 }}mm;left:10mm;right:10mm">
+    {% for c in row %}
+    <div class="cl" style="width:{{ 100 // row | length }}%">
+      {% if c.logo %}
+        <div class="tile"><img src="{{ c.logo }}" alt="{{ c.name }}"></div>
+      {% else %}
+        <div class="tile"><span class="tname">{{ c.name }}</span></div>
+      {% endif %}
     </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <div class="pno" style="right:16mm;bottom:8mm">{{ page_regional }}</div>
+</section>
+{% endif %}
 
-    <div class="contact-bottom-bar">
-      <div style="width: 100%;">
-        <img class="contact-logo" src="{{ logo_src }}" alt="{{ company_name }}" />
+<!-- ================= PAGE 8 : CLIENTS (INTERNATIONAL) ================= -->
+{% if international_clients %}
+<section class="page clients">
+  <h2>Our Top Clients<span>{{ clients_year }} (INTERNATIONAL)</span></h2>
 
-        <div class="contact-branches">
-          {% if branches %}
-          {% for branch in branches[:3] %}
-          <div class="branch-col">
-            <div class="branch-title">{{ branch.get('title', '') | default('MAIN BRANCH' if loop.index == 1 else 'SECOND BRANCH' if loop.index == 2 else 'THIRD BRANCH', true) }}</div>
-            <div class="branch-text">{{ branch.get('branch_name', branch.get('address', '')) | nl2br }}</div>
-            <div class="branch-text" style="margin-top: 2mm;">P : {{ branch.get('phone') or phone }}</div>
-            <div class="branch-text">E : {{ branch.get('email') or email }}</div>
-          </div>
-          {% endfor %}
-          {% else %}
-          <div class="branch-col">
-            <div class="branch-title">MAIN BRANCH</div>
-            <div class="branch-text">Contact us directly.</div>
-            <div class="branch-text" style="margin-top: 2mm;">P : {{ phone }}</div>
-            <div class="branch-text">E : {{ email }}</div>
-          </div>
-          {% endif %}
-        </div>
-
-        <div class="contact-web">{{ website }}</div>
-      </div>
+  {% for row in international_rows %}
+  <div class="row" style="top:{{ 76 + loop.index0 * 30 }}mm;left:10mm;right:10mm">
+    {% for c in row %}
+    <div class="cl" style="width:{{ 100 // row | length }}%">
+      {% if c.logo %}
+        <div class="tile"><img src="{{ c.logo }}" alt="{{ c.name }}"></div>
+      {% else %}
+        <div class="tile"><span class="tname">{{ c.name }}</span></div>
+      {% endif %}
     </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <div class="pno" style="right:16mm;bottom:8mm">{{ page_international }}</div>
+</section>
+{% endif %}
 
-    <div class="page-footer">{{ ns.page }}</div>
-  </section>
+<!-- ================= PAGE 9 : TERMS ================= -->
+<section class="page terms">
+  <div class="top">
+    <h2 class="h1">Please read the project<br>terms and conditions</h2>
+    <h2 class="h2">Statement of work and <span>Contract Terms</span></h2>
+    <svg class="scroll" viewBox="0 0 150 155" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M28 12 h72 a10 10 0 0 1 10 10 v96 a20 20 0 0 0 20 20 h0 a20 20 0 0 1 -20 0 H36 a18 18 0 0 1 -18 -18 v-8 h64 v8 a10 10 0 0 0 10 10"/>
+      <path d="M28 12 a10 10 0 0 0 -10 10 v90"/>
+      <path d="M62 30 l4 -8 l4 8 l8 -3 l-3 8 l8 4 l-8 4 l3 8 l-8 -3 l-4 8 l-4 -8 l-8 3 l3 -8 l-8 -4 l8 -4 l-3 -8z" stroke-width="3"/>
+      <line x1="46" y1="58" x2="58" y2="58"/><line x1="72" y1="58" x2="90" y2="58"/>
+      <line x1="42" y1="74" x2="92" y2="74"/><line x1="42" y1="88" x2="92" y2="88"/><line x1="42" y1="102" x2="92" y2="102"/>
+      <g stroke="#ee2a27"><line x1="6" y1="20" x2="6" y2="70"/><line x1="6" y1="82" x2="6" y2="90"/>
+        <path d="M118 30 h14 v70 l-7 14 l-7 -14z" fill="#141c26"/><line x1="118" y1="44" x2="132" y2="44"/></g>
+    </svg>
+  </div>
+
+  {% for t in statement_of_work %}
+  <div class="cell" style="left:{{ 16.3 if loop.index0 % 2 == 0 else 121.5 }}mm;top:{{ 120 + (loop.index0 // 2) * 60 }}mm">
+    <div class="n">{{ "%02d"|format(loop.index) }}</div>
+    <h3>{{ t.title }}</h3>
+    <ul style="width:66mm">
+      {% for item in t['items'] %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% if loop.index0 <= 3 %}<div class="hr" style="left:{{ 16.3 if loop.index0 % 2 == 0 else 122.5 }}mm;top:{{ 172.5 + (loop.index0 // 2) * 67 }}mm"></div>{% endif %}
+  {% endfor %}
+
+  <div class="pno" style="right:15mm;bottom:6mm">{{ page_terms }}</div>
+</section>
+
+<!-- ================= PAGE 10 : BACK COVER ================= -->
+<section class="page back">
+  <h2>{{ closing_main }}{% if closing_highlight %}<span class="red"> {{ closing_highlight }}</span>{% endif %}</h2>
+  <div class="bar"></div>
+  <div class="panel">
+    <div class="logo light">
+      {% if logo_src %}
+        <img class="logo-img" src="{{ logo_src }}" alt="{{ company_name }}">
+      {% else %}
+        <div class="word"><span class="a">{{ company_label_a }}</span><span class="b">{{ company_label_b }}</span></div>
+      {% endif %}
+      <span class="tag">{{ tagline | upper }}</span>
+    </div>
+    <div class="col" style="left:19mm">
+      <h4>{{ company_name }}</h4>
+      {% if office_address %}<p>{{ office_address | nl2br }}</p>{% endif %}
+      <p>P : {{ phone }}<br>E : {{ email }}</p>
+    </div>
+    {% for b in branches %}
+    <div class="col" style="left:{{ 87.5 + (loop.index0 % 2) * 63 }}mm">
+      <h4>{{ b.name }}</h4>
+      <p>{{ b.address | nl2br }}</p>
+      <p>P : {{ b.phone }}<br>E : {{ b.email }}</p>
+    </div>
+    {% endfor %}
+    <div class="web">{{ website }}</div>
+  </div>
+  <div class="hatch"></div>
+</section>
 
 </body>
-
 </html>

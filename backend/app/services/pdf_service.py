@@ -308,6 +308,24 @@ def _normalize_clients_rel(clients_rel: list) -> list[dict[str, Any]]:
     return result
 
 
+def _chunk_rows(items: list, size: int = 5) -> list[list]:
+    """Split items into rows of up to `size` for the client showcase pages."""
+    rows = []
+    for i in range(0, len(items), size):
+        rows.append(list(items[i:i + size]))
+    return rows
+
+
+def _text_items(value: Any) -> list[str]:
+    """Convert a service/statement-of-work description into bullet items."""
+    if isinstance(value, list):
+        items = [str(x).strip() for x in value]
+    else:
+        text = str(value or "")
+        items = [line.strip() for line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n") if line.strip()]
+    return items or ["Custom digital solutions"]
+
+
 def _normalize_branches(value: Any) -> list[dict[str, Any]]:
     result = []
     for index, item in enumerate(_as_list(value), 1):
@@ -638,6 +656,11 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
             "description": v.description or "",
             "logo": _logo_path_to_base64(v.logo) if v.logo else ""
         })
+    if not core_values:
+        core_values = [
+            {"title": title, "description": "", "logo": ""}
+            for title in ("Customers First", "Act with Integrity", "Great Teamwork", "Focus on Solutions")
+        ]
 
     # Services – use relational data and convert logos to base64
     services = []
@@ -766,15 +789,132 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         total_pages += 1
     total_pages += 1  # branches/closing
 
-    # Positioning - use tagline
-    positioning = str(getattr(cp, "tagline", None) or tagline)
+    # Positioning - no dedicated field, keep the original brand statement
+    positioning = "A Creative, Strategic & Accountable Design Agency."
 
     # Closing statement - use footer_tagline from company settings if available
     closing_statement = str(getattr(cp, "footer_tagline", None) or "Take your business to the next level.")
+    closing_flat = closing_statement.replace("\r\n", " ").replace("\r", " ").replace("\n", " ").strip()
+    closing_words = closing_flat.split()
+    closing_main = " ".join(closing_words[:-2]).strip() if len(closing_words) >= 2 else closing_statement
+    closing_highlight = " ".join(closing_words[-2:]) if len(closing_words) >= 2 else ""
 
     now = datetime.now()
+    current_year = now.year
     current_date = now.strftime("%d/%m/%Y")
     valid_till = (now + timedelta(days=7)).strftime("%d/%m/%Y")
+
+    # Brand / cover texts (static defaults mirroring the original design)
+    cover_tagline = str(getattr(cp, "footer_tagline", None) or "We are not developing the technology,\nWe are technology.")
+    cover_subtitle = "Build your company's strong online presence."
+
+    # Text-logo fallback split (e.g. "PRAVYA TECH" -> "PRAVYA" + "TECH")
+    company_label_a, _, company_label_b = company_name.partition(" ")
+    if not company_label_b:
+        company_label_a, company_label_b = company_name, ""
+
+    # Signer from dedicated cover-letter fields, falling back to sales head
+    signer_name = str(getattr(cp, "cover_letter_signature_name", None) or sales_head_name or sales_head_name.upper())
+    signer_designation = str(getattr(cp, "cover_letter_signature_designation", None) or sales_head_title or sales_head_title.upper())
+    letter_date_raw = getattr(cp, "cover_letter_signature_date", None)
+    letter_date = _format_date(letter_date_raw) if letter_date_raw else current_date
+
+    if not signature_src and getattr(cp, "cover_letter_signature_image", None):
+        signature_src = _logo_path_to_base64(cp.cover_letter_signature_image)
+
+    # Cover letter paragraphs with a sensible fallback
+    cover_letter_paragraphs = cover_letter_paragraphs or [
+        f"On behalf of {company_name}, I am pleased to submit our proposal for the development of your website. We understand how crucial your digital presence is in today's competitive environment, and we are excited about the opportunity to bring your vision to life with a customized, user-friendly, and performance-driven website.",
+        "With our expertise in web and mobile solutions, we design websites that not only look stunning but also function seamlessly - ensuring speed, responsiveness, scalability, and optimized user experience across all devices. Our team brings in creativity, technical skills, and industry insights to deliver solutions that truly align with your business goals.",
+        "Enclosed with this letter is our detailed proposal, which includes the project scope, timeline, technologies we will use, and cost breakdown. We believe in transparent communication, timely delivery, and long-term support to help your website thrive.",
+        "Thank you for considering PRAVYA Tech. We look forward to the possibility of working together.",
+    ]
+    letter_spacing = 27.5 if len(cover_letter_paragraphs) <= 4 else 88.0 / len(cover_letter_paragraphs)
+
+    # Office address for cover/back panels (branch field stores name/address)
+    office_address = branches[0]["address"] if branches else ""
+
+    # Services -> boxes with bullet items (description split on new lines)
+    services_boxes = []
+    for s in services:
+        if not s.get("title"):
+            continue
+        services_boxes.append({
+            "title": s.get("title", ""),
+            "items": _text_items(s.get("description")),
+        })
+    if not services_boxes:
+        services_boxes = [
+            {"title": "Website Designing", "items": ["Wordpress UI / UX", "Mobile App UI / UX", "E-Commerce UI / UX", "Custom Application Design"]},
+            {"title": "Research & Analysis", "items": ["Website Analytics", "Mobile App Analytics"]},
+            {"title": "Design & Illustration", "items": ["Wordpress Development", "Mobile App Development", "E-Commerce Development", "Custom Application Design"]},
+            {"title": "Content Marketing", "items": ["Social Media Marketing", "Email Marketing", "Whatsapp Chatbot"]},
+        ]
+
+    # Work process steps (capped at 5 to fit the page)
+    process_steps_normalized = []
+    for i, step in enumerate(process_steps[:5]):
+        title = str(step.get("title") or "").strip() or f"Step - {i + 1:02d}"
+        process_steps_normalized.append({"title": title, "description": str(step.get("description") or "")})
+    if not process_steps_normalized:
+        process_steps_normalized = [
+            {"title": "Step - 01", "description": "Initial meeting / Project / Discussion / Assessment / Agreement"},
+            {"title": "Step - 02", "description": "Research / Project Outline / Wireframe / Artwork / Revisions"},
+            {"title": "Step - 03", "description": "Coding / Development / Validation / Cross Platform Testing"},
+            {"title": "Step - 04", "description": "Implementation / Content Placement / Optimization / Testing"},
+            {"title": "Step - 05", "description": "Final Refinement / Deployment / Maintenance / Training / Support"},
+        ]
+
+    # Statement of work & contract terms cells (capped at 6)
+    statement_of_work_cells = []
+    for sow in statement_of_work[:6]:
+        statement_of_work_cells.append({
+            "title": sow.get("title", ""),
+            "items": _text_items(sow.get("description")),
+        })
+    if not statement_of_work_cells:
+        statement_of_work_cells = [
+            {"title": "Payment Terms", "items": ["50% Advance on confirmation.", "50% After successful project completion.", "18% GST will be applicable as per government regulations."]},
+            {"title": "Annual Maintenance Contract", "items": ["25% of project value as per bill.", "AMC will work when existing features not working or technical bugs happen.", "New feature/requirements will not include in AMC."]},
+            {"title": "Services Limitations", "items": ["We are not liable for any kind of issues that occurred in third-party services that we have used.", "Integrated with our product software like Cloud, Backups, E-Mail, SMS, WhatsApp, IVR, etc."]},
+            {"title": "Exclusions", "items": ["Anything which is not specified in the above specification is excluded.", "Integration with any 3rd party software system and APIs other than those mentioned above.", "Cloud Hosting charges.", "Future Updates in App/Web/Software."]},
+            {"title": "Client Side Support", "items": ["We require one decision-maker from your side, and we will communicate with him only, and his decision will be final for us."]},
+            {"title": "Project Cancellation", "items": ["Payment is non-refundable once the work is started from our end."]},
+        ]
+
+    # Back-cover branch columns (up to two aside from the head-office column)
+    back_branches = [
+        {
+            "name": b.get("branch_name") or b.get("title", ""),
+            "address": b.get("address", ""),
+            "phone": b.get("phone", "") or phone,
+            "email": b.get("email", "") or email,
+        }
+        for b in branches[:2]
+    ]
+
+    # Client rows (5 per row) and year label
+    clients_year = f"{current_year}-{current_year + 1}"
+    bni_rows = _chunk_rows(bni_clients)
+    regional_rows = _chunk_rows(regional_clients)
+    international_rows = _chunk_rows(international_clients)
+
+    # Sequential page numbers for the pages that are always present
+    page_letter = 2
+    page_vision = 3
+    page_services = 4
+    page_process = 5
+    next_page = 6
+    page_bni = next_page
+    if bni_clients:
+        next_page += 1
+    page_regional = next_page
+    if regional_clients:
+        next_page += 1
+    page_international = next_page
+    if international_clients:
+        next_page += 1
+    page_terms = next_page
 
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
@@ -792,40 +932,67 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
             "muted": "#64748B",
         },
         company_name=company_name,
+        company_label_a=company_label_a,
+        company_label_b=company_label_b,
         tagline=tagline,
         email=email,
         phone=phone,
         website=website,
+        office_address=office_address,
         sales_head_name=sales_head_name,
         sales_head_title=sales_head_title,
         logo_src=logo_src,
         signature_src=signature_src,
+        signer_name=signer_name,
+        signer_designation=signer_designation,
+        letter_date=letter_date,
+        letter_spacing=letter_spacing,
+        cover_tagline=cover_tagline,
+        cover_subtitle=cover_subtitle,
         positioning=positioning,
-        vision=str(getattr(cp, "vision", None) or ""),
-        mission=str(getattr(cp, "mission", None) or ""),
+        vision=str(getattr(cp, "vision", None) or "To become a global leader in mobile-first technology by empowering businesses and individuals with innovative, intuitive, and impactful digital solutions."),
+        mission=str(getattr(cp, "mission", None) or "To design and develop smart, scalable, user-centric mobile and web applications that solve real-world problems with simplicity, speed, and a seamless user experience."),
         core_values=core_values,
-        services=services,
+        services_heading="What we offer and how we create values.",
+        services_subheading="We are leading design agency.",
+        services_lead="we have market leading presence in digital market.",
+        services=services_boxes,
+        process_heading="Our work process - From very first touch point to launch and beyond.",
+        process_lead="We work with client to develop the right strategy from the very first stage to last stage...",
+        process_steps=process_steps_normalized,
         bni_clients=bni_clients,
         regional_clients=regional_clients,
         international_clients=international_clients,
-        payment=payment,
-        branches=branches,
+        bni_rows=bni_rows,
+        regional_rows=regional_rows,
+        international_rows=international_rows,
+        clients_year=clients_year,
+        statement_of_work=statement_of_work_cells,
+        branches=back_branches,
+        closing_main=closing_main,
+        closing_highlight=closing_highlight,
         closing_statement=closing_statement,
         total_pages=total_pages,
-        current_year=now.year,
+        current_year=current_year,
+        next_year=current_year + 1,
         current_date=current_date,
         valid_till=valid_till,
-        # New cover letter and profile content
         cover_letter_salutation=cover_letter_salutation,
         cover_letter_paragraphs=cover_letter_paragraphs,
         cover_letter_signoff=cover_letter_signoff,
         cover_letter_signature_name=getattr(cp, "cover_letter_signature_name", None) or sales_head_name,
         cover_letter_signature_designation=getattr(cp, "cover_letter_signature_designation", None) or sales_head_title,
         profile_paragraphs=profile_paragraphs,
-        process_steps=process_steps,
         quote_acceptance_message=quote_acceptance_message,
         footer_tagline=footer_tagline,
-        statement_of_work=statement_of_work,
+        page_letter=page_letter,
+        page_vision=page_vision,
+        page_services=page_services,
+        page_process=page_process,
+        page_bni=page_bni,
+        page_regional=page_regional,
+        page_international=page_international,
+        page_terms=page_terms,
     )
     _render_html_to_pdf(html, filepath)
 
