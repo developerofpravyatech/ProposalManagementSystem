@@ -199,12 +199,15 @@ async def _sync_branch_offices(db: AsyncSession, profile: CompanyProfile, office
     
     for i, office in enumerate(offices or []):
         if isinstance(office, dict):
+            title = office.get("title", "")
             name = office.get("name", "")
         else:
+            title = ""
             name = str(office)
         if name:
             db.add(BranchOffice(
                 company_profile_id=profile.id,
+                title=title,
                 name=name,
                 sort_order=i,
             ))
@@ -226,14 +229,13 @@ async def _sync_work_process_steps(db: AsyncSession, profile: CompanyProfile, st
             icon = ""
             title = str(step)
             description = ""
-        if title:
-            db.add(WorkProcessStep(
-                company_profile_id=profile.id,
-                icon=icon,
-                title=title,
-                description=description,
-                sort_order=i,
-            ))
+        db.add(WorkProcessStep(
+            company_profile_id=profile.id,
+            icon=icon,
+            title=title,
+            description=description,
+            sort_order=i,
+        ))
 
 
 async def _sync_signatures(db: AsyncSession, profile: CompanyProfile, signatures: list[dict]) -> None:
@@ -405,7 +407,7 @@ async def _sync_if_empty(db: AsyncSession, profile: CompanyProfile) -> None:
     """Populate normalized tables from legacy JSON fields when needed."""
     relation_sources = (
         (CoreValue, "core_values_rel", getattr(profile, "core_values", None) or [], _sync_core_values),
-        (WorkProcessStep, "work_process_steps_rel", getattr(profile, "work_process_steps", None) or [], _sync_work_process_steps),
+        (WorkProcessStep, "work_process_steps_rel", getattr(profile, "work_process_steps", None) or getattr(profile, "work_process_steps_rel", None) or [], _sync_work_process_steps),
     )
     updated = False
 

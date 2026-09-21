@@ -760,7 +760,11 @@
 
       <div style="margin-top: 30mm;">
         <div class="cl-date">Date : {{ current_date }}</div>
+        {% if cover_letter_salutation %}
+        <div class="cl-to">{{ cover_letter_salutation }}</div>
+        {% else %}
         <div class="cl-to">To,</div>
+        {% endif %}
         <div class="cl-name">Valued Client</div>
         <div class="cl-designation">Director</div>
 
@@ -779,6 +783,10 @@
           <p>Thank you for considering {{ company_name }}. We look forward to the possibility of working together.</p>
           {% endif %}
         </div>
+
+        {% if cover_letter_signoff %}
+        <div style="margin-top: 20mm;">{{ cover_letter_signoff }}</div>
+        {% endif %}
       </div>
     </div>
 
@@ -786,8 +794,8 @@
       {% if signature_src %}
       <img class="cl-signature-img" src="{{ signature_src }}" alt="Signature" />
       {% endif %}
-      <div class="cl-sign-name">{{ sales_head_name }}</div>
-      <div class="cl-sign-title">{{ sales_head_title }}</div>
+      <div class="cl-sign-name">{{ cover_letter_signature_name or sales_head_name }}</div>
+      <div class="cl-sign-title">{{ cover_letter_signature_designation or sales_head_title }}</div>
     </div>
 
     <div class="page-footer">{{ ns.page }}{% if footer_tagline %}<span class="footer-tagline">{{ footer_tagline }}</span>{% endif %}
@@ -1108,7 +1116,7 @@
   <section class="page">
     <div class="page-header">Project Proposal</div>
     <div class="pad" style="top: 25mm;">
-      <div class="closing-title">Take your<br />business to<br />the <span class="highlight">next level.</span></div>
+      <div class="closing-title">{{ closing_statement }}</div>
     </div>
 
     <div class="contact-bottom-bar">
@@ -1119,11 +1127,10 @@
           {% if branches %}
           {% for branch in branches[:3] %}
           <div class="branch-col">
-            <div class="branch-title">{% if loop.index == 1 %}MAIN BRANCH{% elif loop.index == 2 %}SECOND BRANCH{% else
-              %}THIRD BRANCH{% endif %}</div>
-            <div class="branch-text">{{ branch.get('address', '') | nl2br }}</div>
-            <div class="branch-text" style="margin-top: 2mm;">P : {{ branch.get('phone', phone) }}</div>
-            <div class="branch-text">E : {{ branch.get('email', email) }}</div>
+            <div class="branch-title">{{ branch.get('title', '') | default('MAIN BRANCH' if loop.index == 1 else 'SECOND BRANCH' if loop.index == 2 else 'THIRD BRANCH', true) }}</div>
+            <div class="branch-text">{{ branch.get('branch_name', branch.get('address', '')) | nl2br }}</div>
+            <div class="branch-text" style="margin-top: 2mm;">P : {{ branch.get('phone') or phone }}</div>
+            <div class="branch-text">E : {{ branch.get('email') or email }}</div>
           </div>
           {% endfor %}
           {% else %}

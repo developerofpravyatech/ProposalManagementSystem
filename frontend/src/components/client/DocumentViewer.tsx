@@ -367,11 +367,19 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
               <h2 className="text-xl font-bold text-slate-900 font-display">Our Work Process</h2>
             </div>
             <Card className="space-y-3 text-sm text-slate-600 bg-white border border-slate-200 shadow-sm">
-              <p><strong>Step 01: Discovery</strong> — Understanding your business goals and requirements.</p>
-              <p><strong>Step 02: Strategy</strong> — Developing a comprehensive project roadmap.</p>
-              <p><strong>Step 03: Design & Development</strong> — Executing with agile sprints and QA checks.</p>
-              <p><strong>Step 04: Testing & Review</strong> — Rigorous testing across devices and scenarios.</p>
-              <p><strong>Step 05: Launch & Support</strong> — Seamless deployment and ongoing support.</p>
+              {(cp.work_process_steps && cp.work_process_steps.length > 0) ? (
+                cp.work_process_steps.map((step, idx) => (
+                  <p key={idx}><strong>Step {String(idx + 1).padStart(2, '0')}: {typeof step === 'object' ? step.title : step}</strong> — {typeof step === 'object' ? step.description : ''}</p>
+                ))
+              ) : (
+                <>
+                  <p><strong>Step 01: Discovery</strong> — Understanding your business goals and requirements.</p>
+                  <p><strong>Step 02: Strategy</strong> — Developing a comprehensive project roadmap.</p>
+                  <p><strong>Step 03: Design & Development</strong> — Executing with agile sprints and QA checks.</p>
+                  <p><strong>Step 04: Testing & Review</strong> — Rigorous testing across devices and scenarios.</p>
+                  <p><strong>Step 05: Launch & Support</strong> — Seamless deployment and ongoing support.</p>
+                </>
+              )}
             </Card>
           </section>
 
@@ -411,7 +419,7 @@ export function DocumentViewer({ proposal, companyProfile, onOpenAcceptModal }) 
               <div className="space-y-1 text-xs text-slate-500">
                 <p><strong>Branch Offices:</strong></p>
                 {branchOffices.map((office, idx) => (
-                  <p key={idx}>{office}</p>
+                  <p key={idx}>{office.title ? `${office.title}: ` : ''}{office.name}</p>
                 ))}
               </div>
               <div className="space-y-1 text-xs text-slate-500">

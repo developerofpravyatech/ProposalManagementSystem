@@ -65,6 +65,15 @@ lerna-debug.log*
 .cache/
 .parcel-cache/
 
+# Local database/debug/test artifacts
+check_columns.py
+check_db4.py
+login.json
+profile_update.json
+test_image.png
+test_template.py
+test_upload.py
+
 node_modules
 pnpm-lock.yaml
 bun.lock

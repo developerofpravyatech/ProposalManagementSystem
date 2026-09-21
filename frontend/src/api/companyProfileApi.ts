@@ -36,8 +36,8 @@ function normalizeRelationalData(profile: any) {
   }
   if (profile.branch_offices_rel && profile.branch_offices_rel.length > 0) {
     profile.branch_offices = profile.branch_offices_rel.map((o: any) => ({
+      title: o.title,
       name: o.name,
-      logo: o.logo,
     }));
   }
   if (profile.work_process_steps_rel && profile.work_process_steps_rel.length > 0) {
@@ -109,7 +109,8 @@ export const companyProfileApi = {
 
   async getPublicCompanyProfile() {
     // Always hit the API - no localStorage fallback
-    return await apiRequest('/public/proposals/company-profile/full');
+    const profile = await apiRequest('/public/proposals/company-profile/full');
+    return normalizeRelationalData(profile);
   },
 
   async generatePdf() {

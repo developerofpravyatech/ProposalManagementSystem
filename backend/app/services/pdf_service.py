@@ -274,6 +274,7 @@ def _normalize_branches_rel(branches_rel: list) -> list[dict[str, Any]]:
     result = []
     for index, office in enumerate(branches_rel, 1):
         result.append({
+            "title": str(getattr(office, "title", "")),
             "branch_name": str(getattr(office, "name", f"BRANCH {index:02d}")),
             "address": "",
             "phone": "",
@@ -669,22 +670,23 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
             "logo": _logo_path_to_base64(c.logo) if c.logo else None
         })
 
-    # Branches – use relational data
+    # Branches – use relational data with global phone/email fallback
     branches = []
     for o in getattr(cp, "branch_offices_rel", []):
         branches.append({
-            "branch_name": o.name,
-            "address": "",
-            "phone": "",
-            "email": "",
-            "website": ""
+            "title": str(getattr(o, "title", "")),
+            "branch_name": str(getattr(o, "name", "")),
+            "address": str(getattr(o, "name", "")),
+            "phone": str(getattr(cp, "phone", "") or ""),
+            "email": str(getattr(cp, "email", "") or ""),
+            "website": str(getattr(o, "website", "") or ""),
         })
 
     # Work Process - use relational data
     process_steps = []
     for step in getattr(cp, "work_process_steps_rel", []):
         process_steps.append({
-            "title": step.title,
+            "title": step.title or "",
             "description": step.description or "",
             "icon": step.icon or "",
         })
@@ -764,8 +766,11 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         total_pages += 1
     total_pages += 1  # branches/closing
 
-    positioning = getattr(cp, "tagline", None) or tagline
-    closing_statement = "Take your business to the next level."
+    # Positioning - use tagline
+    positioning = str(getattr(cp, "tagline", None) or tagline)
+
+    # Closing statement - use footer_tagline from company settings if available
+    closing_statement = str(getattr(cp, "footer_tagline", None) or "Take your business to the next level.")
 
     now = datetime.now()
     current_date = now.strftime("%d/%m/%Y")
@@ -814,6 +819,8 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         cover_letter_salutation=cover_letter_salutation,
         cover_letter_paragraphs=cover_letter_paragraphs,
         cover_letter_signoff=cover_letter_signoff,
+        cover_letter_signature_name=getattr(cp, "cover_letter_signature_name", None) or sales_head_name,
+        cover_letter_signature_designation=getattr(cp, "cover_letter_signature_designation", None) or sales_head_title,
         profile_paragraphs=profile_paragraphs,
         process_steps=process_steps,
         quote_acceptance_message=quote_acceptance_message,

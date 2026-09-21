@@ -81,6 +81,7 @@ class InternationalClientRead(InternationalClientBase):
 
 
 class BranchOfficeBase(BaseModel):
+    title: str = Field(..., max_length=255)
     name: str = Field(..., max_length=255)
     sort_order: int = 0
 
@@ -96,7 +97,7 @@ class BranchOfficeRead(BranchOfficeBase):
 
 class WorkProcessStepBase(BaseModel):
     icon: Optional[str] = None
-    title: str = Field(..., max_length=255)
+    title: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
     sort_order: int = 0
 
@@ -304,6 +305,14 @@ class CompanyProfileRead(CompanyProfileBase):
                 {"title": sow.heading, "description": sow.description}
                 for sow in self.statement_of_work_rel
             ]
+        if not self.work_process_steps and self.work_process_steps_rel:
+            self.work_process_steps = [
+                {"icon": s.icon, "title": s.title, "description": s.description}
+                for s in self.work_process_steps_rel
+            ]
+        if not self.signatures and self.signatures_rel:
+            self.cover_letter_signature_image = self.signatures_rel[0].image_data
+            self.signatures = [{"image_data": s.image_data} for s in self.signatures_rel]
         return self
 
 

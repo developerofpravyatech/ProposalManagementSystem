@@ -143,10 +143,10 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
 .pay-upi-value { font-size: 13pt; font-weight: 800; color: var(--dark); margin-top: 2mm; }
 .pay-upi-note { font-size: 7.6pt; color: var(--muted); margin-top: 2mm; }
 .bank-card { background: var(--light); border: 0.35mm solid var(--line); border-radius: 2.5mm; padding: 4.5mm 5mm; margin-top: 5mm; }
-.payment-table { width: 100%; border-collapse: collapse; }
-.payment-table td { padding: 1.8mm 2mm; border-bottom: 0.3mm solid var(--line); font-size: 8.4pt; }
-.payment-table tr:last-child td { border-bottom: none; }
-.payment-table td:first-child { font-weight: 700; width: 40%; color: var(--dark); }
+.payment-table { width: 100%; border-collapse: collapse; border: 0.3mm solid var(--dark); }
+    .payment-table td { padding: 1.8mm 2mm; border: 0.3mm solid var(--dark); font-size: 8.4pt; }
+    .payment-table tr:last-child td { border-bottom: 0.3mm solid var(--dark); }
+    .payment-table td:first-child { font-weight: 700; width: 40%; color: var(--dark); }
 .pay-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 5mm; margin-top: 6mm; }
 /* ================= PAGE 11 : ACCEPTANCE ================= */
 .accept-confirm { background: #F0FDF4; border: 0.35mm solid #BBF7D0; border-radius: 2.5mm; padding: 5mm; }
@@ -652,8 +652,8 @@ body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: var(
     <div class="grid-3 section-top">
       {% for branch in branches[:3] %}
       <div class="branch-card">
-        <div class="branch-num">Branch {{ '%02d' % loop.index }}</div>
-        <div class="branch-name">{{ branch.get('branch_name', '') }}</div>
+        <div class="branch-num">{{ branch.get('title', '') | default('Branch ' ~ '%02d' % loop.index, true) }}</div>
+        <div class="branch-name">{{ branch.get('branch_name', branch.get('address', '')) }}</div>
         <div class="branch-detail">{{ branch.get('address', '') | nl2br }}</div>
         {% if branch.get('phone') %}<div class="branch-muted">{{ branch.get('phone') }}</div>{% endif %}
         {% if branch.get('email') %}<div class="branch-muted">{{ branch.get('email') }}</div>{% endif %}

@@ -22,8 +22,8 @@ interface CompanyProfile {
   bni_clients?: Array<string | { name: string; logo?: string }>;
   regional_clients?: Array<string | { name: string; logo?: string }>;
   international_clients?: Array<string | { name: string; logo?: string }>;
-  branch_offices?: Array<string | { name: string; logo?: string }>;
-  work_process_steps?: Array<{ icon?: string; title: string; description?: string }>;
+  branch_offices?: Array<{ title: string; name: string }>;
+  work_process_steps?: Array<{ icon?: string; title?: string; description?: string }>;
   logo_data?: string;
   logo_url?: string;
   qr_code?: string;
@@ -285,10 +285,6 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
           <Button type="button" variant="primary" size="sm" icon={Plus} iconOnly onClick={addItem} />
         </div>
       </div>
-      {localError && (
-        <p className="text-xs text-rose-600 font-medium -mt-1">{localError}</p>
-      )}
-
       {/* Items List */}
       {items.length > 0 && (
         <div className="space-y-2">
@@ -347,7 +343,9 @@ function KeyValueArrayField({ label, items, onChange, placeholder = 'Enter title
   );
 }
 
-function WorkProcessField({ label, items, onChange, error }: { label: string; items: Array<{ icon?: string; title: string; description?: string }>; onChange: (items: Array<{ icon?: string; title: string; description?: string }>) => void; error?: string }) {
+function BranchOfficeArrayField({ label, items, onChange, error, fieldType = 'branch office' }: { label: string; items: Array<{ title: string; name: string }>; onChange: (items: Array<{ title: string; name: string }>) => void; error?: string; fieldType?: string }) {
+  const [titleValue, setTitleValue] = useState('');
+  const [nameValue, setNameValue] = useState('');
   const [localError, setLocalError] = useState('');
   const [errorIndices, setErrorIndices] = useState<Set<number>>(new Set());
   const errorRef = useRef<HTMLDivElement>(null);
@@ -359,17 +357,143 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
   }, [localError]);
 
   const addItem = () => {
-    // Check if any existing step is not filled
     const emptyIndices = items.map((item, i) => {
-      return !item.title?.trim() || !item.description?.trim() ? i : -1;
+      const titleEmpty = !item.title || !item.title.trim();
+      const nameEmpty = !item.name || !item.name.trim();
+      return titleEmpty || nameEmpty ? i : -1;
     }).filter(i => i !== -1);
     if (emptyIndices.length > 0) {
       setErrorIndices(new Set(emptyIndices));
       setLocalError('Please fill the details in added box first');
       return;
     }
-    const stepNum = items.length + 1;
-    onChange([...items, { title: `Step ${stepNum}`, description: '', icon: undefined }]);
+    if (titleValue.trim() && nameValue.trim()) {
+      onChange([...items, { title: titleValue.trim(), name: nameValue.trim() }]);
+      setTitleValue('');
+      setNameValue('');
+      setLocalError('');
+      setErrorIndices(new Set());
+    } else {
+      setLocalError(`Please add both title and ${fieldType} name`);
+    }
+  };
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+    setErrorIndices(prev => {
+      const next = new Set(prev);
+      next.delete(index);
+      return next;
+    });
+  };
+
+  const updateItem = (index: number, field: string, value: any) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    onChange(newItems);
+    if (value && value.trim()) {
+      setErrorIndices(prev => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
+
+      {/* Add Row */}
+      <div className="flex flex-col sm:flex-row gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+        <div className="flex-1 min-w-0">
+          <Input
+            placeholder="Title (e.g. Head Office, Branch Office)"
+            value={titleValue}
+            onChange={(e) => { setTitleValue(e.target.value); setLocalError(''); }}
+            className="w-full"
+            error={localError || error}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <Input
+            placeholder="Address / Name"
+            value={nameValue}
+            onChange={(e) => { setNameValue(e.target.value); setLocalError(''); }}
+            className="w-full"
+            error={error}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="primary" size="sm" icon={Plus} iconOnly onClick={addItem} />
+        </div>
+      </div>
+      {/* Items List */}
+      {items.length > 0 && (
+        <div className="space-y-2">
+          {items.map((item, idx) => {
+            const isLast = idx === items.length - 1;
+            const hasError = errorIndices.has(idx);
+            return (
+              <div key={idx} ref={isLast ? errorRef : null} className={`p-4 rounded-xl bg-white border shadow-sm transition-all ${hasError ? 'border-rose-400 shadow-rose-500/10' : 'border-slate-200 hover:border-slate-300 hover:shadow-md'}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Input
+                      value={item.title}
+                      onChange={(e) => updateItem(idx, 'title', e.target.value)}
+                      placeholder="Title (e.g. Head Office, Branch Office)"
+                      className="max-w-md"
+                      error={hasError && !item.title?.trim() ? 'Title is required' : undefined}
+                    />
+                    <Input
+                      value={item.name}
+                      onChange={(e) => updateItem(idx, 'name', e.target.value)}
+                      placeholder="Address / Name"
+                      className="max-w-md"
+                      error={hasError && !item.name?.trim() ? 'Name is required' : undefined}
+                    />
+                  </div>
+                  <div className="flex items-start gap-2 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => removeItem(idx)}
+                      className="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-all mt-0.5"
+                      title="Remove"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WorkProcessField({ label, items, onChange, error }: { label: string; items: Array<{ icon?: string; title?: string; description?: string }>; onChange: (items: Array<{ icon?: string; title?: string; description?: string }>) => void; error?: string }) {
+  const [localError, setLocalError] = useState('');
+  const [errorIndices, setErrorIndices] = useState<Set<number>>(new Set());
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (localError && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [localError]);
+
+  const addItem = () => {
+    const emptyIndices = items.map((item, i) => {
+      return !item.description?.trim() ? i : -1;
+    }).filter(i => i !== -1);
+    if (emptyIndices.length > 0) {
+      setErrorIndices(new Set(emptyIndices));
+      setLocalError('Please fill the details in added box first');
+      return;
+    }
+    onChange([...items, { description: '', icon: undefined }]);
     setLocalError('');
     setErrorIndices(new Set());
   };
@@ -413,12 +537,6 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
                     onChange={(icon) => updateItem(idx, 'icon', icon)}
                     showLabel={false}
                   />
-                  <Input
-                    value={item.title || ''}
-                    onChange={(e) => updateItem(idx, 'title', e.target.value)}
-                    placeholder={`Step ${idx + 1} title`}
-                    error={errorIndices.has(idx) && !item.title?.trim() ? 'Title is required' : undefined}
-                  />
                 </div>
                 <button
                   type="button"
@@ -439,9 +557,6 @@ function WorkProcessField({ label, items, onChange, error }: { label: string; it
             </div>
           ))}
         </div>
-      )}
-      {localError && items.length === 0 && (
-        <p className="text-xs text-rose-600 font-medium">{localError}</p>
       )}
     </div>
   );
@@ -592,9 +707,6 @@ function ArrayField({ label, items, onChange, placeholder = 'Enter item...', sho
             );
           })}
         </div>
-      )}
-      {localError && items.length === 0 && (
-        <p className="text-xs text-rose-600 font-medium">{localError}</p>
       )}
     </div>
   );
@@ -885,21 +997,30 @@ export function CompanySettingsPage() {
         if (item.description && item.description.length > 500) {
           return `${name === 'core_values' ? 'Core value' : 'Service'} ${i + 1}: Description must be less than 500 characters`;
         }
-      } else if (name === 'bni_clients' || name === 'regional_clients' || name === 'international_clients' || name === 'branch_offices') {
+      } else if (name === 'bni_clients' || name === 'regional_clients' || name === 'international_clients') {
         const itemName = typeof item === 'string' ? item : item.name;
         if (!itemName || !itemName.trim()) {
-          return `${name === 'bni_clients' ? 'BNI client' : name === 'regional_clients' ? 'Regional client' : name === 'international_clients' ? 'International client' : 'Branch office'} ${i + 1}: Name is required`;
+          return `${name === 'bni_clients' ? 'BNI client' : name === 'regional_clients' ? 'Regional client' : 'International client'} ${i + 1}: Name is required`;
         }
         if (itemName.trim().length > 100) {
-          return `${name === 'bni_clients' ? 'BNI client' : name === 'regional_clients' ? 'Regional client' : name === 'international_clients' ? 'International client' : 'Branch office'} ${i + 1}: Name must be less than 100 characters`;
+          return `${name === 'bni_clients' ? 'BNI client' : name === 'regional_clients' ? 'Regional client' : 'International client'} ${i + 1}: Name must be less than 100 characters`;
+        }
+      } else if (name === 'branch_offices') {
+        const itemTitle = typeof item === 'string' ? '' : item.title;
+        const itemName = typeof item === 'string' ? item : item.name;
+        if (!itemTitle || !itemTitle.trim()) {
+          return `Branch office ${i + 1}: Title is required`;
+        }
+        if (itemTitle.trim().length > 100) {
+          return `Branch office ${i + 1}: Title must be less than 100 characters`;
+        }
+        if (!itemName || !itemName.trim()) {
+          return `Branch office ${i + 1}: Name is required`;
+        }
+        if (itemName.trim().length > 100) {
+          return `Branch office ${i + 1}: Name must be less than 100 characters`;
         }
       } else if (name === 'work_process_steps') {
-        if (!item.title || !item.title.trim()) {
-          return `Work process step ${i + 1}: Title is required`;
-        }
-        if (item.title.trim().length > 100) {
-          return `Work process step ${i + 1}: Title must be less than 100 characters`;
-        }
         if (item.description && item.description.length > 500) {
           return `Work process step ${i + 1}: Description must be less than 500 characters`;
         }
@@ -1375,13 +1496,10 @@ export function CompanySettingsPage() {
               Branch Offices
             </h2>
           </div>
-          <ArrayField
+          <BranchOfficeArrayField
             label="Branch Offices"
             items={profile.branch_offices || []}
             onChange={(val) => handleInputChange('branch_offices', val)}
-            placeholder="e.g. Rajkot - 150ft Rd, Gujarat, India"
-            showLogo={false}
-            fieldType="branch office name"
             error={errors.branch_offices && (touched.has('branch_offices') || submitAttempted) ? errors.branch_offices : undefined}
           />
         </Card>
