@@ -41,7 +41,7 @@
   .logo.light img.logo-img{max-height:22mm;max-width:82mm;object-fit:contain;display:inline-block}
 
   /* ---------- Page 1 cover ---------- */
-  .cover .tagline{left:19mm;top:22.5mm;width:92mm;font-size:5.1mm;font-weight:700;line-height:1.3;color:var(--ink)}
+  .cover .tagline{left:19mm;top:22.5mm;width:85mm;font-size:5.1mm;font-weight:700;line-height:1.3;color:var(--ink)}
   .cover .logo{position:absolute;left:117mm;top:20mm;width:82mm}
   .cover .logo .word{font-size:12.6mm}
   .cover .logo .tag{font-size:2.6mm;letter-spacing:1.95mm}
@@ -74,7 +74,7 @@
   .vision .values h3{font-size:5.6mm;font-weight:900;margin-bottom:6mm}
   .vision .values h3 span{color:var(--red)}
   .vision .vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}
-  .vision .vcard{color:#231f20;padding:6mm 4mm;text-align:center;font-size:4.2mm;font-weight:700;line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5mm;min-height:22mm}
+  .vision .vcard{color:#231f20;padding:6mm 4mm;text-align:center;font-size:4.2mm;font-weight:700;line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5mm;min-height:22mm;background:transparent}
   .vision .vcard svg{width:11mm;height:11mm;stroke:var(--red-logo);fill:none;stroke-width:1.6}
   .vision .vcard img{width:11mm;height:11mm;object-fit:contain}
   .vision .side{position:absolute;right:0;top:0;width:14mm;height:100%;background:var(--navy)}
@@ -93,6 +93,8 @@
   .services .box ul{list-style:none}
   .services .box li{font-size:3.9mm;line-height:1.55;padding-left:4.5mm;position:relative}
   .services .box li::before{content:"";position:absolute;left:0;top:2.4mm;width:1.6mm;height:1.6mm;background:var(--red);border-radius:50%}
+  .services .box .icon{width:16mm;height:16mm;margin-bottom:3mm}
+  .services .box .icon img{width:100%;height:100%;object-fit:contain}
   .services .foot{position:absolute;left:0;bottom:0;width:100%;height:12mm;background:var(--navy)}
   .services .foot::before{content:"";position:absolute;left:0;top:0;width:100%;height:2mm;background:var(--red)}
 
@@ -109,6 +111,21 @@
   .process .txt p{font-size:3.9mm;line-height:1.5;color:#333}
   .process .foot{position:absolute;left:0;bottom:0;width:100%;height:12mm;background:var(--navy)}
   .process .foot::before{content:"";position:absolute;left:0;top:0;width:100%;height:2mm;background:var(--red)}
+
+  /* New process layout - left/right split with grey column */
+  .process-new{position:absolute;left:0;top:0;width:100%;height:100%;display:flex}
+  .process-new .left{width:50%;background:#f5f5f5;padding:24mm 19mm 19mm 19mm;display:flex;flex-direction:column;justify-content:space-between}
+  .process-new .left-upper h2{font-size:9mm;font-weight:900;line-height:1.1;color:var(--red);margin-bottom:4mm}
+  .process-new .left-upper p{font-size:4.2mm;line-height:1.45;font-weight:700;color:#222}
+  .process-new .left-lower{font-size:7mm;font-weight:700;line-height:1.3;color:#222;text-transform:uppercase}
+  .process-new .right{width:50%;padding:24mm 19mm 19mm 19mm}
+  .process-new .right .step{display:flex;gap:6mm;align-items:flex-start;margin-bottom:14mm}
+  .process-new .right .step-icon{flex:0 0 16mm;width:16mm;height:16mm}
+  .process-new .right .step-icon img{width:100%;height:100%;object-fit:contain}
+  .process-new .right .step-content{flex:1}
+  .process-new .right .step-num{font-size:5.4mm;font-weight:900;color:var(--red);margin-bottom:1.5mm}
+  .process-new .right .step-title{font-size:5.4mm;font-weight:900;color:#222;margin-bottom:1.5mm}
+  .process-new .right .step-desc{font-size:3.9mm;line-height:1.5;color:#333}
 
   /* ---------- Page 6/7/8 clients ---------- */
   .clients h2{position:absolute;left:18.5mm;top:27mm;font-size:9.6mm;line-height:1.15;font-weight:900;color:var(--ink)}
@@ -316,6 +333,9 @@
   <div class="grid">
     {% for s in services %}
     <div class="box {% if loop.index0 % 4 in (0, 3) %}r{% endif %}">
+      {% if s.logo %}
+      <div class="icon"><img src="{{ s.logo }}" alt="{{ s.title }}"></div>
+      {% endif %}
       <h3>{{ s.title }}</h3>
       <ul>
         {% for item in s['items'] %}<li>{{ item }}</li>{% endfor %}
@@ -329,15 +349,32 @@
 
 <!-- ================= PAGE 5 : WORK PROCESS ================= -->
 <section class="page process">
-  <div class="head">
-    <h2>{{ process_heading }}</h2>
-  </div>
-  <div class="lead">{{ process_lead }}</div>
-
-  <div class="steps">
-    {% for step in process_steps %}
-    <div class="step"><div class="dot">{{ "%02d"|format(loop.index) }}</div><div class="txt"><h3>{{ step.title }}</h3><p>{{ step.description }}</p></div></div>
-    {% endfor %}
+  <div class="process-new">
+    <div class="left">
+      <div class="left-upper">
+        <h2>Our work process</h2>
+        <p>From very first<br>touch point to<br>launch and beyond</p>
+      </div>
+      <div class="left-lower">
+        We work with<br>client to<br>develop the<br>right strategy<br>from the very<br>first stage to<br>last stage...
+      </div>
+    </div>
+    <div class="right">
+      {% for step in process_steps %}
+      <div class="step">
+        {% if step.icon %}
+        <div class="step-icon"><img src="{{ step.icon }}" alt="{{ step.title }}"></div>
+        {% else %}
+        <div class="step-icon"></div>
+        {% endif %}
+        <div class="step-content">
+          <div class="step-num">Step - {{ "%02d"|format(loop.index) }}</div>
+          <div class="step-title">{{ step.title }}</div>
+          <div class="step-desc">{{ step.description }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
   </div>
   <div class="foot"></div>
   <div class="pno" style="bottom:15mm">{{ page_process }}</div>

@@ -18,6 +18,7 @@ import logging
 import uuid
 import base64
 from datetime import datetime, timezone
+from pathlib import Path
 
 
 router = APIRouter(prefix="/company-profile", tags=["company-profile"])
@@ -26,6 +27,9 @@ logger = logging.getLogger(__name__)
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
 SIGNATURE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 MAX_FILE_SIZE = 2 * 1024 * 1024  # 2MB
+
+UPLOAD_DIR = Path(settings.UPLOAD_DIR or "./uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def validate_file(file: UploadFile, allowed_extensions: set[str] = ALLOWED_EXTENSIONS) -> None:
@@ -173,11 +177,18 @@ async def upload_item_logo(
     file: UploadFile = File(...),
     current_admin=Depends(get_current_admin),
 ):
-    """Return an uploaded item logo as a base64 data URL without changing the company logo"""
+    """Save uploaded item logo to uploads directory and return relative path for PDF rendering"""
     validate_file(file)
     content = await file.read()
+
+    ext = os.path.splitext(file.filename.lower())[1]
+    unique_filename = f"{uuid.uuid4().hex}{ext}"
+    file_path = UPLOAD_DIR / unique_filename
+    file_path.write_bytes(content)
+
+    relative_path = f"uploads/{unique_filename}"
     return {
-        "url": encode_image(file, content),
+        "url": relative_path,
         "filename": file.filename,
         "stored_in_db": False,
     }

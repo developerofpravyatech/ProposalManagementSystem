@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 import qrcode
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -30,23 +31,32 @@ TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
 
 
 def _logo_path_to_base64(logo_path: str | None) -> str:
-    """Convert a logo path (e.g., '/uploads/abc.png') to a base64 data URL for PDF rendering."""
+    """Convert an image path to a base64 data URL for PDF rendering."""
     if not logo_path:
         return ""
-    # If it's already a data URL, return as-is
-    if logo_path.startswith("data:"):
-        return logo_path
-    # If it's an HTTP/HTTPS URL, return as-is (browser can fetch it)
-    if logo_path.startswith("http://") or logo_path.startswith("https://"):
-        return logo_path
-    # If it's a /uploads/ path, convert to base64
-    if logo_path.startswith("/uploads/"):
-        filename = logo_path.split("/uploads/")[-1]
-        file_path = UPLOAD_DIR / filename
-        if file_path.exists():
+
+    value = str(logo_path).strip()
+    if value.startswith("data:") or value.startswith("http://") or value.startswith("https://"):
+        return value
+
+    normalized_path = value.replace("\\", "/")
+    filename = None
+    for prefix in ("uploads/", "/uploads/", "./uploads/", "../uploads/"):
+        if normalized_path.startswith(prefix):
+            filename = normalized_path[len(prefix) :]
+            break
+    if filename is None and "/uploads/" in normalized_path:
+        filename = normalized_path.rsplit("/uploads/", 1)[-1]
+    if filename is None and "/" not in normalized_path:
+        filename = normalized_path
+
+    if filename:
+        filename = unquote(filename.split("?", 1)[0].split("#", 1)[0])
+        file_path = (UPLOAD_DIR / filename).resolve()
+        upload_root = UPLOAD_DIR.resolve()
+        if file_path.is_file() and (file_path == upload_root or upload_root in file_path.parents):
             try:
-                with open(file_path, "rb") as f:
-                    data = f.read()
+                data = file_path.read_bytes()
                 mime_type = "image/png"
                 if filename.lower().endswith((".jpg", ".jpeg")):
                     mime_type = "image/jpeg"
@@ -54,11 +64,102 @@ def _logo_path_to_base64(logo_path: str | None) -> str:
                     mime_type = "image/svg+xml"
                 elif filename.lower().endswith(".webp"):
                     mime_type = "image/webp"
+                elif filename.lower().endswith(".gif"):
+                    mime_type = "image/gif"
                 b64 = base64.b64encode(data).decode("utf-8")
                 return f"data:{mime_type};base64,{b64}"
             except Exception:
                 pass
-    return logo_path
+    return value
+
+
+LUCIDE_ICON_PATHS: dict[str, str] = {
+    "Sparkles": '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>',
+    "Target": '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    "Heart": '<path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>',
+    "Award": '<path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/>',
+    "Gem": '<path d="M10.5 3 8 9l4 13 4-13-2.5-6"/>',
+    "Star": '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
+    "Cpu": '<path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/>',
+    "Code": '<path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/>',
+    "Globe": '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    "Building2": '<path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/>',
+    "Landmark": '<path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/>',
+    "Users": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>',
+    "Briefcase": '<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+    "FileText": '<path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+    "MapPin": '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+    "Home": '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>',
+    "BarChart3": '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+    "Megaphone": '<path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>',
+    "LayoutDashboard": '<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>',
+    "Zap": '<path d="M15.914 4a1.5 1.5 0 0 0-2.474-1.561l-9 9A1.5 1.5 0 0 0 5.5 14h4.002a.5.5 0 0 1 .471.666L8.086 20a1.5 1.5 0 0 0 2.475 1.56l9-9A1.5 1.5 0 0 0 18.5 10h-3.997a.5.5 0 0 1-.472-.667z"/>',
+    "Settings": '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/>',
+    "BookOpen": '<path d="M12 5v16"/>',
+    "Clipboard": '<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>',
+    "ScrollText": '<path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/>',
+    "FileCheck": '<path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m9 15 2 2 4-4"/>',
+    "CheckCircle": '<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>',
+    "Clock": '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    "Calendar": '<path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>',
+    "CreditCard": '<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+    "Wallet": '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>',
+    "Banknote": '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+    "Receipt": '<path d="M12 17V7"/><path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8"/>',
+    "Shield": '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+    "UserCheck": '<path d="m16 11 2 2 4-4"/><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
+    "Lightbulb": '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>',
+    "Layers": '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/>',
+    "Send": '<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/>',
+    "Download": '<path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/>',
+    "Paintbrush": '<path d="m14.622 17.897-10.68-2.913"/>',
+    "Palette": '<path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="#C81D31"/><circle cx="17.5" cy="10.5" r=".5" fill="#C81D31"/><circle cx="6.5" cy="12.5" r=".5" fill="#C81D31"/><circle cx="8.5" cy="7.5" r=".5" fill="#C81D31"/>',
+    "Edit3": '<path d="M13 21h8"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+    "Bell": '<path d="M10.268 21a2 2 0 0 0 3.464 0"/>',
+    "Info": '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    "Lock": '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    "HelpCircle": '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>',
+    "AlertCircle": '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+}
+
+_PRIMARY_COLOR = "#C81D31"
+
+
+def _lucide_icon_to_data_url(icon_name: str) -> str:
+    """Convert a Lucide icon name to a base64-encoded SVG data URL."""
+    paths = LUCIDE_ICON_PATHS.get(icon_name)
+    if not paths:
+        return ""
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" '
+        f'viewBox="0 0 24 24" fill="none" stroke="{_PRIMARY_COLOR}" '
+        f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        f'{paths}</svg>'
+    )
+    encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+    return f"data:image/svg+xml;base64,{encoded}"
+
+
+def _resolve_icon(icon_value: str | None) -> str:
+    """Resolve a Lucide name or image value to a PDF-safe image source."""
+    if not icon_value:
+        return ""
+
+    value = str(icon_value).strip()
+    if not value:
+        return ""
+    if value.startswith("data:") or value.startswith("http://") or value.startswith("https://"):
+        return value
+
+    icon_name = next((name for name in LUCIDE_ICON_PATHS if name.lower() == value.lower()), None)
+    if icon_name:
+        return _lucide_icon_to_data_url(icon_name)
+
+    resolved = _logo_path_to_base64(value)
+    if resolved != value:
+        return resolved
+    return _lucide_icon_to_data_url("FileText")
+
 
 REFERENCE_CONTENT = {
     "cover": {
@@ -432,12 +533,18 @@ def _build_content(proposal: Proposal, company_profile: CompanyProfile | None) -
                 "number": f"{i + 1:02d}",
                 "title": step.title,
                 "description": step.description or "",
-                "icon": step.icon or "",
+                "icon": _resolve_icon(step.icon) if step.icon else "",
             }
             for i, step in enumerate(company_profile.work_process_steps_rel[:5])
         ]
     else:
         process_data.setdefault("steps", copy.deepcopy(REFERENCE_CONTENT["process"]["steps"]))
+
+    process_data["steps"] = [
+        {**step, "icon": _resolve_icon(step.get("icon"))}
+        for step in _as_list(process_data.get("steps"))
+        if isinstance(step, dict)
+    ]
 
     clients_data = content.setdefault("clients", {})
     if getattr(company_profile, "bni_clients_rel", None):
@@ -711,7 +818,7 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         process_steps.append({
             "title": step.title or "",
             "description": step.description or "",
-            "icon": step.icon or "",
+            "icon": _resolve_icon(step.icon) if step.icon else "",
         })
 
     # Profile paragraphs - use saved content
@@ -842,27 +949,32 @@ def render_company_profile_pdf(company_profile: CompanyProfile | None, filepath:
         services_boxes.append({
             "title": s.get("title", ""),
             "items": _text_items(s.get("description")),
+            "logo": s.get("logo", ""),
         })
     if not services_boxes:
         services_boxes = [
-            {"title": "Website Designing", "items": ["Wordpress UI / UX", "Mobile App UI / UX", "E-Commerce UI / UX", "Custom Application Design"]},
-            {"title": "Research & Analysis", "items": ["Website Analytics", "Mobile App Analytics"]},
-            {"title": "Design & Illustration", "items": ["Wordpress Development", "Mobile App Development", "E-Commerce Development", "Custom Application Design"]},
-            {"title": "Content Marketing", "items": ["Social Media Marketing", "Email Marketing", "Whatsapp Chatbot"]},
+            {"title": "Website Designing", "items": ["Wordpress UI / UX", "Mobile App UI / UX", "E-Commerce UI / UX", "Custom Application Design"], "logo": ""},
+            {"title": "Research & Analysis", "items": ["Website Analytics", "Mobile App Analytics"], "logo": ""},
+            {"title": "Design & Illustration", "items": ["Wordpress Development", "Mobile App Development", "E-Commerce Development", "Custom Application Design"], "logo": ""},
+            {"title": "Content Marketing", "items": ["Social Media Marketing", "Email Marketing", "Whatsapp Chatbot"], "logo": ""},
         ]
 
     # Work process steps (capped at 5 to fit the page)
     process_steps_normalized = []
     for i, step in enumerate(process_steps[:5]):
         title = str(step.get("title") or "").strip() or f"Step - {i + 1:02d}"
-        process_steps_normalized.append({"title": title, "description": str(step.get("description") or "")})
+        process_steps_normalized.append({
+            "title": title,
+            "description": str(step.get("description") or ""),
+            "icon": step.get("icon", ""),
+        })
     if not process_steps_normalized:
         process_steps_normalized = [
-            {"title": "Step - 01", "description": "Initial meeting / Project / Discussion / Assessment / Agreement"},
-            {"title": "Step - 02", "description": "Research / Project Outline / Wireframe / Artwork / Revisions"},
-            {"title": "Step - 03", "description": "Coding / Development / Validation / Cross Platform Testing"},
-            {"title": "Step - 04", "description": "Implementation / Content Placement / Optimization / Testing"},
-            {"title": "Step - 05", "description": "Final Refinement / Deployment / Maintenance / Training / Support"},
+            {"title": "Step - 01", "description": "Initial meeting / Project / Discussion / Assessment / Agreement", "icon": ""},
+            {"title": "Step - 02", "description": "Research / Project Outline / Wireframe / Artwork / Revisions", "icon": ""},
+            {"title": "Step - 03", "description": "Coding / Development / Validation / Cross Platform Testing", "icon": ""},
+            {"title": "Step - 04", "description": "Implementation / Content Placement / Optimization / Testing", "icon": ""},
+            {"title": "Step - 05", "description": "Final Refinement / Deployment / Maintenance / Training / Support", "icon": ""},
         ]
 
     # Statement of work & contract terms cells (capped at 6)
