@@ -313,6 +313,16 @@ class CompanyProfileRead(CompanyProfileBase):
         if not self.signatures and self.signatures_rel:
             self.cover_letter_signature_image = self.signatures_rel[0].image_data
             self.signatures = [{"image_data": s.image_data} for s in self.signatures_rel]
+        source = self.payment_method_rel or self.bank_details_rel
+        if source:
+            self.bank_name = source.bank_name
+            self.bank_account_name = source.account_name
+            self.bank_account_number = source.account_number
+            self.bank_ifsc = source.ifsc
+            self.bank_branch = source.branch
+            self.upi_id = source.upi_id
+            self.qr_code = source.qr_code
+            self.swift_code = source.swift_code
         return self
 
 

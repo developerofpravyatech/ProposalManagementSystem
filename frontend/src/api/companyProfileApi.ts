@@ -74,14 +74,14 @@ function normalizeRelationalData(profile: any) {
   }
   if (profile.bank_details_rel) {
     const bd = profile.bank_details_rel;
-    profile.bank_name = bd.bank_name;
-    profile.bank_account_name = bd.account_name;
-    profile.bank_account_number = bd.account_number;
-    profile.bank_ifsc = bd.ifsc;
-    profile.bank_branch = bd.branch;
-    profile.upi_id = bd.upi_id;
-    profile.qr_code = bd.qr_code;
-    profile.swift_code = bd.swift_code;
+    if (bd.bank_name != null) profile.bank_name = bd.bank_name;
+    if (bd.account_name != null) profile.bank_account_name = bd.account_name;
+    if (bd.account_number != null) profile.bank_account_number = bd.account_number;
+    if (bd.ifsc != null) profile.bank_ifsc = bd.ifsc;
+    if (bd.branch != null) profile.bank_branch = bd.branch;
+    if (bd.upi_id != null) profile.upi_id = bd.upi_id;
+    if (bd.qr_code) profile.qr_code = bd.qr_code;
+    if (bd.swift_code != null) profile.swift_code = bd.swift_code;
   }
   return profile;
 }

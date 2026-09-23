@@ -541,12 +541,17 @@ async def update_company_profile(db: AsyncSession, update_data: dict) -> Company
         signature_data = update_data.pop("signature_data")
         if signature_data:
             update_data["signatures"] = [{"image_data": signature_data}]
+        else:
+            update_data["signatures"] = []
 
     # Handle cover_letter_signature_image -> signatures sync
     if "cover_letter_signature_image" in update_data:
         cover_letter_sig = update_data["cover_letter_signature_image"]
         if cover_letter_sig and "signatures" not in update_data:
             update_data["signatures"] = [{"image_data": cover_letter_sig}]
+        elif not cover_letter_sig:
+            # Explicitly cleared - delete existing signatures
+            update_data["signatures"] = []
 
     for key, value in update_data.items():
         if key in {"id", "created_at", "updated_at"}:

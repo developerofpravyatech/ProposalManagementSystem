@@ -129,7 +129,7 @@ export function IconSelector({
         onClose={() => setIsOpen(false)}
         title="Select Icon"
         subtitle={undefined}
-        maxWidth="max-w-3xl"
+        maxWidth="max-w-2xl"
         showClose={false}
       >
         <div className="space-y-3">
@@ -162,11 +162,11 @@ export function IconSelector({
             />
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto overflow-x-auto">
             {filtered.length === 0 && search ? (
               <p className="text-sm text-slate-500 py-8 text-center">No icons found</p>
             ) : search ? (
-              <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1">
                 {filtered.map(name => {
                   const Comp = iconRegistry[name];
                   return (
@@ -187,7 +187,7 @@ export function IconSelector({
                 {Object.entries(iconCategories).map(([category, icons]) => (
                   <div key={category}>
                     <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">{category}</h4>
-                    <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1">
                       {icons.map(name => {
                         const Comp = iconRegistry[name];
                         return (
