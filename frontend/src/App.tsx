@@ -4,6 +4,8 @@ import { useAuth } from './context/AuthContext';
 import { Sidebar } from './components/admin/Sidebar';
 import { Header } from './components/admin/Header';
 import { LoginPage } from './pages/LoginPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProposalsPage } from './pages/ProposalsPage';
 import { ClientsPage } from './pages/ClientsPage';
@@ -81,6 +83,8 @@ export function App() {
 
       {/* Public Admin Auth */}
       <Route path="/admin/login" element={<LoginPage />} />
+      <Route path="/admin/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/admin/signup" element={<SignupPage />} />
 
       {/* Protected Admin Routes */}
       <Route path="admin" element={<AdminLayout />}>

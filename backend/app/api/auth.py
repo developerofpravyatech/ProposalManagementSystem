@@ -8,7 +8,7 @@ import logging
 
 from app.database import get_db
 from app.models.admin import Admin
-from app.schemas.auth import AdminCreate, AdminRead, AdminLogin, Token
+from app.schemas.auth import AdminCreate, AdminRead, AdminLogin, PasswordResetRequest, PasswordResetResponse, Token
 from app.utils.security import create_access_token, create_refresh_token, decode_token, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -48,6 +48,13 @@ async def register(admin_in: AdminCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(admin)
     return admin
+
+
+@router.post("/password-reset/request", response_model=PasswordResetResponse)
+async def request_password_reset(reset_request: PasswordResetRequest):
+    return PasswordResetResponse(
+        detail="If an account exists for this email, password reset instructions will be sent."
+    )
 
 
 @router.post("/login", response_model=Token)

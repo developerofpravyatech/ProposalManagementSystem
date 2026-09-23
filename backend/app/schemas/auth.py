@@ -33,3 +33,11 @@ class AdminRead(AdminBase):
 class AdminLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetResponse(BaseModel):
+    detail: str

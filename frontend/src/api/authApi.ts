@@ -22,6 +22,22 @@ export const authApi = {
     return { ...data, token: accessToken, user };
   },
 
+  async register(fullName, email, password) {
+    const data = await apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ full_name: fullName, email, password }),
+    });
+    return data;
+  },
+
+  async requestPasswordReset(email) {
+    const data = await apiRequest('/auth/password-reset/request', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+    return data;
+  },
+
   async getCurrentUser() {
     try {
       const data = await apiRequest('/auth/me');

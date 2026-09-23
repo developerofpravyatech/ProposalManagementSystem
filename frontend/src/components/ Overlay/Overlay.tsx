@@ -1,0 +1,100 @@
+import React from 'react';
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+  icon?: React.FC<{ className?: string }>;
+  endIcon?: React.FC<{ className?: string }>;
+  onEndIconClick?: () => void;
+}
+
+export function Input({
+  label,
+  error,
+  helperText,
+  icon: Icon,
+  endIcon: EndIcon,
+  onEndIconClick,
+  className = '',
+  id,
+  ...props
+}: InputProps) {
+  const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+
+  return (
+    <div className="w-full space-y-1.5">
+      {label && (
+        <label htmlFor={inputId} className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+          {label}
+        </label>
+      )}
+      <div className="relative rounded-xl shadow-sm">
+        {Icon && (
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <Icon className="w-4 h-4" />
+          </div>
+        )}
+        <input
+          id={inputId}
+          className={`w-full rounded-xl bg-white border px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:outline-none transition-all ${
+            Icon ? 'pl-10' : ''
+          } ${EndIcon ? 'pr-10' : ''} ${
+            error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'
+          } ${className}`}
+          {...props}
+        />
+        {EndIcon && (
+          <div
+            className={`absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 ${
+              onEndIconClick ? 'cursor-pointer hover:text-slate-600' : 'pointer-events-none'
+            }`}
+            onClick={onEndIconClick}
+          >
+            <EndIcon className="w-4 h-4" />
+          </div>
+        )}
+      </div>
+      {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
+      {helperText && !error && <p className="text-xs text-slate-500">{helperText}</p>}
+    </div>
+  );
+}
+
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+}
+
+export function Textarea({
+  label,
+  error,
+  helperText,
+  className = '',
+  id,
+  rows = 3,
+  ...props
+}: TextareaProps) {
+  const textareaId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+
+  return (
+    <div className="w-full space-y-1.5">
+      {label && (
+        <label htmlFor={textareaId} className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+          {label}
+        </label>
+      )}
+      <textarea
+        id={textareaId}
+        rows={rows}
+        className={`w-full rounded-xl bg-white border px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:outline-none transition-all ${
+          error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-300 focus:border-brand-600 focus:ring-brand-600/20'
+        } ${className}`}
+        {...props}
+      />
+      {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
+      {helperText && !error && <p className="text-xs text-slate-500">{helperText}</p>}
+    </div>
+  );
+}
